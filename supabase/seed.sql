@@ -50,7 +50,69 @@ VALUES
     ('20000000-0000-0000-0000-000000000005', '00000000-0000-0000-0000-000000000001', 'CONTACT_ME', 'Contact me', 'يرجى التواصل معي', 'PhoneCall', 5, TRUE)
 ON CONFLICT (organization_id, code) DO NOTHING;
 
--- Insert 30 Staff Profiles (fictional names, Qatari numbers)
+-- Seed Auth Users for Staff Profiles
+INSERT INTO auth.users (
+    id,
+    instance_id,
+    aud,
+    role,
+    email,
+    encrypted_password,
+    email_confirmed_at,
+    raw_app_meta_data,
+    raw_user_meta_data,
+    created_at,
+    updated_at,
+    confirmation_token,
+    recovery_token,
+    email_change_token_new,
+    email_change,
+    email_change_token_current,
+    reauthentication_token,
+    phone_change_token,
+    is_sso_user,
+    is_anonymous
+) VALUES
+    ('30000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'ahmed.hassan@school.edu.qa', extensions.crypt('Password123!', extensions.gen_salt('bf')), NOW(), '{"provider":"email","providers":["email"]}'::jsonb, '{"name":"Ahmed Hassan"}'::jsonb, NOW(), NOW(), '', '', '', '', '', '', '', false, false),
+    ('30000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'khalid.kuwari@school.edu.qa', extensions.crypt('Password123!', extensions.gen_salt('bf')), NOW(), '{"provider":"email","providers":["email"]}'::jsonb, '{"name":"Khalid Al-Kuwari"}'::jsonb, NOW(), NOW(), '', '', '', '', '', '', '', false, false),
+    ('30000000-0000-0000-0000-000000000003', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'mohammed.sulaiti@school.edu.qa', extensions.crypt('Password123!', extensions.gen_salt('bf')), NOW(), '{"provider":"email","providers":["email"]}'::jsonb, '{"name":"Mohammed Al-Sulaiti"}'::jsonb, NOW(), NOW(), '', '', '', '', '', '', '', false, false),
+    ('30000000-0000-0000-0000-000000000004', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'abdullah.marri@school.edu.qa', extensions.crypt('Password123!', extensions.gen_salt('bf')), NOW(), '{"provider":"email","providers":["email"]}'::jsonb, '{"name":"Abdullah Al-Marri"}'::jsonb, NOW(), NOW(), '', '', '', '', '', '', '', false, false),
+    ('30000000-0000-0000-0000-000000000005', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'salem.hajri@school.edu.qa', extensions.crypt('Password123!', extensions.gen_salt('bf')), NOW(), '{"provider":"email","providers":["email"]}'::jsonb, '{"name":"Salem Al-Hajri"}'::jsonb, NOW(), NOW(), '', '', '', '', '', '', '', false, false),
+    ('30000000-0000-0000-0000-000000000006', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'omar.farooq@school.edu.qa', extensions.crypt('Password123!', extensions.gen_salt('bf')), NOW(), '{"provider":"email","providers":["email"]}'::jsonb, '{"name":"Omar Farooq"}'::jsonb, NOW(), NOW(), '', '', '', '', '', '', '', false, false),
+    ('30000000-0000-0000-0000-000000000007', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'hamad.khelaifi@school.edu.qa', extensions.crypt('Password123!', extensions.gen_salt('bf')), NOW(), '{"provider":"email","providers":["email"]}'::jsonb, '{"name":"Hamad Al-Khelaifi"}'::jsonb, NOW(), NOW(), '', '', '', '', '', '', '', false, false),
+    ('30000000-0000-0000-0000-000000000008', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'tariq.mansoor@school.edu.qa', extensions.crypt('Password123!', extensions.gen_salt('bf')), NOW(), '{"provider":"email","providers":["email"]}'::jsonb, '{"name":"Tariq Mansoor"}'::jsonb, NOW(), NOW(), '', '', '', '', '', '', '', false, false),
+    ('30000000-0000-0000-0000-000000000009', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'faisal.nuaimi@school.edu.qa', extensions.crypt('Password123!', extensions.gen_salt('bf')), NOW(), '{"provider":"email","providers":["email"]}'::jsonb, '{"name":"Faisal Al-Nuaimi"}'::jsonb, NOW(), NOW(), '', '', '', '', '', '', '', false, false),
+    ('30000000-0000-0000-0000-000000000010', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'ibrahim.sayed@school.edu.qa', extensions.crypt('Password123!', extensions.gen_salt('bf')), NOW(), '{"provider":"email","providers":["email"]}'::jsonb, '{"name":"Ibrahim Al-Sayed"}'::jsonb, NOW(), NOW(), '', '', '', '', '', '', '', false, false),
+    ('30000000-0000-0000-0000-000000000011', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'ali.dosari@school.edu.qa', extensions.crypt('Password123!', extensions.gen_salt('bf')), NOW(), '{"provider":"email","providers":["email"]}'::jsonb, '{"name":"Ali Al-Dosari"}'::jsonb, NOW(), NOW(), '', '', '', '', '', '', '', false, false),
+    ('30000000-0000-0000-0000-000000000012', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'youssef.mahmoud@school.edu.qa', extensions.crypt('Password123!', extensions.gen_salt('bf')), NOW(), '{"provider":"email","providers":["email"]}'::jsonb, '{"name":"Youssef Mahmoud"}'::jsonb, NOW(), NOW(), '', '', '', '', '', '', '', false, false),
+    ('30000000-0000-0000-0000-000000000013', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'saad.kuwari@school.edu.qa', extensions.crypt('Password123!', extensions.gen_salt('bf')), NOW(), '{"provider":"email","providers":["email"]}'::jsonb, '{"name":"Saad Al-Kuwari"}'::jsonb, NOW(), NOW(), '', '', '', '', '', '', '', false, false),
+    ('30000000-0000-0000-0000-000000000014', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'nasser.kaabi@school.edu.qa', extensions.crypt('Password123!', extensions.gen_salt('bf')), NOW(), '{"provider":"email","providers":["email"]}'::jsonb, '{"name":"Nasser Al-Kaabi"}'::jsonb, NOW(), NOW(), '', '', '', '', '', '', '', false, false),
+    ('30000000-0000-0000-0000-000000000015', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'khamis.subaey@school.edu.qa', extensions.crypt('Password123!', extensions.gen_salt('bf')), NOW(), '{"provider":"email","providers":["email"]}'::jsonb, '{"name":"Khamis Al-Subaey"}'::jsonb, NOW(), NOW(), '', '', '', '', '', '', '', false, false)
+ON CONFLICT (id) DO NOTHING;
+
+-- Seed Auth Identities
+INSERT INTO auth.identities (
+    id,
+    provider_id,
+    user_id,
+    identity_data,
+    provider,
+    created_at,
+    updated_at
+)
+SELECT
+    id,
+    id::text,
+    id,
+    jsonb_build_object('sub', id::text, 'email', email),
+    'email',
+    created_at,
+    updated_at
+FROM auth.users
+WHERE id BETWEEN '30000000-0000-0000-0000-000000000001' AND '30000000-0000-0000-0000-000000000015'
+ON CONFLICT (provider_id, provider) DO NOTHING;
+
+-- Insert Staff Profiles (linked to auth.users)
 INSERT INTO profiles (id, organization_id, employee_id, name_en, name_ar, mobile, department_id, role, preferred_language, is_active)
 VALUES
     -- Admin & Critical test user: Ahmed Hassan
