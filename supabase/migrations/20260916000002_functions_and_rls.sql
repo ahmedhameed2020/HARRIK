@@ -66,12 +66,12 @@ CREATE TRIGGER trg_unknown_normalize
 CREATE OR REPLACE FUNCTION current_user_org_id()
 RETURNS UUID AS $$
     SELECT organization_id FROM profiles WHERE id = auth.uid() LIMIT 1;
-$$ LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public;
+$$ LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public, pg_temp;
 
 CREATE OR REPLACE FUNCTION current_user_role()
 RETURNS TEXT AS $$
     SELECT role FROM profiles WHERE id = auth.uid() LIMIT 1;
-$$ LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public;
+$$ LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public, pg_temp;
 
 -- 3. ROW LEVEL SECURITY (RLS) ENABLEMENT
 ALTER TABLE organizations ENABLE ROW LEVEL SECURITY;
@@ -234,8 +234,7 @@ CREATE POLICY "Admins can update system settings"
 
 -- 5. SECURE PLATE SEARCH RPC: find_vehicle_by_plate
 CREATE OR REPLACE FUNCTION find_vehicle_by_plate(
-    p_query TEXT,
-    p_org_id UUID DEFAULT NULL
+    p_query TEXT
 )
 RETURNS TABLE (
     vehicle_id UUID,
@@ -264,10 +263,14 @@ DECLARE
     v_count INT;
     v_matched_type TEXT := 'none';
 BEGIN
-    -- Determine effective organization ID
-    v_org_id := COALESCE(p_org_id, current_user_org_id());
+    -- 1. Explicit Authentication & Organization derivation
+    IF auth.uid() IS NULL THEN
+        RAISE EXCEPTION 'Unauthorized: Authentication required';
+    END IF;
+
+    v_org_id := current_user_org_id();
     IF v_org_id IS NULL THEN
-        RAISE EXCEPTION 'Unauthorized: Missing organization context';
+        RAISE EXCEPTION 'Unauthorized: User is not associated with an organization';
     END IF;
 
     -- Normalize user input
@@ -378,7 +381,7 @@ BEGIN
     VALUES (v_org_id, auth.uid(), v_norm_query, 'none', 0);
     RETURN;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp;
 
 -- 6. DASHBOARD OVERVIEW RPC: get_dashboard_overview
 CREATE OR REPLACE FUNCTION get_dashboard_overview(
@@ -565,4 +568,21 @@ BEGIN
 
     RETURN v_res;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp;
+
+-- ============================================================================
+-- 7. FUNCTION PRIVILEGES & SECURITY HARDENING
+-- ============================================================================
+-- Revoke public execution on security definer functions to prevent unauthenticated access
+REVOKE EXECUTE ON FUNCTION find_vehicle_by_plate(TEXT) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION find_vehicle_by_plate(TEXT) TO authenticated;
+
+REVOKE EXECUTE ON FUNCTION get_dashboard_overview(TIMESTAMPTZ, TIMESTAMPTZ, TEXT) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION get_dashboard_overview(TIMESTAMPTZ, TIMESTAMPTZ, TEXT) TO authenticated;
+
+REVOKE EXECUTE ON FUNCTION current_user_org_id() FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION current_user_org_id() TO authenticated;
+
+REVOKE EXECUTE ON FUNCTION current_user_role() FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION current_user_role() TO authenticated;
+
