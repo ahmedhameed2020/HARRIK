@@ -61,7 +61,9 @@ export default function PlatformControlCenter() {
 
   const handleStatusChange = async (orgId: string, currentStatus: string) => {
     const nextStatus = currentStatus === "active" ? "suspended" : "active";
-    const confirmMsg = nextStatus === "suspended" 
+    const confirmMsg = currentStatus === "onboarding"
+      ? "Activate this organization and move it from Onboarding to Active Production status?"
+      : nextStatus === "suspended" 
       ? "Are you sure you want to SUSPEND this tenant? Operational access for its users will be blocked immediately."
       : "Reactivate this tenant organization?";
 
@@ -291,13 +293,15 @@ export default function PlatformControlCenter() {
                             onClick={() => handleStatusChange(org.organization_id, org.status)}
                             disabled={updatingId === org.organization_id || isArchived}
                             className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-colors border ${
-                              isSuspended
+                              isOnboarding || isSuspended
                                 ? "bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border-emerald-500/30"
                                 : "bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 border-rose-500/30"
                             } disabled:opacity-50 disabled:cursor-not-allowed`}
                           >
                             {updatingId === org.organization_id
                               ? "Updating..."
+                              : isOnboarding
+                              ? "Activate Tenant"
                               : isSuspended
                               ? "Reactivate"
                               : "Suspend"}
