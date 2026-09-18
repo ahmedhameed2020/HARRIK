@@ -8,7 +8,7 @@ export const translations = {
     brandName: "حَرِّك",
     brandLockup: "حَرِّك | HARRIK",
     tagline: "سيارة حاجزاك؟ حَرِّك يحلها.",
-    descriptor: "نظام التواصل الذكي لمواقف المدرسة",
+    descriptor: "اعرف صاحب المركبة. تواصل. حل المشكلة.",
 
     // Navigation
     navSearch: "البحث",
@@ -62,7 +62,7 @@ export const translations = {
 
     // Unregistered Vehicle
     noResultTitle: "السيارة غير مسجلة في النظام",
-    noResultSubtitle: "لم نعثر على صاحب هذه اللوحة في قاعدة بيانات المدرسة.",
+    noResultSubtitle: "لم نعثر على صاحب هذه اللوحة في قاعدة بيانات المنشأة.",
     tryAgainBtn: "إعادة المحاولة",
     reportUnknownBtn: "الإبلاغ عن سيارة غير معروفة",
     reportUnknownTitle: "تسجيل بلاغ سيارة غير معروفة",
@@ -75,8 +75,8 @@ export const translations = {
 
     // Dashboard & Metrics
     dashboardGreeting: "مساء الخير 👋",
-    dashboardOverviewTitle: "نظرة عامة على مواقف المدرسة",
-    metric_registeredStaff: "الموظفون المسجلون",
+    dashboardOverviewTitle: "نظرة عامة على حركة المواقف",
+    metric_registeredStaff: "الأفراد المسجلون",
     metric_registeredVehicles: "السيارات المسجلة",
     metric_coverage: "نسبة تسجيل السيارات",
     metric_searchesToday: "عمليات البحث اليوم",
@@ -113,7 +113,7 @@ export const translations = {
     brandName: "HARRIK",
     brandLockup: "حَرِّك | HARRIK",
     tagline: "Car blocking you? HARRIK solves it.",
-    descriptor: "Smart School Parking Contact System",
+    descriptor: "Find the vehicle. Reach the right person. Keep things moving.",
 
     // Navigation
     navSearch: "Plate Search",
@@ -167,7 +167,7 @@ export const translations = {
 
     // Unregistered Vehicle
     noResultTitle: "Vehicle Not Registered",
-    noResultSubtitle: "We could not find this plate number in the school database.",
+    noResultSubtitle: "We could not find this plate number in the facility database.",
     tryAgainBtn: "Try Again",
     reportUnknownBtn: "Report Unknown Vehicle",
     reportUnknownTitle: "Report Unregistered Vehicle",
@@ -180,8 +180,8 @@ export const translations = {
 
     // Dashboard & Metrics
     dashboardGreeting: "Good Evening 👋",
-    dashboardOverviewTitle: "School Parking Overview",
-    metric_registeredStaff: "Registered Staff",
+    dashboardOverviewTitle: "Facility Parking Overview",
+    metric_registeredStaff: "Registered Members",
     metric_registeredVehicles: "Registered Vehicles",
     metric_coverage: "Vehicle Coverage",
     metric_searchesToday: "Searches Today",

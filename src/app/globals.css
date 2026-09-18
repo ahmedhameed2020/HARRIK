@@ -1,10 +1,12 @@
+@import "../styles/tokens.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
+    --background: 210 40% 98%;
     --foreground: 222 47% 11%;
     --card: 0 0% 100%;
     --card-foreground: 222 47% 11%;
@@ -16,32 +18,32 @@
     --secondary-foreground: 222 47% 11.2%;
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222 47% 11.2%;
+    --accent: 342 74% 96%;
+    --accent-foreground: 342 74% 31%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
     --ring: 342 74% 31%;
-    --radius: 0.75rem;
+    --radius: 1.25rem;
   }
 
   .dark {
-    --background: 224 71% 4%;
+    --background: 222 47% 7%; /* #0b0f17 deep graphite */
     --foreground: 210 40% 98%;
-    --card: 224 71% 6%;
+    --card: 222 47% 11%;      /* #131926 raised card */
     --card-foreground: 210 40% 98%;
-    --popover: 224 71% 6%;
+    --popover: 222 47% 11%;
     --popover-foreground: 210 40% 98%;
-    --primary: 342 74% 45%;
+    --primary: 342 74% 45%;   /* Lifted maroon for dark contrast */
     --primary-foreground: 0 0% 100%;
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
+    --accent: 342 74% 20%;
     --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
+    --destructive: 0 62.8% 45%;
     --destructive-foreground: 210 40% 98%;
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
@@ -51,8 +53,25 @@
 
 body {
   color: hsl(var(--foreground));
-  background: hsl(var(--background));
+  background-color: var(--surface-page);
   font-feature-settings: "rlig" 1, "calt" 1;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: contain;
+  touch-action: manipulation;
+}
+
+/* Mobile Safe Areas */
+.pb-safe {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+.pt-safe {
+  padding-top: max(0.5rem, env(safe-area-inset-top));
+}
+
+/* Tabular Numerals for KPIs, Plate, and Timers */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
 }
 
 /* RTL Number Display Fix */
@@ -60,4 +79,96 @@ body {
   direction: ltr;
   display: inline-block;
   unicode-bidi: embed;
+}
+
+/* --- HARRIK Modern Precision Components --- */
+
+/* Signature Qatar License Plate Interpretation */
+.qatar-plate-frame {
+  background: #ffffff;
+  box-shadow:
+    0 4px 12px -2px rgba(15, 23, 42, 0.08),
+    0 1px 3px 0 rgba(15, 23, 42, 0.05),
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.9),
+    inset 0 -1px 2px 0 rgba(15, 23, 42, 0.12);
+  border: 2px solid #0f172a;
+}
+
+.dark .qatar-plate-frame {
+  background: #ffffff; /* Plate face stays white for maximum scannability and realism */
+  box-shadow:
+    0 8px 24px -4px rgba(0, 0, 0, 0.6),
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.8),
+    inset 0 -1px 2px 0 rgba(0, 0, 0, 0.3);
+  border: 2px solid #cbd5e1;
+}
+
+/* Tactile Native Buttons */
+.harrik-btn-brand {
+  background-color: var(--color-brand);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 4px 14px -2px rgba(138, 21, 56, 0.35);
+  transition: transform 0.12s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.12s ease-out;
+}
+
+.harrik-btn-brand:hover {
+  background-color: var(--color-brand-hover);
+}
+
+.harrik-btn-brand:active {
+  transform: scale(0.975);
+  background-color: var(--color-brand-active);
+}
+
+.harrik-btn-secondary {
+  background-color: var(--surface-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border-default);
+  box-shadow: var(--elevation-1);
+  transition: transform 0.12s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.12s ease-out;
+}
+
+.harrik-btn-secondary:hover {
+  border-color: var(--border-strong);
+}
+
+.harrik-btn-secondary:active {
+  transform: scale(0.975);
+}
+
+/* Floating Navigation Island */
+.floating-nav-island {
+  background: var(--surface-glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-default);
+  box-shadow: var(--elevation-3);
+}
+
+.dark .floating-nav-island {
+  background: rgba(19, 25, 38, 0.9);
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 16px 36px -4px rgba(0, 0, 0, 0.6);
+}
+
+/* Native Bottom Sheet Container */
+.harrik-sheet-panel {
+  border-top-left-radius: var(--radius-sheet);
+  border-top-right-radius: var(--radius-sheet);
+  background: var(--surface-card);
+  box-shadow: var(--elevation-4);
+  border-top: 1px solid var(--border-default);
+}
+
+/* Reduced Motion Override */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

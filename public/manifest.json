@@ -1,7 +1,7 @@
 {
-  "name": "حَرِّك | HARRIK — مواقف المدرسة",
+  "name": "حَرِّك | HARRIK — Smart Parking Communication",
   "short_name": "حَرِّك",
-  "description": "النظام الذكي للتواصل السريع مع أصحاب السيارات في مواقف المدرسة",
+  "description": "منظومة التواصل الذكي للمواقف في المنشآت والمؤسسات والأبراج والمجمعات",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",

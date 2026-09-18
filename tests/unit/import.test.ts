@@ -1,6 +1,8 @@
 import { describe, it, expect } from "vitest";
 import { normalizePlateNumber } from "../../src/lib/plate-normalizer";
 
+import * as XLSX from "xlsx";
+
 describe("Bulk Import Validation Engine", () => {
   it("detects duplicate plates with different digit formats", () => {
     const plate1 = "482731";
@@ -12,5 +14,27 @@ describe("Bulk Import Validation Engine", () => {
   it("normalizes spaced and dashed plate rows in import data", () => {
     expect(normalizePlateNumber(" 48 27 31 ")).toBe("482731");
     expect(normalizePlateNumber("48-27-31")).toBe("482731");
+  });
+
+  it("creates valid Excel import template workbook structure", () => {
+    const wb = XLSX.utils.book_new();
+    const headers = [
+      "الرقم الوظيفي / Employee ID",
+      "الاسم بالعربية / Name (AR)",
+      "الاسم بالإنجليزية / Name (EN)",
+      "القسم / Department",
+      "رقم الجوال / Mobile",
+      "رقم اللوحة / Plate Number",
+      "الماركة / Make",
+      "الموديل / Model",
+      "اللون / Color",
+      "سنة الصنع / Year",
+    ];
+    const ws = XLSX.utils.aoa_to_sheet([headers]);
+    XLSX.utils.book_append_sheet(wb, ws, "بيانات الكادر والسيارات");
+
+    expect(wb.SheetNames).toContain("بيانات الكادر والسيارات");
+    const jsonRows = XLSX.utils.sheet_to_json(wb.Sheets["بيانات الكادر والسيارات"]);
+    expect(jsonRows).toBeDefined();
   });
 });

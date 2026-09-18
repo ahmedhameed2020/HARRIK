@@ -1,74 +1,34 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { getAuthenticatedSession } from "@/lib/supabase/auth-helpers";
 import { ParkingAlert } from "@/types";
+import { sendWebPushNotification } from "@/lib/push/vapid";
 
-// In-memory state store for active alerts with initial seed records
-const SEED_ALERTS: ParkingAlert[] = [
-  {
-    id: "50000000-0000-0000-0000-000000000001",
-    organization_id: "00000000-0000-0000-0000-000000000001",
-    vehicle_id: "40000000-0000-0000-0000-000000000001",
-    owner_id: "30000000-0000-0000-0000-000000000001",
-    reporter_id: "30000000-0000-0000-0000-000000000002",
-    alert_type_id: "20000000-0000-0000-0000-000000000001",
-    status: "resolved",
-    message: "سيارتك حاجزة سيارة المعلم",
-    created_at: new Date(Date.now() - 4 * 3600 * 1000).toISOString(),
-    acknowledged_at: new Date(Date.now() - 3.9 * 3600 * 1000).toISOString(),
-    resolved_at: new Date(Date.now() - 3.8 * 3600 * 1000).toISOString(),
-  },
-  {
-    id: "50000000-0000-0000-0000-000000000002",
-    organization_id: "00000000-0000-0000-0000-000000000001",
-    vehicle_id: "40000000-0000-0000-0000-000000000004",
-    owner_id: "30000000-0000-0000-0000-000000000002",
-    reporter_id: "30000000-0000-0000-0000-000000000003",
-    alert_type_id: "20000000-0000-0000-0000-000000000002",
-    status: "acknowledged",
-    message: "الأنوار مفتوحة في المواقف الجنوبية",
-    created_at: new Date(Date.now() - 35 * 60 * 1000).toISOString(),
-    acknowledged_at: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-    resolved_at: null,
-  },
-  {
-    id: "50000000-0000-0000-0000-000000000003",
-    organization_id: "00000000-0000-0000-0000-000000000001",
-    vehicle_id: "40000000-0000-0000-0000-000000000009",
-    owner_id: "30000000-0000-0000-0000-000000000008",
-    reporter_id: "30000000-0000-0000-0000-000000000001",
-    alert_type_id: "20000000-0000-0000-0000-000000000001",
-    status: "pending",
-    message: "حاجز سيارة التربية الإسلامية",
-    created_at: new Date(Date.now() - 12 * 60 * 1000).toISOString(),
-    acknowledged_at: null,
-    resolved_at: null,
-  },
-];
-
-let runtimeAlerts = [...SEED_ALERTS];
-
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    try {
-      const supabase = await createClient();
-      const { data, error } = await supabase
-        .from("parking_alerts")
-        .select(`
-          *,
-          vehicle:vehicles(plate_number, make, model, color),
-          owner:profiles!parking_alerts_owner_id_fkey(name_ar, name_en, mobile, employee_id),
-          alert_type:parking_alert_types(code, name_ar, name_en)
-        `)
-        .order("created_at", { ascending: false });
-
-      if (!error && data && data.length > 0) {
-        return NextResponse.json({ success: true, alerts: data });
-      }
-    } catch {
-      // Fallback to runtime alerts
+    const { session, error: authError, status: authStatus } = await getAuthenticatedSession();
+    if (authError || !session) {
+      return NextResponse.json({ success: false, error: authError }, { status: authStatus });
     }
 
-    return NextResponse.json({ success: true, alerts: runtimeAlerts });
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("parking_alerts")
+      .select(`
+        *,
+        vehicle:vehicles(plate_number, make, model, color),
+        owner:profiles!parking_alerts_owner_id_fkey(name_ar, name_en, mobile, employee_id),
+        reporter:profiles!parking_alerts_reporter_id_fkey(name_ar, name_en, mobile, employee_id),
+        alert_type:parking_alert_types(code, name_ar, name_en)
+      `)
+      .eq("organization_id", session.organizationId)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true, alerts: data || [] });
   } catch (err: any) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
   }
@@ -76,44 +36,90 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { vehicleId, ownerId, alertTypeCode, message, plateNumber } = body;
-
-    const newAlert: ParkingAlert = {
-      id: crypto.randomUUID(),
-      organization_id: "00000000-0000-0000-0000-000000000001",
-      vehicle_id: vehicleId || "40000000-0000-0000-0000-000000000001",
-      owner_id: ownerId || "30000000-0000-0000-0000-000000000001",
-      reporter_id: "30000000-0000-0000-0000-000000000002",
-      alert_type_id: "20000000-0000-0000-0000-000000000001",
-      status: "pending",
-      message: message || "سيارتك حاجزة سيارتي",
-      created_at: new Date().toISOString(),
-      acknowledged_at: null,
-      resolved_at: null,
-    };
-
-    // Try Supabase insert
-    try {
-      const supabase = await createClient();
-      await supabase.from("parking_alerts").insert({
-        organization_id: newAlert.organization_id,
-        vehicle_id: newAlert.vehicle_id,
-        owner_id: newAlert.owner_id,
-        reporter_id: newAlert.reporter_id,
-        alert_type_id: newAlert.alert_type_id,
-        status: newAlert.status,
-        message: newAlert.message,
-      });
-    } catch {
-      // Stored in runtime memory
+    const { session, error: authError, status: authStatus } = await getAuthenticatedSession();
+    if (authError || !session) {
+      return NextResponse.json({ success: false, error: authError }, { status: authStatus });
     }
 
-    runtimeAlerts.unshift(newAlert);
+    const body = await request.json();
+    const { vehicleId, ownerId, alertTypeCode, message } = body;
+
+    if (!vehicleId || !ownerId) {
+      return NextResponse.json(
+        { success: false, error: "vehicleId and ownerId are required" },
+        { status: 400 }
+      );
+    }
+
+    const supabase = await createClient();
+
+    // Resolve alert_type_id by code
+    const codeToFind = alertTypeCode || "BLOCKING";
+    const { data: typeRow } = await supabase
+      .from("parking_alert_types")
+      .select("id")
+      .eq("organization_id", session.organizationId)
+      .eq("code", codeToFind)
+      .single();
+
+    const alertTypeId = typeRow?.id || "20000000-0000-0000-0000-000000000001";
+
+    // Strictly enforce session identity: reporter_id and organization_id MUST be from session
+    const insertPayload = {
+      organization_id: session.organizationId,
+      vehicle_id: vehicleId,
+      owner_id: ownerId,
+      reporter_id: session.profile.id, // Strictly derived from session!
+      alert_type_id: alertTypeId,
+      status: "pending",
+      message: message || "سيارتك حاجزة سيارتي",
+    };
+
+    const { data: inserted, error: insertError } = await supabase
+      .from("parking_alerts")
+      .insert(insertPayload)
+      .select(`
+        *,
+        vehicle:vehicles(plate_number, make, model, color),
+        owner:profiles!parking_alerts_owner_id_fkey(name_ar, name_en, mobile, employee_id),
+        reporter:profiles!parking_alerts_reporter_id_fkey(name_ar, name_en, mobile, employee_id),
+        alert_type:parking_alert_types(code, name_ar, name_en)
+      `)
+      .single();
+
+    if (insertError) {
+      return NextResponse.json({ success: false, error: insertError.message }, { status: 500 });
+    }
+
+    // Asynchronously dispatch background Web Push to the car owner
+    try {
+      const { data: subs } = await supabase
+        .from("push_subscriptions")
+        .select("endpoint, p256dh, auth")
+        .eq("profile_id", ownerId)
+        .eq("organization_id", session.organizationId);
+
+      if (subs && subs.length > 0) {
+        const reporterName = session.profile.name_ar || session.profile.name_en || "أحد الزملاء";
+        const vehiclePlate = inserted?.vehicle?.plate_number || "";
+        const pushPayload = {
+          title: "🚨 تنبيه تحريك سيارة عاجل",
+          body: `سيارتك (${vehiclePlate}) مطلوبة للتحريك بواسطة: ${reporterName}`,
+          url: "/inbox",
+          tag: `alert-${inserted.id}`,
+        };
+
+        for (const sub of subs) {
+          sendWebPushNotification(sub, pushPayload).catch(() => {});
+        }
+      }
+    } catch (pushErr) {
+      console.warn("Background web push error:", pushErr);
+    }
 
     return NextResponse.json({
       success: true,
-      alert: newAlert,
+      alert: inserted,
       message: "Alert created successfully",
     });
   } catch (err: any) {
@@ -123,50 +129,82 @@ export async function POST(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
   try {
+    const { session, error: authError, status: authStatus } = await getAuthenticatedSession();
+    if (authError || !session) {
+      return NextResponse.json({ success: false, error: authError }, { status: authStatus });
+    }
+
     const body = await request.json();
     const { alertId, status } = body;
 
-    const alertIndex = runtimeAlerts.findIndex((a) => a.id === alertId);
-    if (alertIndex === -1) {
+    if (!alertId || !status) {
+      return NextResponse.json(
+        { success: false, error: "alertId and status are required" },
+        { status: 400 }
+      );
+    }
+
+    const supabase = await createClient();
+
+    // Verify alert exists and belongs to user's org
+    const { data: currentAlert, error: fetchError } = await supabase
+      .from("parking_alerts")
+      .select("*")
+      .eq("id", alertId)
+      .eq("organization_id", session.organizationId)
+      .single();
+
+    if (fetchError || !currentAlert) {
       return NextResponse.json({ success: false, error: "Alert not found" }, { status: 404 });
     }
 
-    const currentAlert = runtimeAlerts[alertIndex];
-    const now = new Date().toISOString();
+    // Role check: Only owner, reporter, admin or security can change alert status
+    const isOwner = currentAlert.owner_id === session.profile.id;
+    const isReporter = currentAlert.reporter_id === session.profile.id;
+    const isStaffAuthorized = session.role === "admin" || session.role === "super_admin" || session.role === "security";
 
-    if (status === "acknowledged") {
-      currentAlert.status = "acknowledged";
-      currentAlert.acknowledged_at = now;
-    } else if (status === "resolved") {
-      currentAlert.status = "resolved";
-      currentAlert.resolved_at = now;
-      if (!currentAlert.acknowledged_at) {
-        currentAlert.acknowledged_at = now;
-      }
-    } else if (status === "cancelled") {
-      currentAlert.status = "cancelled";
+    if (!isOwner && !isReporter && !isStaffAuthorized) {
+      return NextResponse.json(
+        { success: false, error: "Forbidden: Not authorized to update this alert" },
+        { status: 403 }
+      );
     }
 
-    // Try Supabase update
-    try {
-      const supabase = await createClient();
-      await supabase
-        .from("parking_alerts")
-        .update({
-          status: currentAlert.status,
-          acknowledged_at: currentAlert.acknowledged_at,
-          resolved_at: currentAlert.resolved_at,
-        })
-        .eq("id", alertId);
-    } catch {
-      // Keep runtime alert updated
+    const now = new Date().toISOString();
+    const updatePayload: Record<string, any> = { status };
+
+    if (status === "acknowledged") {
+      updatePayload.acknowledged_at = now;
+    } else if (status === "resolved") {
+      updatePayload.resolved_at = now;
+      if (!currentAlert.acknowledged_at) {
+        updatePayload.acknowledged_at = now;
+      }
+    }
+
+    const { data: updated, error: updateError } = await supabase
+      .from("parking_alerts")
+      .update(updatePayload)
+      .eq("id", alertId)
+      .select(`
+        *,
+        vehicle:vehicles(plate_number, make, model, color),
+        owner:profiles!parking_alerts_owner_id_fkey(name_ar, name_en, mobile, employee_id),
+        reporter:profiles!parking_alerts_reporter_id_fkey(name_ar, name_en, mobile, employee_id),
+        alert_type:parking_alert_types(code, name_ar, name_en)
+      `)
+      .single();
+
+    if (updateError) {
+      return NextResponse.json({ success: false, error: updateError.message }, { status: 500 });
     }
 
     return NextResponse.json({
       success: true,
-      alert: currentAlert,
+      alert: updated,
     });
   } catch (err: any) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
   }
 }
+

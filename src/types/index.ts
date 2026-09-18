@@ -43,6 +43,7 @@ export interface Profile {
   created_at: string;
   updated_at: string;
   department?: Department | null;
+  organization?: Organization | null;
 }
 
 export interface Vehicle {
@@ -195,3 +196,20 @@ export interface DashboardOverview {
   metrics: DashboardMetricSet;
   currentIssues: CurrentIssuesSummary;
 }
+
+export interface AuditLog {
+  id: string;
+  organization_id: string;
+  actor_id?: string | null;
+  action: string;
+  entity_type: string;
+  entity_id?: string | null;
+  change_summary?: Record<string, any> | null;
+  old_values?: Record<string, any> | null;
+  new_values?: Record<string, any> | null;
+  ip_address?: string | null;
+  user_agent?: string | null;
+  created_at: string;
+  actor?: Profile | null;
+}
+

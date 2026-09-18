@@ -1,53 +1,77 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { ArrowLeft, Car, AlertTriangle, CheckCircle2, X } from "lucide-react";
+import { ArrowLeft, Car, AlertTriangle, CheckCircle2, X, RefreshCw } from "lucide-react";
+import { triggerHaptic } from "@/lib/haptics";
 
 interface UnknownReport {
   id: string;
   plate_number: string;
-  make: string;
-  model: string;
-  color: string;
-  note: string;
+  vehicle_make?: string | null;
+  vehicle_model?: string | null;
+  vehicle_color?: string | null;
+  note?: string | null;
   created_at: string;
   status: "open" | "identified" | "dismissed";
+  reporter?: { name_ar?: string; name_en?: string; employee_id?: string } | null;
 }
 
-const SEED_UNKNOWN: UnknownReport[] = [
-  {
-    id: "60000000-0000-0000-0000-000000000001",
-    plate_number: "883201",
-    make: "Chevrolet",
-    model: "Tahoe",
-    color: "White",
-    note: "متوقفة أمام بوابة الخروج الرئيسية للمدرسة وتكرر الوقوف مرتين",
-    created_at: "اليوم 14:15",
-    status: "open",
-  },
-  {
-    id: "60000000-0000-0000-0000-000000000002",
-    plate_number: "412093",
-    make: "Mitsubishi",
-    model: "Pajero",
-    color: "Silver",
-    note: "سيارة زائر بدون تصريح دخول المواقف الداخلية",
-    created_at: "أمس 11:30",
-    status: "open",
-  },
-];
-
 export default function UnknownVehiclesPage() {
-  const [reports, setReports] = useState<UnknownReport[]>(SEED_UNKNOWN);
+  const [reports, setReports] = useState<UnknownReport[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const handleDismiss = (id: string) => {
-    setReports((prev) => prev.map((r) => (r.id === id ? { ...r, status: "dismissed" } : r)));
+  const fetchReports = async () => {
+    setIsLoading(true);
+    try {
+      const res = await fetch("/api/unknown");
+      const data = await res.json();
+      if (data.success && Array.isArray(data.reports)) {
+        setReports(data.reports);
+      }
+    } catch {
+      // Handled
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleIdentify = (id: string) => {
-    setReports((prev) => prev.map((r) => (r.id === id ? { ...r, status: "identified" } : r)));
+  useEffect(() => {
+    fetchReports();
+  }, []);
+
+  const handleDismiss = async (id: string) => {
+    triggerHaptic("medium");
+    try {
+      const res = await fetch("/api/unknown", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, status: "dismissed" }),
+      });
+      if (res.ok) {
+        setReports((prev) => prev.map((r) => (r.id === id ? { ...r, status: "dismissed" } : r)));
+      }
+    } catch {
+      // Handled
+    }
   };
+
+  const handleIdentify = async (id: string) => {
+    triggerHaptic("success");
+    try {
+      const res = await fetch("/api/unknown", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, status: "identified" }),
+      });
+      if (res.ok) {
+        setReports((prev) => prev.map((r) => (r.id === id ? { ...r, status: "identified" } : r)));
+      }
+    } catch {
+      // Handled
+    }
+  };
+
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 space-y-6">
@@ -63,7 +87,7 @@ export default function UnknownVehiclesPage() {
           السيارات غير المعروفة (Unknown Vehicles)
         </h1>
         <p className="text-xs text-slate-500">
-          بلاغات السيارات التي بحث عنها الموظفون ولم تكن مسجلة في قاعدة بيانات المدرسة
+          بلاغات السيارات غير المسجلة في قاعدة بيانات المنشأة
         </p>
       </div>
 
@@ -78,9 +102,11 @@ export default function UnknownVehiclesPage() {
                 <span className="font-mono text-xl font-black text-slate-950 dark:text-white">
                   لوحة: {report.plate_number}
                 </span>
-                <span className="text-xs font-bold text-slate-500">
-                  {report.make} {report.model} ({report.color})
-                </span>
+                {(report.vehicle_make || report.vehicle_model || report.vehicle_color) && (
+                  <span className="text-xs font-bold text-slate-500">
+                    {report.vehicle_make} {report.vehicle_model} {report.vehicle_color ? `(${report.vehicle_color})` : ""}
+                  </span>
+                )}
               </div>
 
               <span

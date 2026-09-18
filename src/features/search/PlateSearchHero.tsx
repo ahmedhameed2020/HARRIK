@@ -1,13 +1,33 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { Search, X, AlertCircle, Car, ArrowRight, Check } from "lucide-react";
+import React, { useState, useEffect, useRef } from "react";
+import dynamic from "next/dynamic";
+import { Search, X, Camera, Loader2, Car, AlertCircle, ArrowRight } from "lucide-react";
+import { motion, AnimatePresence, useReducedMotion } from "motion/react";
 import { SearchResultVehicle } from "@/types";
-import { normalizePlateNumber } from "@/lib/plate-normalizer";
 import { translations, Language } from "@/i18n/translations";
 import { VehicleResultCard } from "./VehicleResultCard";
-import { CreateAlertDialog } from "../alerts/CreateAlertDialog";
-import { ReportUnknownDialog } from "../unknown/ReportUnknownDialog";
+import { PlateKeypad } from "./PlateKeypad";
+import { QatarPlate } from "@/components/ui/QatarPlate";
+import { triggerHaptic } from "@/lib/haptics";
+import { TACTILE_TAP, DURATION, EASING } from "@/lib/motion";
+
+const CameraPlateScanner = dynamic(
+  () => import("./CameraPlateScanner").then((m) => m.CameraPlateScanner),
+  { ssr: false }
+);
+const CreateAlertDialog = dynamic(
+  () => import("../alerts/CreateAlertDialog").then((m) => m.CreateAlertDialog),
+  { ssr: false }
+);
+const ReportUnknownDialog = dynamic(
+  () => import("../unknown/ReportUnknownDialog").then((m) => m.ReportUnknownDialog),
+  { ssr: false }
+);
+const UnregisteredEscalationHub = dynamic(
+  () => import("./UnregisteredEscalationHub").then((m) => m.UnregisteredEscalationHub),
+  { ssr: false }
+);
 
 interface PlateSearchHeroProps {
   lang: Language;
@@ -17,8 +37,15 @@ export function PlateSearchHero({ lang }: PlateSearchHeroProps) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResultVehicle[]>([]);
   const [selectedVehicle, setSelectedVehicle] = useState<SearchResultVehicle | null>(null);
+  const [escalation, setEscalation] = useState<{
+    venueLabel?: string;
+    venueNameAr?: string;
+    gateSecurityPhone?: string;
+  }>();
   const [isLoading, setIsLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  const [showKeypad, setShowKeypad] = useState(false);
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
 
   // Dialog states
   const [alertTargetVehicle, setAlertTargetVehicle] = useState<SearchResultVehicle | null>(null);
@@ -26,8 +53,10 @@ export function PlateSearchHero({ lang }: PlateSearchHeroProps) {
   const [isUnknownOpen, setIsUnknownOpen] = useState(false);
 
   const t = translations[lang];
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const shouldReduceMotion = useReducedMotion();
 
-  // Perform plate lookup
+  // Perform plate lookup (network lookup begins immediately)
   const handleSearch = async (overrideQuery?: string) => {
     const q = overrideQuery !== undefined ? overrideQuery : query;
     const clean = q.trim();
@@ -42,6 +71,7 @@ export function PlateSearchHero({ lang }: PlateSearchHeroProps) {
     setIsLoading(true);
     setHasSearched(true);
     setSelectedVehicle(null);
+    triggerHaptic("medium");
 
     try {
       const res = await fetch(`/api/search?q=${encodeURIComponent(clean)}`);
@@ -49,50 +79,110 @@ export function PlateSearchHero({ lang }: PlateSearchHeroProps) {
 
       if (data.success && Array.isArray(data.results)) {
         setResults(data.results);
+        if (data.escalation) {
+          setEscalation(data.escalation);
+        }
         if (data.results.length === 1) {
           setSelectedVehicle(data.results[0]);
+          triggerHaptic("success");
+        } else if (data.results.length > 1) {
+          triggerHaptic("selection");
+        } else {
+          triggerHaptic("warning");
         }
       } else {
         setResults([]);
+        if (data.escalation) {
+          setEscalation(data.escalation);
+        }
+        triggerHaptic("warning");
       }
     } catch {
       setResults([]);
+      triggerHaptic("error");
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Debounced auto-search when query reaches >= 3 digits
+  useEffect(() => {
+    const clean = query.trim();
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+
+    if (clean.length >= 3) {
+      debounceTimerRef.current = setTimeout(() => {
+        handleSearch(clean);
+      }, 300);
+    }
+
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, [query]);
+
   const handleClear = () => {
+    triggerHaptic("light");
     setQuery("");
     setResults([]);
     setSelectedVehicle(null);
     setHasSearched(false);
   };
 
-  const handleQuickPlate = (plate: string) => {
-    setQuery(plate);
-    handleSearch(plate);
+  const handleKeypadDigit = (digit: string) => {
+    setQuery((prev) => prev + digit);
+  };
+
+  const handleKeypadBackspace = () => {
+    setQuery((prev) => prev.slice(0, -1));
   };
 
   return (
-    <div className="mx-auto max-w-2xl px-4 pt-4 sm:pt-8">
-      {/* Hero Header */}
+    <div className="relative mx-auto max-w-xl px-4 pt-3 sm:pt-6">
+      {/* Brand Context Indicator */}
       <div className="text-center">
-        <div className="inline-flex items-center gap-2 rounded-full bg-qatar-50 px-3.5 py-1.5 text-xs font-semibold text-qatar dark:bg-qatar-950/50 dark:text-qatar-300">
+        <div className="inline-flex items-center gap-2 rounded-full px-3.5 py-1 text-xs font-bold text-[#8a1538] dark:text-rose-300 bg-rose-50 dark:bg-rose-950/40 border border-rose-200/60 dark:border-rose-900/60">
           <Car className="h-3.5 w-3.5" />
           <span>{t.descriptor}</span>
         </div>
 
-        <h1 className="mt-4 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl dark:text-white font-arabic">
+        <h1 className="mt-3 text-2xl sm:text-3xl font-black tracking-tight text-slate-950 dark:text-white font-arabic">
           {t.searchHeroTitle}
         </h1>
-        <p className="mt-2 text-sm text-slate-600 sm:text-base dark:text-slate-400">
+        <p className="mt-1 text-xs sm:text-sm text-slate-600 dark:text-slate-400">
           {t.searchHeroSubtitle}
         </p>
       </div>
 
+      {/* Signature Interactive Qatar Plate Component */}
+      <div className="mt-5 flex flex-col items-center justify-center">
+        <QatarPlate plateNumber={query} size="lg" />
+
+        {/* Subtle Searching Activity Indicator right below plate */}
+        <div className="h-6 mt-2 flex items-center justify-center">
+          <AnimatePresence>
+            {isLoading && (
+              <motion.div
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: DURATION.fast, ease: EASING.entrance }}
+                className="inline-flex items-center gap-2 text-xs font-bold text-[#8a1538] dark:text-rose-400"
+              >
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                <span>{lang === "ar" ? "جاري البحث عن المركبة…" : "Searching…"}</span>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
+
       {/* Prominent Mobile-First Search Input Box */}
-      <div className="mt-6">
+      <div className="mt-2">
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -100,9 +190,9 @@ export function PlateSearchHero({ lang }: PlateSearchHeroProps) {
           }}
           className="relative"
         >
-          <div className="relative flex items-center overflow-hidden rounded-2xl border-2 border-slate-300 bg-white shadow-xl shadow-slate-200/50 transition-all focus-within:border-qatar focus-within:ring-4 focus-within:ring-qatar/10 dark:border-slate-700 dark:bg-slate-900 dark:shadow-none">
-            <div className="flex h-16 w-16 items-center justify-center text-slate-400">
-              <Search className="h-6 w-6" />
+          <div className="relative flex items-center overflow-hidden rounded-[20px] border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#131926] shadow-sm transition-all focus-within:border-[#8a1538] focus-within:ring-2 focus-within:ring-[#8a1538]/20">
+            <div className="flex h-14 w-11 items-center justify-center text-slate-400 flex-shrink-0">
+              <Search className="h-5 w-5" />
             </div>
 
             <input
@@ -116,7 +206,7 @@ export function PlateSearchHero({ lang }: PlateSearchHeroProps) {
                 }
               }}
               placeholder={t.plateInputPlaceholder}
-              className="h-16 flex-1 bg-transparent pr-4 pl-12 text-xl font-bold tracking-wider text-slate-900 placeholder:text-slate-400 placeholder:font-normal placeholder:text-sm focus:outline-none dark:text-white font-mono"
+              className="h-14 flex-1 min-w-0 bg-transparent px-2 text-lg sm:text-xl font-bold tracking-wider text-slate-950 dark:text-white placeholder:text-slate-400 placeholder:font-normal placeholder:text-sm focus:outline-none font-mono"
               autoFocus
             />
 
@@ -124,86 +214,106 @@ export function PlateSearchHero({ lang }: PlateSearchHeroProps) {
               <button
                 type="button"
                 onClick={handleClear}
-                className="absolute left-28 p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition flex-shrink-0"
                 aria-label={t.clearInput}
               >
-                <X className="h-5 w-5" />
+                <X className="h-4 w-4" />
               </button>
             )}
 
-            <button
+            <motion.button
               type="submit"
               disabled={isLoading || !query.trim()}
-              className="m-2 flex h-12 items-center justify-center rounded-xl bg-qatar px-6 text-sm font-bold text-white shadow-md shadow-qatar/20 transition hover:bg-qatar-900 active:scale-95 disabled:opacity-50"
+              whileTap={shouldReduceMotion ? undefined : TACTILE_TAP}
+              className="m-1.5 flex h-11 items-center justify-center rounded-[14px] bg-[#8a1538] hover:bg-[#70112e] px-4 text-xs sm:text-sm font-bold text-white shadow-sm disabled:opacity-50 transition-colors flex-shrink-0"
             >
               {isLoading ? t.searching : t.searchButton}
-            </button>
+            </motion.button>
           </div>
         </form>
 
-        {/* Quick Sample Plate Chips for Instant Demo & Testing */}
-        <div className="mt-3 flex flex-wrap items-center justify-center gap-2 text-xs text-slate-500">
-          <span className="font-semibold">{lang === "ar" ? "جرّب لوحات تجريبية:" : "Try sample plates:"}</span>
+        {/* Tactile Tools Row (Keypad & Camera) */}
+        <div className="mt-3 flex items-center justify-center gap-2">
           <button
-            onClick={() => handleQuickPlate("482731")}
-            className="rounded-lg bg-slate-200/70 px-2.5 py-1 font-mono font-bold hover:bg-qatar hover:text-white transition dark:bg-slate-800"
+            type="button"
+            onClick={() => {
+              triggerHaptic("selection");
+              setShowKeypad((prev) => !prev);
+            }}
+            className={`flex h-9 items-center gap-1.5 rounded-xl px-3.5 text-xs font-bold transition-all border ${
+              showKeypad
+                ? "bg-[#8a1538] text-white border-[#8a1538] shadow-sm shadow-[#8a1538]/20"
+                : "bg-white dark:bg-[#131926] border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 shadow-sm hover:border-slate-300 dark:hover:border-slate-700"
+            }`}
+            title="لوحة الأرقام الملموسة"
           >
-            482731 (أحمد حسن)
+            <span>🔢</span>
+            <span>{lang === "ar" ? "أرقام اللوحة" : "Numeric Keypad"}</span>
           </button>
+
           <button
-            onClick={() => handleQuickPlate("٤٨٢٧٣١")}
-            className="rounded-lg bg-slate-200/70 px-2.5 py-1 font-mono font-bold hover:bg-qatar hover:text-white transition dark:bg-slate-800"
+            type="button"
+            onClick={() => {
+              triggerHaptic("selection");
+              setIsCameraOpen(true);
+            }}
+            className="flex h-9 items-center gap-1.5 rounded-xl px-3.5 text-xs font-bold bg-white dark:bg-[#131926] border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 shadow-sm hover:text-[#8a1538] hover:border-slate-300 dark:hover:border-slate-700 transition-all"
+            title="مسح اللوحة بالكاميرا"
           >
-            ٤٨٢٧٣١ (أرقام عربية)
-          </button>
-          <button
-            onClick={() => handleQuickPlate("2731")}
-            className="rounded-lg bg-slate-200/70 px-2.5 py-1 font-mono font-bold hover:bg-qatar hover:text-white transition dark:bg-slate-800"
-          >
-            2731 (بحث جزئي متعدد)
+            <Camera className="h-4 w-4 text-[#8a1538] dark:text-rose-400" />
+            <span>{lang === "ar" ? "مسح بالكاميرا" : "Scan Plate"}</span>
           </button>
         </div>
+
+        {/* Mobile Tactile Keypad */}
+        <AnimatePresence>
+          {showKeypad && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: DURATION.fast, ease: EASING.standard }}
+              className="mt-3 overflow-hidden"
+            >
+              <PlateKeypad
+                onDigitPress={handleKeypadDigit}
+                onBackspace={handleKeypadBackspace}
+                onClear={handleClear}
+                onSearch={() => handleSearch()}
+                canSearch={query.trim().length > 0}
+                onClose={() => setShowKeypad(false)}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
-      {/* Results Area */}
-      <div className="mt-8 space-y-4">
-        {/* Loading Skeleton */}
-        {isLoading && (
-          <div className="animate-pulse rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
-            <div className="h-8 w-32 rounded bg-slate-200 dark:bg-slate-800" />
-            <div className="mt-4 h-5 w-48 rounded bg-slate-200 dark:bg-slate-800" />
-            <div className="mt-6 grid grid-cols-3 gap-3">
-              <div className="h-12 rounded-xl bg-slate-200 dark:bg-slate-800" />
-              <div className="h-12 rounded-xl bg-slate-200 dark:bg-slate-800" />
-              <div className="h-12 rounded-xl bg-slate-200 dark:bg-slate-800" />
-            </div>
-          </div>
-        )}
-
+      {/* Results Area with Motion Continuity */}
+      <div className="mt-6 space-y-4">
         {/* Ambiguous Multi-Matches Selector */}
         {!isLoading && hasSearched && results.length > 1 && !selectedVehicle && (
-          <div className="rounded-2xl border border-amber-200 bg-amber-50/70 p-5 dark:border-amber-900/50 dark:bg-amber-950/20">
+          <div className="rounded-[20px] border border-amber-200 bg-amber-50/70 p-4 dark:border-amber-900/50 dark:bg-amber-950/20">
             <div className="flex items-center gap-2 text-amber-800 dark:text-amber-300">
-              <AlertCircle className="h-5 w-5 flex-shrink-0" />
-              <p className="text-sm font-bold">{t.partialNotice}</p>
+              <AlertCircle className="h-4 w-4 flex-shrink-0" />
+              <p className="text-xs sm:text-sm font-bold">{t.partialNotice}</p>
             </div>
 
-            <div className="mt-3 divide-y divide-amber-200/60 dark:divide-amber-900/40">
+            <div className="mt-2.5 divide-y divide-amber-200/60 dark:divide-amber-900/40">
               {results.map((v) => (
                 <div
                   key={v.vehicle_id}
                   onClick={() => setSelectedVehicle(v)}
-                  className="flex cursor-pointer items-center justify-between py-3 transition hover:bg-amber-100/50 rounded-lg px-2"
+                  className="flex cursor-pointer items-center justify-between py-2.5 px-2 rounded-xl transition hover:bg-amber-100/50"
                 >
                   <div className="flex items-center gap-3">
-                    <span className="font-mono text-lg font-black text-slate-950 dark:text-white">
+                    <span className="font-mono text-base font-black text-slate-950 dark:text-white">
                       {v.plate_number}
                     </span>
-                    <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                    <span className="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300">
                       {v.make} {v.model} ({v.color})
                     </span>
                   </div>
-                  <button className="flex items-center gap-1 text-xs font-bold text-qatar">
+                  <button className="flex items-center gap-1 text-xs font-bold text-[#8a1538] dark:text-rose-400">
                     <span>{lang === "ar" ? "اختيار" : "Select"}</span>
                     <ArrowRight className="h-3.5 w-3.5" />
                   </button>
@@ -214,59 +324,39 @@ export function PlateSearchHero({ lang }: PlateSearchHeroProps) {
         )}
 
         {/* Single Match Display Card */}
-        {!isLoading && hasSearched && selectedVehicle && (
-          <div>
-            <VehicleResultCard
-              vehicle={selectedVehicle}
-              lang={lang}
-              onOpenAlertModal={(v) => {
-                setAlertTargetVehicle(v);
-                setIsAlertOpen(true);
-              }}
-            />
+        <AnimatePresence mode="wait">
+          {!isLoading && hasSearched && selectedVehicle && (
+            <motion.div key={selectedVehicle.vehicle_id}>
+              <VehicleResultCard
+                vehicle={selectedVehicle}
+                lang={lang}
+                onOpenAlertModal={(v) => {
+                  setAlertTargetVehicle(v);
+                  setIsAlertOpen(true);
+                }}
+              />
 
-            {/* If there were multiple results, button to return to list */}
-            {results.length > 1 && (
-              <button
-                onClick={() => setSelectedVehicle(null)}
-                className="mt-3 text-xs font-bold text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 underline"
-              >
-                {lang === "ar" ? "← العودة إلى قائمة السيارات المطابقة" : "← Back to matching vehicles list"}
-              </button>
-            )}
-          </div>
-        )}
+              {results.length > 1 && (
+                <button
+                  onClick={() => setSelectedVehicle(null)}
+                  className="mt-3 text-xs font-bold text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 underline"
+                >
+                  {lang === "ar" ? "← العودة إلى قائمة السيارات المطابقة" : "← Back to matching vehicles list"}
+                </button>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-        {/* Empty / Unregistered Vehicle State */}
+        {/* Empty / Unregistered Escalation Hub */}
         {!isLoading && hasSearched && results.length === 0 && (
-          <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-lg shadow-slate-100 dark:border-slate-800 dark:bg-slate-900 dark:shadow-none">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-50 text-amber-600 dark:bg-amber-950/50 dark:text-amber-400">
-              <Car className="h-8 w-8 opacity-80" />
-            </div>
-
-            <h3 className="mt-4 text-xl font-bold text-slate-900 dark:text-white font-arabic">
-              {t.noResultTitle}
-            </h3>
-            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-              {t.noResultSubtitle}
-            </p>
-
-            <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
-              <button
-                onClick={handleClear}
-                className="w-full sm:w-auto rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300"
-              >
-                {t.tryAgainBtn}
-              </button>
-
-              <button
-                onClick={() => setIsUnknownOpen(true)}
-                className="w-full sm:w-auto rounded-xl bg-qatar px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-qatar/20 hover:bg-qatar-900"
-              >
-                {t.reportUnknownBtn}
-              </button>
-            </div>
-          </div>
+          <UnregisteredEscalationHub
+            plateQuery={query}
+            lang={lang}
+            escalation={escalation}
+            onOpenReportDialog={() => setIsUnknownOpen(true)}
+            onTryAgain={handleClear}
+          />
         )}
       </div>
 
@@ -286,7 +376,20 @@ export function PlateSearchHero({ lang }: PlateSearchHeroProps) {
         isOpen={isUnknownOpen}
         plateQuery={query}
         lang={lang}
+        venueLabel={escalation?.venueLabel}
+        gateSecurityPhone={escalation?.gateSecurityPhone}
         onClose={() => setIsUnknownOpen(false)}
+      />
+
+      {/* Camera Plate Scanner Modal */}
+      <CameraPlateScanner
+        isOpen={isCameraOpen}
+        onClose={() => setIsCameraOpen(false)}
+        onPlateDetected={(scannedPlate) => {
+          setQuery(scannedPlate);
+          handleSearch(scannedPlate);
+        }}
+        lang={lang}
       />
     </div>
   );

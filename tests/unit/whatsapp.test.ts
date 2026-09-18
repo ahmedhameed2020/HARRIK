@@ -22,6 +22,17 @@ describe("WhatsApp Deep-Link & Phone Contact Generator", () => {
 
     expect(link).toContain("https://wa.me/97455123456?text=");
     expect(decodeURIComponent(link)).toContain(
+      "السلام عليكم، سيارتك رقم 482731 حاجزة سيارتي في مواقف المنشأة"
+    );
+
+    const schoolLink = generateWhatsAppLink({
+      plateNumber: "482731",
+      phone: "+974 5512 3456",
+      type: "BLOCKING",
+      language: "ar",
+      venueName: "المدرسة",
+    });
+    expect(decodeURIComponent(schoolLink)).toContain(
       "السلام عليكم، سيارتك رقم 482731 حاجزة سيارتي في موقف المدرسة"
     );
   });

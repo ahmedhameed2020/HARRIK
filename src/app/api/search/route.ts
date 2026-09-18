@@ -115,11 +115,18 @@ const SEED_VEHICLES: SearchResultVehicle[] = [
   },
 ];
 
+import { getAuthenticatedSession } from "@/lib/supabase/auth-helpers";
+
 export async function GET(request: NextRequest) {
   try {
+    const { session, error: authError, status: authStatus } = await getAuthenticatedSession();
+    if (authError || !session) {
+      return NextResponse.json({ success: false, error: authError }, { status: authStatus });
+    }
+
     const { searchParams } = new URL(request.url);
     const rawQuery = searchParams.get("q") || "";
-    const orgId = searchParams.get("orgId") || process.env.NEXT_PUBLIC_DEFAULT_ORG_ID || "00000000-0000-0000-0000-000000000001";
+    const orgId = session.organizationId; // Derived strictly from verified session!
 
     const validation = validatePlateQuery(rawQuery, 3);
     if (!validation.isValid) {
@@ -176,11 +183,85 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // 3. No match found
+    // 3. Check Active Visitor Passes for this plate
+    try {
+      const supabase = await createClient();
+      const { data: visitorPasses } = await supabase
+        .from("visitor_passes")
+        .select("*")
+        .eq("organization_id", orgId)
+        .eq("status", "active")
+        .gt("valid_until", new Date().toISOString())
+        .or(`normalized_plate.eq.${normQuery},normalized_plate.ilike.%${normQuery}`);
+
+      if (visitorPasses && visitorPasses.length > 0) {
+        const mappedVisitors: SearchResultVehicle[] = visitorPasses.map((vp) => ({
+          vehicle_id: vp.id,
+          plate_number: vp.plate_number,
+          normalized_plate: vp.normalized_plate,
+          make: vp.vehicle_make || "سيارة زائر",
+          model: vp.vehicle_model || "مؤقت",
+          color: vp.vehicle_color || "غير محدد",
+          is_primary: true,
+          owner_id: vp.id,
+          owner_name_ar: `[زائر مُصرّح] ${vp.visitor_name}`,
+          owner_name_en: `[Visitor] ${vp.visitor_name}`,
+          owner_employee_id: "VISITOR",
+          owner_mobile: vp.visitor_mobile,
+          department_name_ar: vp.host_name ? `المستضيف: ${vp.host_name}` : "تصريح زائر مؤقت",
+          department_name_en: vp.host_name ? `Host: ${vp.host_name}` : "Temporary Visitor",
+          match_type: vp.normalized_plate === normQuery ? "exact" : "partial",
+        }));
+
+        return NextResponse.json({
+          success: true,
+          normalizedQuery: normQuery,
+          results: mappedVisitors,
+        });
+      }
+    } catch (err) {
+      console.warn("Visitor search error:", err);
+    }
+
+    // 4. No match found - Fetch escalation details for unregistered vehicle
+    let escalation = {
+      venueLabel: "المنشأة",
+      venueNameAr: "المنشأة",
+      gateSecurityPhone: "+974 4400 0000",
+    };
+
+    try {
+      const supabase = await createClient();
+      const [settingsRes, orgRes] = await Promise.all([
+        supabase
+          .from("system_settings")
+          .select("branding")
+          .eq("organization_id", orgId)
+          .maybeSingle(),
+        supabase
+          .from("organizations")
+          .select("name_ar, name_en")
+          .eq("id", orgId)
+          .maybeSingle(),
+      ]);
+
+      if (settingsRes.data?.branding) {
+        const b = settingsRes.data.branding as any;
+        if (b.venue_label) escalation.venueLabel = b.venue_label;
+        if (b.gate_security_phone) escalation.gateSecurityPhone = b.gate_security_phone;
+      }
+      if (orgRes.data?.name_ar) {
+        escalation.venueNameAr = orgRes.data.name_ar;
+      }
+    } catch {
+      // Keep sensible fallback defaults
+    }
+
     return NextResponse.json({
       success: true,
       normalizedQuery: normQuery,
       results: [],
+      escalation,
     });
   } catch (err: any) {
     return NextResponse.json(

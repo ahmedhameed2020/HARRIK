@@ -15,32 +15,45 @@ export interface ContactMessageOptions {
   type?: AlertTypeCode;
   language?: "ar" | "en";
   countryCode?: string;
+  venueName?: string;
 }
 
-const ARABIC_TEMPLATES: Record<AlertTypeCode, (plate: string) => string> = {
-  BLOCKING: (plate) =>
-    `السلام عليكم، سيارتك رقم ${plate} حاجزة سيارتي في موقف المدرسة. لو سمحت محتاج أحرك سيارتي. شكرًا لك.`,
-  LIGHTS_ON: (plate) =>
-    `السلام عليكم، للتكرم بالعلم بأن أنوار سيارتك رقم ${plate} في موقف المدرسة مفتوحة. شكرًا لك.`,
-  WINDOW_OPEN: (plate) =>
-    `السلام عليكم، للتكرم بالعلم بأن نافذة سيارتك رقم ${plate} في موقف المدرسة مفتوحة. شكرًا لك.`,
-  CHECK_VEHICLE: (plate) =>
-    `السلام عليكم، يرجى التوجه إلى سيارتك رقم ${plate} في موقف المدرسة للتأكد من وضعها. شكرًا لك.`,
-  CONTACT_ME: (plate) =>
-    `السلام عليكم، بخصوص سيارتك رقم ${plate} في موقف المدرسة، يرجى التواصل معي عند الإمكان. شكرًا لك.`,
+const getArabicVenueText = (venue?: string) => {
+  if (!venue || venue === "المنشأة") return "في مواقف المنشأة";
+  if (venue === "المدرسة") return "في موقف المدرسة";
+  return `في مواقف ${venue}`;
 };
 
-const ENGLISH_TEMPLATES: Record<AlertTypeCode, (plate: string) => string> = {
-  BLOCKING: (plate) =>
-    `Hi, your vehicle ${plate} is currently blocking my car in the school parking area. Could you please come to the parking area? Thank you.`,
-  LIGHTS_ON: (plate) =>
-    `Hi, just letting you know that the lights are on in your vehicle ${plate} in the school parking area. Thank you.`,
-  WINDOW_OPEN: (plate) =>
-    `Hi, just letting you know that a window is open on your vehicle ${plate} in the school parking area. Thank you.`,
-  CHECK_VEHICLE: (plate) =>
-    `Hi, please check your vehicle ${plate} in the school parking area when convenient. Thank you.`,
-  CONTACT_ME: (plate) =>
-    `Hi, regarding your vehicle ${plate} in the school parking area, please contact me when possible. Thank you.`,
+const getEnglishVenueText = (venue?: string) => {
+  if (!venue || venue.toLowerCase() === "facility") return "in the facility parking area";
+  if (venue.toLowerCase() === "school") return "in the school parking area";
+  return `in the ${venue} parking area`;
+};
+
+const ARABIC_TEMPLATES: Record<AlertTypeCode, (plate: string, venue?: string) => string> = {
+  BLOCKING: (plate, venue) =>
+    `السلام عليكم، سيارتك رقم ${plate} حاجزة سيارتي ${getArabicVenueText(venue)}. لو سمحت محتاج أحرك سيارتي. شكرًا لك.`,
+  LIGHTS_ON: (plate, venue) =>
+    `السلام عليكم، للتكرم بالعلم بأن أنوار سيارتك رقم ${plate} ${getArabicVenueText(venue)} مفتوحة. شكرًا لك.`,
+  WINDOW_OPEN: (plate, venue) =>
+    `السلام عليكم، للتكرم بالعلم بأن نافذة سيارتك رقم ${plate} ${getArabicVenueText(venue)} مفتوحة. شكرًا لك.`,
+  CHECK_VEHICLE: (plate, venue) =>
+    `السلام عليكم، يرجى التوجه إلى سيارتك رقم ${plate} ${getArabicVenueText(venue)} للتأكد من وضعها. شكرًا لك.`,
+  CONTACT_ME: (plate, venue) =>
+    `السلام عليكم، بخصوص سيارتك رقم ${plate} ${getArabicVenueText(venue)}، يرجى التواصل معي عند الإمكان. شكرًا لك.`,
+};
+
+const ENGLISH_TEMPLATES: Record<AlertTypeCode, (plate: string, venue?: string) => string> = {
+  BLOCKING: (plate, venue) =>
+    `Hi, your vehicle ${plate} is currently blocking my car ${getEnglishVenueText(venue)}. Could you please come to the parking area? Thank you.`,
+  LIGHTS_ON: (plate, venue) =>
+    `Hi, just letting you know that the lights are on in your vehicle ${plate} ${getEnglishVenueText(venue)}. Thank you.`,
+  WINDOW_OPEN: (plate, venue) =>
+    `Hi, just letting you know that a window is open on your vehicle ${plate} ${getEnglishVenueText(venue)}. Thank you.`,
+  CHECK_VEHICLE: (plate, venue) =>
+    `Hi, please check your vehicle ${plate} ${getEnglishVenueText(venue)} when convenient. Thank you.`,
+  CONTACT_ME: (plate, venue) =>
+    `Hi, regarding your vehicle ${plate} ${getEnglishVenueText(venue)}, please contact me when possible. Thank you.`,
 };
 
 /**
@@ -88,7 +101,7 @@ export function generateWhatsAppLink(options: ContactMessageOptions): string {
 
   const templateMap = language === "en" ? ENGLISH_TEMPLATES : ARABIC_TEMPLATES;
   const templateFn = templateMap[type] || templateMap.BLOCKING;
-  const message = templateFn(plateNumber);
+  const message = templateFn(plateNumber, options.venueName);
 
   return `https://wa.me/${normalizedPhone}?text=${encodeURIComponent(message)}`;
 }
@@ -108,3 +121,5 @@ export function generateTelLink(
   }
   return `tel:${clean}`;
 }
+
+export const buildWhatsAppUrl = generateWhatsAppLink;

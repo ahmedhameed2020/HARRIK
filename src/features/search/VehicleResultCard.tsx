@@ -1,10 +1,14 @@
 "use client";
 
 import React from "react";
-import { Phone, MessageSquare, AlertTriangle, ShieldCheck, Car } from "lucide-react";
+import { Phone, MessageSquare, AlertTriangle, ShieldCheck, User } from "lucide-react";
+import { motion, useReducedMotion } from "motion/react";
 import { SearchResultVehicle } from "@/types";
-import { generateWhatsAppLink, generateTelLink, AlertTypeCode } from "@/lib/whatsapp";
+import { generateWhatsAppLink, generateTelLink } from "@/lib/whatsapp";
 import { translations, Language } from "@/i18n/translations";
+import { triggerHaptic } from "@/lib/haptics";
+import { QatarPlate } from "@/components/ui/QatarPlate";
+import { resultCardVariants, TACTILE_TAP } from "@/lib/motion";
 
 interface VehicleResultCardProps {
   vehicle: SearchResultVehicle;
@@ -18,6 +22,7 @@ export function VehicleResultCard({
   onOpenAlertModal,
 }: VehicleResultCardProps) {
   const t = translations[lang];
+  const shouldReduceMotion = useReducedMotion();
 
   const ownerName =
     lang === "ar"
@@ -38,116 +43,135 @@ export function VehicleResultCard({
 
   const telUrl = generateTelLink(vehicle.owner_mobile);
 
+  const getInitials = (name: string) => {
+    const parts = name.trim().split(" ");
+    if (parts.length >= 2) {
+      return `${parts[0][0]} ${parts[1][0]}`;
+    }
+    return name.slice(0, 2);
+  };
+
   return (
-    <div className="overflow-hidden rounded-2xl border bg-white shadow-xl shadow-slate-200/50 transition-all dark:bg-slate-900 dark:border-slate-800 dark:shadow-none">
-      {/* Plate Header Banner — Styled as a Qatar License Plate */}
-      <div className="relative border-b bg-gradient-to-r from-slate-50 to-slate-100 p-5 dark:from-slate-800/80 dark:to-slate-900 border-slate-200 dark:border-slate-700">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            {/* Qatar License Plate Replica */}
-            <div className="inline-flex items-center overflow-hidden rounded-lg border-2 border-slate-900 bg-white font-mono shadow-md dark:border-slate-300">
-              <div className="flex flex-col items-center justify-center bg-qatar px-2.5 py-1 text-[10px] font-bold text-white tracking-wider">
-                <span>قطر</span>
-                <span className="text-[8px] opacity-90">QATAR</span>
-              </div>
-              <div className="px-4 py-1 text-2xl font-black tracking-widest text-slate-950 numeric-plate">
-                {vehicle.plate_number}
-              </div>
-            </div>
+    <motion.div
+      variants={shouldReduceMotion ? undefined : resultCardVariants}
+      initial={shouldReduceMotion ? undefined : "hidden"}
+      animate={shouldReduceMotion ? undefined : "visible"}
+      exit={shouldReduceMotion ? undefined : "exit"}
+      className="overflow-hidden rounded-[24px] bg-white dark:bg-[#131926] border border-slate-200/90 dark:border-slate-800 shadow-xl transition-colors"
+    >
+      {/* 1. Header Banner — Plate & Primary Vehicle Identity */}
+      <div className="border-b border-slate-200/80 dark:border-slate-800/80 bg-slate-50/70 dark:bg-[#1a2234]/50 p-4 sm:p-5">
+        <div className="flex flex-col gap-3">
+          {/* Top Row: Plate + Primary Badge */}
+          <div className="flex items-center justify-between gap-3">
+            <QatarPlate plateNumber={vehicle.plate_number} size="md" />
 
-            <div>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-                {vehicle.make} {vehicle.model}
-              </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                {vehicle.color} {vehicle.year ? `• ${vehicle.year}` : ""}
-              </p>
-            </div>
-          </div>
-
-          {vehicle.is_primary && (
-            <span className="inline-flex items-center gap-1 self-start sm:self-center rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800">
-              <ShieldCheck className="h-3.5 w-3.5" />
-              {t.primaryVehicle}
-            </span>
-          )}
-        </div>
-      </div>
-
-      {/* Owner Information Section */}
-      <div className="p-5">
-        <div className="rounded-xl bg-slate-50/80 p-4 border border-slate-100 dark:bg-slate-800/50 dark:border-slate-800">
-          <div className="flex items-start justify-between">
-            <div>
-              <span className="text-xs font-medium text-slate-400 dark:text-slate-500">
-                {t.ownerTitle}
-              </span>
-              <h4 className="text-xl font-bold text-slate-900 dark:text-white font-arabic mt-0.5">
-                {ownerName || "غير محدد"}
-              </h4>
-            </div>
-            {vehicle.owner_employee_id && (
-              <span className="rounded-md bg-white px-2.5 py-1 text-xs font-mono font-medium text-slate-600 border border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700">
-                #{vehicle.owner_employee_id}
+            {vehicle.is_primary && (
+              <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/60 dark:border-emerald-800/60">
+                <ShieldCheck className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                <span>{t.primaryVehicle}</span>
               </span>
             )}
           </div>
 
-          {deptName && (
-            <div className="mt-3 flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
-              <span className="font-semibold text-slate-400 dark:text-slate-500 text-xs">
-                {t.departmentLabel}:
-              </span>
-              <span>{deptName}</span>
-            </div>
-          )}
+          {/* Vehicle Make, Model & Color — Full width without truncation */}
+          <div>
+            <h3 className="text-xl sm:text-2xl font-black text-slate-950 dark:text-white font-arabic">
+              {vehicle.make} {vehicle.model}
+            </h3>
+            <p className="text-xs sm:text-sm font-semibold text-slate-500 dark:text-slate-400 mt-0.5">
+              {vehicle.color} {vehicle.year ? `• موديل ${vehicle.year}` : ""}
+            </p>
+          </div>
+        </div>
+      </div>
 
-          {vehicle.owner_mobile && (
-            <div className="mt-1 flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
-              <span className="font-semibold text-slate-400 dark:text-slate-500 text-xs">
-                {t.mobileLabel}:
+      {/* 2. Owner Information Section (Respecting Privacy Mode) */}
+      <div className="p-4 sm:p-5">
+        <div className="rounded-[18px] bg-slate-50/80 dark:bg-[#1a2234]/60 p-3.5 sm:p-4 border border-slate-200/70 dark:border-slate-800">
+          <div className="flex items-center gap-3.5">
+            {/* Avatar with Initials */}
+            <div className="flex h-11 w-11 sm:h-12 sm:w-12 flex-shrink-0 items-center justify-center rounded-[14px] bg-[#8a1538] text-white font-bold font-arabic shadow-sm">
+              <span className="text-sm">
+                {ownerName ? getInitials(ownerName) : <User className="h-5 w-5" />}
               </span>
-              <span className="font-mono numeric-plate">{vehicle.owner_mobile}</span>
             </div>
-          )}
+
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between gap-2">
+                <h4 className="text-base sm:text-lg font-black text-slate-950 dark:text-white font-arabic truncate">
+                  {ownerName || (lang === "ar" ? "مالك مسجل" : "Registered Owner")}
+                </h4>
+                {vehicle.owner_employee_id && (
+                  <span className="rounded-lg bg-white px-2 py-0.5 text-xs font-mono font-bold text-slate-700 border border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700">
+                    #{vehicle.owner_employee_id}
+                  </span>
+                )}
+              </div>
+
+              <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-600 dark:text-slate-300">
+                {deptName && (
+                  <span className="font-semibold text-rose-800 dark:text-rose-300">
+                    {deptName}
+                  </span>
+                )}
+                {vehicle.owner_mobile && (
+                  <span className="font-mono numeric-plate font-semibold text-slate-500 dark:text-slate-400">
+                    {vehicle.owner_mobile}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* 3 Prominent Large Touch Actions */}
-        <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
-          {/* 1. Direct Phone Call */}
-          <a
+        {/* 3. Three Dominant Mobile Thumb Actions (Under 1 Second Decision) */}
+        <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3">
+          {/* Action 1: Direct Phone Call */}
+          <motion.a
             href={telUrl || "#"}
-            className={`flex min-h-[52px] items-center justify-center gap-2.5 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-800 shadow-sm transition hover:bg-slate-50 active:scale-95 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700 ${
+            whileTap={shouldReduceMotion ? undefined : TACTILE_TAP}
+            onClick={() => triggerHaptic("medium")}
+            className={`flex min-h-[56px] h-14 items-center justify-center gap-2.5 rounded-[16px] px-4 py-3 text-sm font-bold text-emerald-950 dark:text-emerald-100 bg-emerald-50 hover:bg-emerald-100/80 dark:bg-emerald-950/40 dark:hover:bg-emerald-950/60 border border-emerald-300/80 dark:border-emerald-800/80 shadow-sm transition-colors ${
               !telUrl ? "opacity-50 pointer-events-none" : ""
             }`}
           >
-            <Phone className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-600 text-white shadow-sm">
+              <Phone className="h-4 w-4" />
+            </div>
             <span>{t.callAction}</span>
-          </a>
+          </motion.a>
 
-          {/* 2. WhatsApp Deep Link */}
-          <a
+          {/* Action 2: WhatsApp Direct Link */}
+          <motion.a
             href={whatsappUrl || "#"}
             target="_blank"
             rel="noopener noreferrer"
-            className={`flex min-h-[52px] items-center justify-center gap-2.5 rounded-xl bg-emerald-600 px-4 py-3 text-sm font-bold text-white shadow-md shadow-emerald-600/20 transition hover:bg-emerald-700 active:scale-95 ${
+            whileTap={shouldReduceMotion ? undefined : TACTILE_TAP}
+            onClick={() => triggerHaptic("medium")}
+            className={`flex min-h-[56px] h-14 items-center justify-center gap-2.5 rounded-[16px] px-4 py-3 text-sm font-bold text-white bg-[#25d366] hover:bg-[#20ba59] shadow-md shadow-emerald-600/20 transition-colors ${
               !whatsappUrl ? "opacity-50 pointer-events-none" : ""
             }`}
           >
             <MessageSquare className="h-5 w-5" />
             <span>{t.whatsappAction}</span>
-          </a>
+          </motion.a>
 
-          {/* 3. Send Parking Alert */}
-          <button
-            onClick={() => onOpenAlertModal(vehicle)}
-            className="flex min-h-[52px] items-center justify-center gap-2.5 rounded-xl bg-qatar px-4 py-3 text-sm font-bold text-white shadow-md shadow-qatar/20 transition hover:bg-qatar-900 active:scale-95"
+          {/* Action 3: Send Parking Alert */}
+          <motion.button
+            type="button"
+            whileTap={shouldReduceMotion ? undefined : TACTILE_TAP}
+            onClick={() => {
+              triggerHaptic("medium");
+              onOpenAlertModal(vehicle);
+            }}
+            className="flex min-h-[56px] h-14 items-center justify-center gap-2.5 rounded-[16px] px-4 py-3 text-sm font-bold text-white bg-[#8a1538] hover:bg-[#70112e] shadow-md shadow-rose-950/20 transition-colors"
           >
-            <AlertTriangle className="h-5 w-5" />
+            <AlertTriangle className="h-5 w-5 text-amber-300" />
             <span>{t.sendAlertAction}</span>
-          </button>
+          </motion.button>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

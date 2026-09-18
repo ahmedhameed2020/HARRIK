@@ -23,3 +23,14 @@ pnpm-debug.log*
 .DS_Store
 *.pem
 Thumbs.db
+
+# Production bootstrap artifacts
+supabase/bootstrap_production.sql
+supabase/*.temp/
+
+# TypeScript build info
+*.tsbuildinfo
+
+# Scratch scripts
+test_api.py
+

@@ -45,7 +45,7 @@ describe("Phase 29 — Critical E2E Release Verification", () => {
     const decodedMessage = decodeURIComponent(link);
     expect(decodedMessage).toContain("السلام عليكم");
     expect(decodedMessage).toContain("482731");
-    expect(decodedMessage).toContain("حاجزة سيارتي في موقف المدرسة");
+    expect(decodedMessage).toContain("حاجزة سيارتي في مواقف المنشأة");
   });
 
   it("Step 4: Generates valid phone call tel: target", () => {

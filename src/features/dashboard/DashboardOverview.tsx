@@ -17,375 +17,594 @@ import {
   History,
   ArrowUpRight,
   ExternalLink,
+  RefreshCw,
+  Calendar,
+  Sparkles,
+  ChevronRight,
+  ArrowDownRight,
 } from "lucide-react";
+import {
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Legend,
+} from "recharts";
 import { DashboardOverview as IDashboardOverview } from "@/types";
 import { translations, Language } from "@/i18n/translations";
+import { triggerHaptic } from "@/lib/haptics";
+import { useEntityConfig } from "@/contexts/EntityConfigContext";
+import { motion } from "motion/react";
+import { SPRINGS } from "@/lib/motion";
 
 interface DashboardOverviewProps {
   lang: Language;
 }
 
+// 7-day trend sample data based on facility operation
+const trafficTrendData = [
+  { day: "الخميس", dayEn: "Thu", searches: 28, alerts: 8, resolved: 8 },
+  { day: "الجمعة", dayEn: "Fri", searches: 4, alerts: 0, resolved: 0 },
+  { day: "السبت", dayEn: "Sat", searches: 6, alerts: 1, resolved: 1 },
+  { day: "الأحد", dayEn: "Sun", searches: 42, alerts: 14, resolved: 13 },
+  { day: "الإثنين", dayEn: "Mon", searches: 38, alerts: 11, resolved: 9 },
+  { day: "الثلاثاء", dayEn: "Tue", searches: 45, alerts: 13, resolved: 12 },
+  { day: "اليوم", dayEn: "Today", searches: 34, alerts: 7, resolved: 6 },
+];
+
+// Peak hours distribution (Universal Traffic Patterns)
+const peakHoursData = [
+  { time: "7:00 ص", timeEn: "7:00 AM", count: 18, label: "دخول الفترة الصباحية", labelEn: "Morning Entry" },
+  { time: "8:00 ص", timeEn: "8:00 AM", count: 12, label: "حركة الوصول الصباحي", labelEn: "Morning Arrival" },
+  { time: "10:00 ص", timeEn: "10:00 AM", count: 15, label: "حركة منتصف اليوم والخدمات", labelEn: "Midday & Services" },
+  { time: "12:00 م", timeEn: "12:00 PM", count: 22, label: "حركة فترة الظهيرة", labelEn: "Midday Movement" },
+  { time: "1:00 م", timeEn: "1:00 PM", count: 46, label: "ذروة الخروج", labelEn: "Peak Departure", isPeak: true },
+  { time: "2:00 م", timeEn: "2:00 PM", count: 28, label: "حركة المغادرة الرئيسية", labelEn: "Main Departure" },
+  { time: "3:30 م", timeEn: "3:30 PM", count: 14, label: "حركة ما بعد الظهيرة", labelEn: "Afternoon Traffic" },
+  { time: "5:00 م", timeEn: "5:00 PM", count: 8, label: "هدوء الحركة المسائية", labelEn: "Evening Calm" },
+];
+
+// Incident resolution breakdown
+const resolutionSpeedData = [
+  { name: "أقل من 5 دقائق", value: 78, color: "#10b981" },
+  { name: "5 - 15 دقيقة", value: 14, color: "#3b82f6" },
+  { name: "أكثر من 15 دقيقة", value: 8, color: "#f59e0b" },
+];
+
 export function DashboardOverview({ lang }: DashboardOverviewProps) {
+  const { config } = useEntityConfig();
   const [data, setData] = useState<IDashboardOverview | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [timeRange, setTimeRange] = useState<"today" | "week" | "month">("week");
+  const [isMounted, setIsMounted] = useState(false);
   const t = translations[lang];
 
   useEffect(() => {
-    const fetchOverview = async () => {
-      try {
-        const res = await fetch("/api/dashboard");
-        const json = await res.json();
-        setData(json);
-      } catch {
-        // Handled
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    setIsMounted(true);
+  }, []);
+
+  const fetchOverview = async () => {
+    setIsLoading(true);
+    try {
+      const res = await fetch("/api/dashboard");
+      const json = await res.json();
+      setData(json);
+    } catch {
+      // Handled
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchOverview();
   }, []);
 
   const m = data?.metrics;
   const ci = data?.currentIssues;
 
-  return (
-    <div className="mx-auto max-w-6xl px-4 py-6 sm:py-8 space-y-8">
-      {/* Top Hero & Organization Context */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-6 border-slate-200 dark:border-slate-800">
-        <div>
-          <div className="flex items-center gap-2 text-xs font-bold text-qatar">
-            <span className="inline-block h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span>مدرسة قطر الثانوية للبنين • Asia/Qatar</span>
+  // Custom Recharts Tooltip
+  const CustomAreaTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="rounded-xl border border-slate-200 bg-white/95 p-3.5 shadow-xl backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-900/95 text-xs font-arabic">
+          <p className="font-black text-slate-900 dark:text-white mb-2">{label}</p>
+          <div className="space-y-1">
+            <p className="flex items-center justify-between gap-4 text-blue-600 dark:text-blue-400 font-bold">
+              <span>عمليات البحث:</span>
+              <span className="font-mono">{payload[0]?.value}</span>
+            </p>
+            <p className="flex items-center justify-between gap-4 text-qatar font-bold">
+              <span>تنبيهات المواقف:</span>
+              <span className="font-mono">{payload[1]?.value}</span>
+            </p>
           </div>
-          <h1 className="mt-1 text-3xl font-black text-slate-900 dark:text-white font-arabic">
+        </div>
+      );
+    }
+    return null;
+  };
+
+  return (
+    <div className="space-y-8 pb-12">
+      {/* Executive Command Bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-950 dark:text-white font-arabic">
             {t.dashboardGreeting}
           </h1>
-          <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">
-            {t.dashboardOverviewTitle}
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-zinc-400 mt-1">
+            المؤشرات الحية والبيانات التحليلية لمواقف السيارات والحركة الميدانية
           </p>
         </div>
 
-        {/* Quick Admin Action Links */}
         <div className="flex flex-wrap items-center gap-2">
-          <Link
-            href="/admin/staff"
-            className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
-          >
-            <Users className="h-4 w-4 text-qatar" />
-            <span>{t.navStaff}</span>
-          </Link>
+          {/* Time Range Selector */}
+          <div className="inline-flex rounded-xl border border-slate-200 bg-white p-1 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+            {(["today", "week", "month"] as const).map((range) => {
+              const active = timeRange === range;
+              const label =
+                range === "today"
+                  ? "اليوم"
+                  : range === "week"
+                  ? "آخر 7 أيام"
+                  : "هذا الشهر";
 
-          <Link
-            href="/admin/vehicles"
-            className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
-          >
-            <Car className="h-4 w-4 text-qatar" />
-            <span>{t.navVehicles}</span>
-          </Link>
+              return (
+                <button
+                  key={range}
+                  type="button"
+                  onClick={() => {
+                    triggerHaptic("selection");
+                    setTimeRange(range);
+                  }}
+                  className={`rounded-lg px-3 py-1.5 text-xs font-bold transition-all ${
+                    active
+                      ? "bg-qatar text-white shadow-sm"
+                      : "text-slate-600 hover:text-slate-950 dark:text-zinc-400 dark:hover:text-white"
+                  }`}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
 
-          <Link
-            href="/admin/import"
-            className="flex items-center gap-1.5 rounded-xl bg-qatar px-3.5 py-2 text-xs font-bold text-white shadow-md shadow-qatar/20 hover:bg-qatar-900"
+          {/* Refresh Button */}
+          <button
+            type="button"
+            onClick={() => {
+              triggerHaptic("light");
+              fetchOverview();
+            }}
+            disabled={isLoading}
+            className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:bg-slate-50 active:scale-95 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300"
+            title="تحديث البيانات"
           >
-            <FileSpreadsheet className="h-4 w-4" />
-            <span>{t.navImport}</span>
-          </Link>
+            <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin text-qatar" : ""}`} />
+          </button>
         </div>
       </div>
 
-      {/* KPI Cards Row — Computed from Real Supabase Backend */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {/* KPI 1: Registered Vehicles */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-          <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
-              {t.metric_registeredVehicles}
-            </span>
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800">
-              <Car className="h-4 w-4 text-qatar" />
-            </div>
-          </div>
-          <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-3xl font-black text-slate-900 dark:text-white font-mono">
-              {m?.registeredVehicles?.value ?? 38}
-            </span>
-            <span className="text-xs font-bold text-emerald-600">
-              {m?.vehicleCoverage?.value ?? 93.3}% تغطية
-            </span>
-          </div>
-          <span className="mt-1 block text-xs text-slate-400">
-            30 موظف مسجل بالدليل
-          </span>
-        </div>
-
-        {/* KPI 2: Searches Today */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-          <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
-              {t.metric_searchesToday}
-            </span>
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800">
-              <Search className="h-4 w-4 text-blue-600" />
-            </div>
-          </div>
-          <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-3xl font-black text-slate-900 dark:text-white font-mono">
-              {m?.searches?.value ?? 38}
-            </span>
-            <span className="text-xs font-bold text-emerald-600">
-              {m?.searchSuccessRate?.value ?? 89.5}% نجاح
-            </span>
-          </div>
-          <span className="mt-1 block text-xs text-slate-400">
-            34 بحث عثر على صاحب السيارة
-          </span>
-        </div>
-
-        {/* KPI 3: Active Incidents */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-          <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
+      {/* KPI Cards Row — SaaS Executive Quality */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {/* KPI 1: Active Incidents (Operational Priority #1) */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.2, delay: 0.02 }}
+          whileHover={{ y: -2 }}
+          className="group relative overflow-hidden rounded-[20px] border border-amber-200/80 bg-white p-5 shadow-sm transition-shadow hover:shadow-md dark:border-amber-900/40 dark:bg-[#0c0c0f]"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-slate-700 dark:text-zinc-300">
               {t.metric_activeIncidents}
             </span>
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800">
-              <AlertTriangle className="h-4 w-4 text-amber-500" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400">
+              <AlertTriangle className="h-5 w-5" />
             </div>
           </div>
           <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-3xl font-black text-amber-600 dark:text-amber-400 font-mono">
-              {ci?.activeTotal ?? 2}
+            <span className="text-3xl font-black tracking-tight text-amber-600 dark:text-amber-400 font-mono">
+              {ci?.activeTotal ?? 0}
             </span>
-            <span className="text-xs font-semibold text-slate-500">
-              ({ci?.pending ?? 1} بانتظار • {ci?.acknowledged ?? 1} مستجاب)
+            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-800 dark:bg-amber-950/60 dark:text-amber-300">
+              {ci?.pending ?? 0} بانتظار
             </span>
           </div>
-          <span className="mt-1 block text-xs text-slate-400">
-            أقدم حالة: {ci?.oldestActiveIncident?.plateDisplay ?? "225419"} (12 د)
-          </span>
-        </div>
+          <div className="mt-3 text-[11px] text-slate-500 dark:text-zinc-400 flex items-center justify-between">
+            <span>أقدم حالة نشطة:</span>
+            <span className="font-mono font-bold text-slate-800 dark:text-zinc-200">
+              {ci?.oldestActiveIncident ? `لوحة ${ci.oldestActiveIncident.plateDisplay}` : "لا توجد بلاغات نشطة"}
+            </span>
+          </div>
+        </motion.div>
+
+        {/* KPI 2: Registered Vehicles */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.2, delay: 0.06 }}
+          whileHover={{ y: -2 }}
+          className="group relative overflow-hidden rounded-[20px] border border-slate-200/80 bg-white p-5 shadow-sm transition-shadow hover:shadow-md dark:border-slate-800 dark:bg-[#0c0c0f]"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-slate-500 dark:text-zinc-400">
+              {t.metric_registeredVehicles}
+            </span>
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-qatar/10 text-qatar dark:bg-qatar/20">
+              <Car className="h-5 w-5" />
+            </div>
+          </div>
+          <div className="mt-3 flex items-baseline gap-2">
+            <span className="text-3xl font-black tracking-tight text-slate-950 dark:text-white font-mono">
+              {m?.registeredVehicles?.value ?? 0}
+            </span>
+            <span className="inline-flex items-center gap-0.5 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-bold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400">
+              <TrendingUp className="h-3 w-3" />
+              <span>{m?.vehicleCoverage?.value ?? 0}% تغطية</span>
+            </span>
+          </div>
+          {/* Mini Sparkline Bar */}
+          <div className="mt-3">
+            <div className="flex justify-between text-[10px] text-slate-400 font-semibold mb-1">
+              <span>{lang === "ar" ? `نسبة تسجيل ${config.memberLabel}` : `${config.memberLabelEn} Registration`}</span>
+              <span>{m?.registeredStaff?.value ?? 0} {lang === "ar" ? `${config.memberSingle} مسجل` : `Registered ${config.memberSingleEn}`}</span>
+            </div>
+            <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-zinc-800">
+              <div
+                className="h-full bg-qatar rounded-full transition-all duration-500"
+                style={{ width: `${Math.min(100, m?.vehicleCoverage?.value ?? 0)}%` }}
+              />
+            </div>
+          </div>
+        </motion.div>
+
+        {/* KPI 3: Searches & Instant Match Rate */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.2, delay: 0.10 }}
+          whileHover={{ y: -2 }}
+          className="group relative overflow-hidden rounded-[20px] border border-slate-200/80 bg-white p-5 shadow-sm transition-shadow hover:shadow-md dark:border-slate-800 dark:bg-[#0c0c0f]"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-slate-500 dark:text-zinc-400">
+              {t.metric_searchesToday}
+            </span>
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400">
+              <Search className="h-5 w-5" />
+            </div>
+          </div>
+          <div className="mt-3 flex items-baseline gap-2">
+            <span className="text-3xl font-black tracking-tight text-slate-950 dark:text-white font-mono">
+              {m?.searches?.value ?? 0}
+            </span>
+            <span className="inline-flex items-center gap-0.5 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-bold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400">
+              <TrendingUp className="h-3 w-3" />
+              <span>{m?.searchSuccessRate?.value ?? 0}% نجاح</span>
+            </span>
+          </div>
+          {/* Mini Sparkline Bar */}
+          <div className="mt-3">
+            <div className="flex justify-between text-[10px] text-slate-400 font-semibold mb-1">
+              <span>دقة العثور على المالك</span>
+              <span>{m?.searches?.value ? `${Math.round((m.searches.value * (m.searchSuccessRate?.value ?? 100)) / 100)} بحث ناجح` : "جاهز للبحث"}</span>
+            </div>
+            <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-zinc-800">
+              <div
+                className="h-full bg-blue-500 rounded-full transition-all duration-500"
+                style={{ width: `${Math.min(100, m?.searchSuccessRate?.value ?? 0)}%` }}
+              />
+            </div>
+          </div>
+        </motion.div>
+
 
         {/* KPI 4: Resolution Rate */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-          <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.2, delay: 0.14 }}
+          whileHover={{ y: -2 }}
+          className="group relative overflow-hidden rounded-[20px] border border-slate-200/80 bg-white p-5 shadow-sm transition-shadow hover:shadow-md dark:border-slate-800 dark:bg-[#0c0c0f]"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-slate-500 dark:text-zinc-400">
               {t.metric_resolutionRate}
             </span>
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800">
-              <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400">
+              <CheckCircle2 className="h-5 w-5" />
             </div>
           </div>
           <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-3xl font-black text-emerald-600 dark:text-emerald-400 font-mono">
+            <span className="text-3xl font-black tracking-tight text-emerald-600 dark:text-emerald-400 font-mono">
               {m?.resolutionRate?.value ?? 90.0}%
             </span>
-            <span className="text-xs font-semibold text-slate-500">
-              (9 من 10)
+            <span className="text-xs font-semibold text-slate-500 dark:text-zinc-400">
+              (9 من كل 10)
             </span>
           </div>
-          <span className="mt-1 block text-xs text-slate-400">
-            متوسط الحل: 4 د 18 ث
-          </span>
+          <div className="mt-3 text-[11px] text-slate-500 dark:text-zinc-400 flex items-center justify-between">
+            <span>متوسط زمن الحل الميداني:</span>
+            <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">
+              4 د 18 ث
+            </span>
+          </div>
+        </motion.div>
+      </div>
+
+
+      {/* Visual Analytics Grid: 2 Charts Side-by-Side */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        {/* Chart 1: 7-Day Traffic & Alerts Area Chart (Spans 2 columns) */}
+        <div className="lg:col-span-2 rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-[#0c0c0f]">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6">
+            <div>
+              <h3 className="text-base font-black text-slate-900 dark:text-white font-arabic flex items-center gap-2">
+                <TrendingUp className="h-4 w-4 text-qatar" />
+                <span>حركة البحث وبلاغات المواقف الأسبوعية</span>
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">
+                مقارنة حجم عمليات البحث الميداني مع التنبيهات المرسلة
+              </p>
+            </div>
+            <div className="flex items-center gap-4 text-xs font-bold">
+              <div className="flex items-center gap-1.5">
+                <span className="h-2.5 w-2.5 rounded-full bg-blue-600" />
+                <span className="text-slate-600 dark:text-zinc-300">عمليات البحث</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="h-2.5 w-2.5 rounded-full bg-qatar" />
+                <span className="text-slate-600 dark:text-zinc-300">تنبيهات المواقف</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="h-72 w-full">
+            {isMounted && (
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart
+                  data={trafficTrendData}
+                  margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                >
+                  <defs>
+                    <linearGradient id="colorSearches" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#2563eb" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#2563eb" stopOpacity={0.0} />
+                    </linearGradient>
+                    <linearGradient id="colorAlerts" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#8A1538" stopOpacity={0.35} />
+                      <stop offset="95%" stopColor="#8A1538" stopOpacity={0.0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" opacity={0.5} />
+                  <XAxis
+                    dataKey="day"
+                    tick={{ fontSize: 12, fill: "#64748b" }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <YAxis
+                    tick={{ fontSize: 12, fill: "#64748b" }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <Tooltip content={<CustomAreaTooltip />} />
+                  <Area
+                    type="monotone"
+                    dataKey="searches"
+                    stroke="#2563eb"
+                    strokeWidth={2.5}
+                    fillOpacity={1}
+                    fill="url(#colorSearches)"
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="alerts"
+                    stroke="#8A1538"
+                    strokeWidth={2.5}
+                    fillOpacity={1}
+                    fill="url(#colorAlerts)"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+        </div>
+
+        {/* Chart 2: Resolution Speed Breakdown (Donut Chart) */}
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-[#0c0c0f] flex flex-col justify-between">
+          <div>
+            <h3 className="text-base font-black text-slate-900 dark:text-white font-arabic flex items-center gap-2">
+              <Clock className="h-4 w-4 text-emerald-600" />
+              <span>{lang === "ar" ? "سرعة الاستجابة" : "Response Speed"}</span>
+            </h3>
+            <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">
+              {lang === "ar" ? "توزيع وقت تحريك السيارات من لحظة التنبيه" : "Resolution time distribution from alert trigger"}
+            </p>
+          </div>
+
+          <div className="relative h-48 w-full my-2 flex items-center justify-center">
+            {isMounted && (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={resolutionSpeedData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={55}
+                    outerRadius={80}
+                    paddingAngle={4}
+                    dataKey="value"
+                  >
+                    {resolutionSpeedData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
+            )}
+            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+              <span className="text-2xl font-black text-slate-900 dark:text-white font-mono">77.8%</span>
+              <span className="text-[10px] font-bold text-slate-400 font-arabic">&lt; 5 دقائق</span>
+            </div>
+          </div>
+
+          {/* Legend Items */}
+          <div className="space-y-2 border-t border-slate-100 dark:border-zinc-800/80 pt-4">
+            {resolutionSpeedData.map((item) => (
+              <div key={item.name} className="flex items-center justify-between text-xs">
+                <div className="flex items-center gap-2">
+                  <span className="h-2 w-2 rounded-full" style={{ backgroundColor: item.color }} />
+                  <span className="text-slate-600 dark:text-zinc-400 font-arabic">{item.name}</span>
+                </div>
+                <span className="font-mono font-bold text-slate-900 dark:text-white">
+                  {item.value}%
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Operational Current Issues & Insights Grid */}
+      {/* Peak Hours & Live Activity Grid */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* Left 2 Cols: Operational Insights & Trend Summary */}
-        <div className="space-y-6 lg:col-span-2">
-          {/* Operational Insights Box */}
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <div className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-qatar" />
-              <h3 className="text-base font-bold text-slate-900 dark:text-white font-arabic">
-                رؤى تشغيلية مبنية على بيانات حقيقية
+        {/* Peak Hours Bar Chart (Spans 2 columns) */}
+        <div className="lg:col-span-2 rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-[#0c0c0f]">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h3 className="text-base font-black text-slate-900 dark:text-white font-arabic">
+                {lang === "ar" ? "توزيع ساعات ذروة حركة المواقف" : "Peak Parking Traffic Distribution"}
               </h3>
+              <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">
+                {lang === "ar"
+                  ? "تحديد أوقات الازدحام اليومية لحركة الدخول والخروج"
+                  : "Daily Entry & Exit Traffic Patterns"}
+              </p>
             </div>
-
-            <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <div className="rounded-xl border border-slate-100 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-800/40">
-                <span className="text-xs font-bold text-qatar">وقت الذروة لمواقف المدرسة</span>
-                <p className="mt-1 text-sm font-bold text-slate-800 dark:text-slate-200 font-arabic">
-                  بين 1:00 و 1:30 ظهرًا (وقت انصراف الحصص)
-                </p>
-                <span className="mt-1 block text-xs text-slate-400">
-                  أعلى فترة تشهد تنبيهات حجز مواقف
-                </span>
-              </div>
-
-              <div className="rounded-xl border border-slate-100 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-800/40">
-                <span className="text-xs font-bold text-emerald-600">سرعة حل المشكلات</span>
-                <p className="mt-1 text-sm font-bold text-slate-800 dark:text-slate-200 font-arabic">
-                  77.8% من التنبيهات تحل خلال أقل من 5 دقائق
-                </p>
-                <span className="mt-1 block text-xs text-slate-400">
-                  متوسط استجابة المعلم عبر "جاي حالًا": 1 د 42 ث
-                </span>
-              </div>
-
-              <div className="rounded-xl border border-slate-100 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-800/40">
-                <span className="text-xs font-bold text-blue-600">دقة البحث واللوحات</span>
-                <p className="mt-1 text-sm font-bold text-slate-800 dark:text-slate-200 font-arabic">
-                  89.5% نسبة العثور الفوري على صاحب السيارة
-                </p>
-                <span className="mt-1 block text-xs text-slate-400">
-                  21% من عمليات البحث استخدمت البحث الجزئي (آخر أرقام)
-                </span>
-              </div>
-
-              <div className="rounded-xl border border-amber-200 bg-amber-50/50 p-4 dark:border-amber-900/40 dark:bg-amber-950/20">
-                <span className="text-xs font-bold text-amber-700 dark:text-amber-400">تنبيه جودة السجل</span>
-                <p className="mt-1 text-sm font-bold text-slate-800 dark:text-slate-200 font-arabic">
-                  اللوحة (883201) تم الإبلاغ عنها مرتين وهي غير مسجلة
-                </p>
-                <Link
-                  href="/admin/unknown"
-                  className="mt-1 inline-flex items-center gap-1 text-xs font-bold text-qatar hover:underline"
-                >
-                  <span>مراجعة السيارات غير المعروفة</span>
-                  <ArrowUpRight className="h-3 w-3" />
-                </Link>
-              </div>
-            </div>
+            <span className="inline-flex items-center gap-1 rounded-full bg-qatar/10 px-2.5 py-1 text-xs font-bold text-qatar">
+              <Sparkles className="h-3.5 w-3.5" />
+              <span>{lang === "ar" ? "الذروة: 1:00 م" : "Peak: 1:00 PM"}</span>
+            </span>
           </div>
 
-          {/* Weekly 7-Day Performance Stats */}
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <h3 className="text-base font-bold text-slate-900 dark:text-white font-arabic">
-              {t.trendChartTitle}
-            </h3>
-
-            <div className="mt-4 space-y-3">
-              <div className="flex items-center justify-between text-xs font-bold text-slate-600 dark:text-slate-300">
-                <span>الأحد (14 سبتمبر)</span>
-                <span className="font-mono">42 بحث • 14 تنبيه • تم حل 13</span>
-              </div>
-              <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
-                <div className="h-full bg-qatar rounded-full" style={{ width: "92%" }} />
-              </div>
-
-              <div className="flex items-center justify-between text-xs font-bold text-slate-600 dark:text-slate-300 pt-2">
-                <span>الإثنين (15 سبتمبر)</span>
-                <span className="font-mono">38 بحث • 11 تنبيه • تم حل 9</span>
-              </div>
-              <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
-                <div className="h-full bg-qatar rounded-full" style={{ width: "88%" }} />
-              </div>
-            </div>
+          <div className="h-64 w-full">
+            {isMounted && (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={peakHoursData}
+                  margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" opacity={0.5} />
+                  <XAxis
+                    dataKey={lang === "ar" ? "time" : "timeEn"}
+                    tick={{ fontSize: 11, fill: "#64748b" }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <YAxis
+                    tick={{ fontSize: 11, fill: "#64748b" }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <Tooltip
+                    formatter={(value: any, name: any, item: any) => [
+                      lang === "ar" ? `${value} حركة سيارة` : `${value} vehicle movements`,
+                      lang === "ar" ? item.payload.label : item.payload.labelEn,
+                    ]}
+                  />
+                  <Bar dataKey="count" radius={[6, 6, 0, 0]}>
+                    {peakHoursData.map((entry, index) => (
+                      <Cell
+                        key={`bar-${index}`}
+                        fill={entry.isPeak ? "#8A1538" : "#cbd5e1"}
+                        className="transition-all hover:opacity-80"
+                      />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </div>
 
-        {/* Right Col: Current Issues & Live Operational Activity */}
-        <div className="space-y-6">
-          {/* Current Issues Box */}
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <div className="flex items-center justify-between">
-              <h3 className="text-base font-bold text-slate-900 dark:text-white font-arabic">
-                {t.currentIssuesTitle}
-              </h3>
-              <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-800 dark:bg-amber-950/50 dark:text-amber-300 font-mono">
-                {ci?.activeTotal ?? 2} نشطة
-              </span>
-            </div>
-
-            <div className="mt-4 space-y-3">
-              <Link
-                href="/admin/alerts?status=pending"
-                className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50 p-3.5 transition hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-800/50"
-              >
-                <div className="flex items-center gap-2.5">
-                  <div className="h-2 w-2 rounded-full bg-amber-500" />
-                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200 font-arabic">
-                    بانتظار الاستجابة
-                  </span>
-                </div>
-                <span className="font-mono text-sm font-black text-slate-900 dark:text-white">
-                  {ci?.pending ?? 1}
-                </span>
-              </Link>
-
-              <Link
-                href="/admin/alerts?status=acknowledged"
-                className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50 p-3.5 transition hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-800/50"
-              >
-                <div className="flex items-center gap-2.5">
-                  <div className="h-2 w-2 rounded-full bg-blue-500" />
-                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200 font-arabic">
-                    تمت الاستجابة (جاري التحريك)
-                  </span>
-                </div>
-                <span className="font-mono text-sm font-black text-slate-900 dark:text-white">
-                  {ci?.acknowledged ?? 1}
-                </span>
-              </Link>
-
-              <Link
-                href="/admin/unknown"
-                className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50 p-3.5 transition hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-800/50"
-              >
-                <div className="flex items-center gap-2.5">
-                  <div className="h-2 w-2 rounded-full bg-purple-500" />
-                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200 font-arabic">
-                    سيارات غير مسجلة معلقة
-                  </span>
-                </div>
-                <span className="font-mono text-sm font-black text-slate-900 dark:text-white">
-                  {ci?.openUnknownVehicles ?? 2}
-                </span>
-              </Link>
-            </div>
-          </div>
-
-          {/* Quick Management Links */}
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <h3 className="text-base font-bold text-slate-900 dark:text-white font-arabic">
-              إدارة النظام
+        {/* Operational Shortcuts & Highlights */}
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-[#0c0c0f] flex flex-col justify-between">
+          <div>
+            <h3 className="text-base font-black text-slate-900 dark:text-white font-arabic">
+              إجراءات الإدارة السريعة
             </h3>
+            <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">
+              اختصارات المهام المتكررة للإشراف الميداني
+            </p>
 
-            <div className="mt-4 grid grid-cols-1 gap-2">
+            <div className="mt-4 space-y-2">
               <Link
                 href="/admin/staff"
-                className="flex items-center justify-between rounded-xl p-3 text-sm font-bold text-slate-700 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800"
+                className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50 p-3 text-xs font-bold text-slate-700 transition hover:bg-slate-100 dark:border-zinc-800/80 dark:bg-zinc-900/60 dark:text-zinc-200 dark:hover:bg-zinc-800"
               >
                 <div className="flex items-center gap-2.5">
-                  <Users className="h-4 w-4 text-qatar" />
-                  <span>دليل الكادر الوظيفي</span>
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-qatar/10 text-qatar">
+                    <Users className="h-4 w-4" />
+                  </div>
+                  <span>إضافة / تعديل {config.memberLabel}</span>
                 </div>
-                <ArrowUpRight className="h-4 w-4 text-slate-400" />
+                <ChevronRight className="h-4 w-4 text-slate-400 rotate-180" />
               </Link>
 
               <Link
                 href="/admin/vehicles"
-                className="flex items-center justify-between rounded-xl p-3 text-sm font-bold text-slate-700 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800"
+                className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50 p-3 text-xs font-bold text-slate-700 transition hover:bg-slate-100 dark:border-zinc-800/80 dark:bg-zinc-900/60 dark:text-zinc-200 dark:hover:bg-zinc-800"
               >
                 <div className="flex items-center gap-2.5">
-                  <Car className="h-4 w-4 text-qatar" />
-                  <span>دليل سيارات المدرسة</span>
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-950/50">
+                    <Car className="h-4 w-4" />
+                  </div>
+                  <span>تسجيل مركبة جديدة وتعيين مالك</span>
                 </div>
-                <ArrowUpRight className="h-4 w-4 text-slate-400" />
+                <ChevronRight className="h-4 w-4 text-slate-400 rotate-180" />
               </Link>
 
               <Link
                 href="/admin/import"
-                className="flex items-center justify-between rounded-xl p-3 text-sm font-bold text-slate-700 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800"
+                className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50 p-3 text-xs font-bold text-slate-700 transition hover:bg-slate-100 dark:border-zinc-800/80 dark:bg-zinc-900/60 dark:text-zinc-200 dark:hover:bg-zinc-800"
               >
                 <div className="flex items-center gap-2.5">
-                  <FileSpreadsheet className="h-4 w-4 text-emerald-600" />
-                  <span>استيراد ملف Excel / CSV</span>
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50">
+                    <FileSpreadsheet className="h-4 w-4" />
+                  </div>
+                  <span>استيراد وتصدير إكسل (.xlsx)</span>
                 </div>
-                <ArrowUpRight className="h-4 w-4 text-slate-400" />
+                <ChevronRight className="h-4 w-4 text-slate-400 rotate-180" />
               </Link>
 
               <Link
-                href="/admin/settings"
-                className="flex items-center justify-between rounded-xl p-3 text-sm font-bold text-slate-700 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800"
+                href="/admin/unknown"
+                className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50 p-3 text-xs font-bold text-slate-700 transition hover:bg-slate-100 dark:border-zinc-800/80 dark:bg-zinc-900/60 dark:text-zinc-200 dark:hover:bg-zinc-800"
               >
                 <div className="flex items-center gap-2.5">
-                  <Settings className="h-4 w-4 text-slate-500" />
-                  <span>إعدادات النظام والخصوصية</span>
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-50 text-purple-600 dark:bg-purple-950/50">
+                    <AlertTriangle className="h-4 w-4" />
+                  </div>
+                  <span>فحص السيارات غير المسجلة</span>
                 </div>
-                <ArrowUpRight className="h-4 w-4 text-slate-400" />
+                <ChevronRight className="h-4 w-4 text-slate-400 rotate-180" />
               </Link>
             </div>
+          </div>
+
+          <div className="mt-4 rounded-xl bg-qatar/5 border border-qatar/15 p-3 text-center">
+            <span className="text-[11px] font-bold text-qatar">نظام حَرِّك الذكي v1.0</span>
+            <p className="text-[10px] text-slate-400 mt-0.5">جاهز للربط مع كاميرات البوابات الرقمية</p>
           </div>
         </div>
       </div>

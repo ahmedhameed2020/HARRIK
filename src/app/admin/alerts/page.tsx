@@ -2,8 +2,10 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { ArrowLeft, RefreshCw, Car, CheckCircle2, Clock, AlertTriangle } from "lucide-react";
+import { ArrowLeft, RefreshCw, Car, CheckCircle2, Clock, AlertTriangle, Download } from "lucide-react";
 import { ParkingAlert } from "@/types";
+import { exportAlertsToExcel } from "@/lib/excel-utils";
+import { triggerHaptic } from "@/lib/haptics";
 
 export default function ParkingAlertsManagerPage() {
   const [alerts, setAlerts] = useState<ParkingAlert[]>([]);
@@ -32,32 +34,50 @@ export default function ParkingAlertsManagerPage() {
   const filtered = alerts.filter((a) => (filter === "ALL" ? true : a.status === filter));
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8 space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <Link
-            href="/admin"
-            className="inline-flex items-center gap-1 text-xs font-bold text-qatar hover:underline mb-2"
-          >
-            <ArrowLeft className="h-3.5 w-3.5" />
-            <span>العودة للوحة الإدارة</span>
-          </Link>
-          <h1 className="text-2xl font-black text-slate-900 dark:text-white font-arabic">
-            إدارة تنبيهات المواقف (Parking Alerts)
-          </h1>
-          <p className="text-xs text-slate-500">
-            متابعة بلاغات حجز السيارات والأنوار المفتوحة ووقت الحل في مواقف المدرسة
-          </p>
-        </div>
+    <div className="relative min-h-screen">
+      <div className="ambient-glow-qatar top-10 start-10 opacity-60" />
+      <div className="relative z-10 mx-auto max-w-6xl px-4 py-8 space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 pb-6 dark:border-slate-800/80">
+          <div>
+            <Link
+              href="/admin"
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-qatar hover:underline mb-2 transition active:scale-95"
+            >
+              <ArrowLeft className="h-3.5 w-3.5" />
+              <span>العودة للوحة الإدارة</span>
+            </Link>
+            <h1 className="text-2xl font-black text-slate-900 dark:text-white font-arabic">
+              إدارة ومتابعة تنبيهات المواقف (Parking Alerts)
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+              متابعة بلاغات حجز السيارات والأنوار المفتوحة ووقت الحل في المواقف
+            </p>
+          </div>
 
-        <button
-          onClick={fetchAlerts}
-          className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
-        >
-          <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
-          <span>تحديث الحالات</span>
-        </button>
-      </div>
+          <div className="flex flex-wrap items-center gap-2.5">
+            <button
+              onClick={() => {
+                triggerHaptic("medium");
+                exportAlertsToExcel(filtered, "HARRIK_Parking_Alerts.xlsx");
+              }}
+              className="glass-btn-secondary inline-flex items-center gap-2 rounded-2xl px-4 py-2.5 text-xs font-bold text-slate-800 dark:text-slate-100 shadow-sm"
+            >
+              <Download className="h-4 w-4 text-qatar" />
+              <span>تصدير إلى Excel (.xlsx)</span>
+            </button>
+
+            <button
+              onClick={() => {
+                triggerHaptic("light");
+                fetchAlerts();
+              }}
+              className="glass-btn-secondary inline-flex items-center gap-2 rounded-2xl px-4 py-2.5 text-xs font-bold text-slate-700 dark:text-slate-200"
+            >
+              <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
+              <span>تحديث الحالات</span>
+            </button>
+          </div>
+        </div>
 
       {/* Filter Tabs */}
       <div className="flex gap-2">
@@ -83,10 +103,10 @@ export default function ParkingAlertsManagerPage() {
       </div>
 
       {/* Alerts Table */}
-      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <div className="glass-panel overflow-hidden rounded-3xl border border-slate-200/80 shadow-sm dark:border-slate-800">
         <div className="overflow-x-auto">
           <table className="w-full text-right text-sm">
-            <thead className="border-b bg-slate-50 text-xs font-bold text-slate-500 dark:bg-slate-800/60 dark:border-slate-800 dark:text-slate-400">
+            <thead className="border-b bg-slate-100/70 text-xs font-bold text-slate-600 dark:bg-slate-800/80 dark:border-slate-800 dark:text-slate-300">
               <tr>
                 <th className="px-5 py-3.5">اللوحة</th>
                 <th className="px-5 py-3.5">نوع التنبيه</th>
@@ -96,9 +116,9 @@ export default function ParkingAlertsManagerPage() {
                 <th className="px-5 py-3.5">مدة الحل</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800 bg-white/40 dark:bg-slate-900/40">
               {filtered.map((alert) => (
-                <tr key={alert.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40">
+                <tr key={alert.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/60 transition">
                   <td className="px-5 py-4 font-mono font-black text-slate-900 dark:text-white">
                     {alert.vehicle?.plate_number || "482731"}
                   </td>
@@ -141,5 +161,6 @@ export default function ParkingAlertsManagerPage() {
         </div>
       </div>
     </div>
-  );
+  </div>
+);
 }

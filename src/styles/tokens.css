@@ -1,0 +1,155 @@
+/**
+ * HARRIK DESIGN SYSTEM TOKENS — QATAR MODERN PRECISION
+ * Centralized Design Token Layer for Colors, Surfaces, Typography, Radii, Elevation, and Spacing.
+ */
+
+:root {
+  /* --- Core Brand (Qatar Maroon Scale) --- */
+  --harrik-maroon-950: #3b0616;
+  --harrik-maroon-900: #570d24;
+  --harrik-maroon-800: #70112e;
+  --harrik-maroon-700: #8a1538; /* Primary Brand Anchor */
+  --harrik-maroon-600: #a31a43;
+  --harrik-maroon-500: #bd2150;
+  --harrik-maroon-400: #d63c6b;
+  --harrik-maroon-300: #e87094;
+  --harrik-maroon-200: #f5b0c4;
+  --harrik-maroon-100: #fce8ee;
+  --harrik-maroon-50:  #fdf5f7;
+
+  /* --- Semantic Colors (Light Mode) --- */
+  --color-brand: var(--harrik-maroon-700);
+  --color-brand-hover: var(--harrik-maroon-800);
+  --color-brand-active: var(--harrik-maroon-900);
+  --color-brand-soft: var(--harrik-maroon-50);
+  --color-brand-border: var(--harrik-maroon-200);
+
+  --color-success: #15803d; /* Green 700 for high ambient sunlight contrast */
+  --color-success-hover: #166534;
+  --color-success-soft: #f0fdf4;
+  --color-success-border: #bbf7d0;
+
+  --color-warning: #b45309; /* Amber 700 */
+  --color-warning-hover: #92400e;
+  --color-warning-soft: #fffbeb;
+  --color-warning-border: #fde68a;
+
+  --color-danger: #b91c1c; /* Red 700 */
+  --color-danger-hover: #991b1b;
+  --color-danger-soft: #fef2f2;
+  --color-danger-border: #fecaca;
+
+  --color-info: #0369a1; /* Sky 700 */
+  --color-info-hover: #075985;
+  --color-info-soft: #f0f9ff;
+  --color-info-border: #bae6fd;
+
+  /* --- Surfaces (Light Mode) --- */
+  --surface-page: #f8fafc;        /* Canvas */
+  --surface-card: #ffffff;        /* Pure Clean White */
+  --surface-raised: #ffffff;      /* Raised Card */
+  --surface-sunken: #f1f5f9;      /* Inset Areas */
+  --surface-glass: rgba(255, 255, 255, 0.88);
+  --surface-pearl: #fcfaee;       /* Warm Pearl */
+
+  /* --- Text & Content (Light Mode) --- */
+  --text-primary: #0f172a;        /* Slate 950 — Crisp Sunlight Readability */
+  --text-secondary: #334155;      /* Slate 700 */
+  --text-muted: #64748b;          /* Slate 500 */
+  --text-subtle: #94a3b8;         /* Slate 400 */
+  --text-inverse: #ffffff;
+
+  /* --- Borders (Light Mode) --- */
+  --border-default: #e2e8f0;      /* Slate 200 */
+  --border-subtle: #f1f5f9;       /* Slate 100 */
+  --border-strong: #cbd5e1;       /* Slate 300 */
+  --border-focus: var(--harrik-maroon-700);
+
+  /* --- Radius System --- */
+  --radius-control: 12px;
+  --radius-input: 16px;
+  --radius-card: 20px;
+  --radius-card-premium: 24px;
+  --radius-hero: 28px;
+  --radius-sheet: 28px;
+  --radius-pill: 9999px;
+
+  /* --- Elevation System (Light Mode: Soft, Neutral, Never Harsh Black) --- */
+  --elevation-0: none;
+  --elevation-1: 0 1px 3px -1px rgba(15, 23, 42, 0.05), 0 1px 2px -1px rgba(15, 23, 42, 0.03);
+  --elevation-2: 0 6px 16px -3px rgba(15, 23, 42, 0.06), 0 2px 6px -2px rgba(15, 23, 42, 0.03);
+  --elevation-3: 0 12px 28px -4px rgba(15, 23, 42, 0.08), 0 4px 10px -2px rgba(15, 23, 42, 0.04);
+  --elevation-4: 0 20px 40px -8px rgba(15, 23, 42, 0.16), 0 8px 16px -4px rgba(15, 23, 42, 0.08);
+
+  /* --- Spacing Scale --- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* --- Touch Targets --- */
+  --touch-target-min: 48px;
+  --touch-target-optimal: 56px;
+}
+
+/* --- Dark Mode Semantic Tokens (Deep Graphite/Slate, No Neon, Controlled Contrast) --- */
+.dark {
+  --color-brand: #a31a43;         /* Slightly lifted for dark canvas contrast */
+  --color-brand-hover: #bd2150;
+  --color-brand-active: #d63c6b;
+  --color-brand-soft: rgba(163, 26, 67, 0.15);
+  --color-brand-border: rgba(163, 26, 67, 0.35);
+
+  --color-success: #22c55e;
+  --color-success-hover: #4ade80;
+  --color-success-soft: rgba(34, 197, 94, 0.14);
+  --color-success-border: rgba(34, 197, 94, 0.3);
+
+  --color-warning: #f59e0b;
+  --color-warning-hover: #fbbf24;
+  --color-warning-soft: rgba(245, 158, 11, 0.14);
+  --color-warning-border: rgba(245, 158, 11, 0.3);
+
+  --color-danger: #ef4444;
+  --color-danger-hover: #f87171;
+  --color-danger-soft: rgba(239, 68, 68, 0.14);
+  --color-danger-border: rgba(239, 68, 68, 0.3);
+
+  --color-info: #38bdf8;
+  --color-info-hover: #7dd3fc;
+  --color-info-soft: rgba(56, 189, 248, 0.14);
+  --color-info-border: rgba(56, 189, 248, 0.3);
+
+  /* Surfaces (Charcoal / Graphite) */
+  --surface-page: #0b0f17;        /* Deep Graphite */
+  --surface-card: #131926;        /* Raised Charcoal Card */
+  --surface-raised: #1a2234;      /* Floating Surface */
+  --surface-sunken: #080c12;      /* Sunken Depth */
+  --surface-glass: rgba(19, 25, 38, 0.85);
+  --surface-pearl: #161e2e;
+
+  /* Text & Content (Dark Mode) */
+  --text-primary: #f8fafc;        /* Slate 50 */
+  --text-secondary: #cbd5e1;      /* Slate 300 */
+  --text-muted: #94a3b8;          /* Slate 400 */
+  --text-subtle: #64748b;         /* Slate 500 */
+  --text-inverse: #0f172a;
+
+  /* Borders (Dark Mode) */
+  --border-default: #1e293b;      /* Slate 800 */
+  --border-subtle: #141c2b;
+  --border-strong: #334155;       /* Slate 700 */
+  --border-focus: #a31a43;
+
+  /* Elevations (Dark Mode: Ambient + Subtle Border) */
+  --elevation-1: 0 1px 3px 0 rgba(0, 0, 0, 0.4);
+  --elevation-2: 0 6px 18px -2px rgba(0, 0, 0, 0.55);
+  --elevation-3: 0 12px 28px -4px rgba(0, 0, 0, 0.7);
+  --elevation-4: 0 24px 48px -8px rgba(0, 0, 0, 0.85);
+}

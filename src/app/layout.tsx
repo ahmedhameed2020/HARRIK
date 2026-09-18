@@ -3,11 +3,17 @@ import "./globals.css";
 import { AppShell } from "@/components/layout/AppShell";
 
 export const metadata: Metadata = {
-  title: "حَرِّك | HARRIK — نظام مواقف المدرسة الذكي",
-  description: "ابحث برقم لوحة السيارة وتواصل مباشرة مع صاحب السيارة عبر الاتصال أو واتساب لحل حجز المواقف في ثوانٍ.",
+  title: "حَرِّك | HARRIK — Smart Parking Communication",
+  description: "اعرف صاحب المركبة. تواصل. حل المشكلة. منظومة التواصل الذكي للمواقف في المنشآت والأبراج والمجمعات السكنية والمؤسسات.",
   manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "حَرِّك | HARRIK",
+  },
   icons: {
     icon: "/favicon.ico",
+    apple: "/icon-192.png",
   },
 };
 
@@ -15,6 +21,8 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
+  userScalable: false,
+  viewportFit: "cover",
   themeColor: "#8A1538",
 };
 
