@@ -1,5 +1,5 @@
 // HARRIK Service Worker v1.0
-const CACHE_NAME = "harrik-cache-v3";
+const CACHE_NAME = "harrik-cache-v4";
 const STATIC_ASSETS = [
   "/",
   "/manifest.json",
@@ -37,11 +37,14 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
 
-  // Do not cache API requests, Supabase traffic, or sensitive authenticated routes
-  // (profiles, vehicles, phone numbers, visitors, audit logs, reports)
+  // Do not cache API requests, Supabase traffic, auth, or sensitive authenticated routes
+  // (profiles, vehicles, phone numbers, visitors, audit logs, reports, platform control)
   if (
     url.pathname.startsWith("/api/") ||
     url.pathname.includes("/rest/v1/") ||
+    url.pathname.includes("/auth/v1/") ||
+    url.pathname.startsWith("/login") ||
+    url.pathname.startsWith("/platform") ||
     url.pathname.startsWith("/admin") ||
     url.pathname.startsWith("/profile") ||
     url.pathname.startsWith("/inbox") ||
