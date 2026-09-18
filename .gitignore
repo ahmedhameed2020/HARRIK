@@ -36,6 +36,7 @@ supabase/*.temp/
 # Scratch scripts
 test_api.py
 
-# Cloudflare OpenNext
+# Cloudflare OpenNext & Wrangler
 .open-next/
+.wrangler/
 
