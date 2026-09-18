@@ -1,5 +1,5 @@
 // HARRIK Service Worker v1.0
-const CACHE_NAME = "harrik-cache-v1";
+const CACHE_NAME = "harrik-cache-v3";
 const STATIC_ASSETS = [
   "/",
   "/manifest.json",

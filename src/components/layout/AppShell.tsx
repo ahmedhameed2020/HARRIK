@@ -52,7 +52,8 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
   };
 
   const isLoginPage = pathname === "/login";
-  if (isLoginPage) {
+  const isPlatformPage = pathname.startsWith("/platform");
+  if (isLoginPage || isPlatformPage) {
     return <>{children}</>;
   }
 

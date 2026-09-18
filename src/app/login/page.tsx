@@ -75,11 +75,18 @@ function LoginForm() {
 
       if (error) {
         triggerHaptic("error");
-        if (error.message.includes("Invalid login credentials")) {
+        const msg = (error.message || "").toLowerCase();
+        if (msg.includes("invalid login credentials")) {
           setErrorMessage(
             lang === "ar"
               ? "البريد الإلكتروني أو كلمة المرور غير صحيحة"
               : "Invalid email or password"
+          );
+        } else if (msg.includes("failed to fetch") || msg.includes("network")) {
+          setErrorMessage(
+            lang === "ar"
+              ? "تعذر الاتصال بالخادم، يرجى التحقق من اتصال الإنترنت وتحديث الصفحة"
+              : "Unable to connect to server. Please check your internet connection and refresh the page."
           );
         } else {
           setErrorMessage(error.message);
@@ -89,28 +96,70 @@ function LoginForm() {
       }
 
       if (data.user) {
-        // Verify profile is active
-        const { data: profile, error: profileError } = await supabase
+        // 1. Check if user is a tenant member/admin
+        const { data: profile } = await supabase
           .from("profiles")
           .select("is_active, role")
           .eq("id", data.user.id)
-          .single();
+          .maybeSingle();
 
-        if (profileError || !profile || !profile.is_active) {
-          triggerHaptic("error");
-          await supabase.auth.signOut();
-          setErrorMessage(
-            lang === "ar"
-              ? "هذا الحساب معطل حالياً. يرجى مراجعة إدارة المنشأة."
-              : "This account has been deactivated. Please contact the facility administration."
-          );
-          setIsLoading(false);
+        if (profile) {
+          if (!profile.is_active) {
+            triggerHaptic("error");
+            await supabase.auth.signOut();
+            setErrorMessage(
+              lang === "ar"
+                ? "هذا الحساب معطل حالياً. يرجى مراجعة إدارة المنشأة."
+                : "This account has been deactivated. Please contact the facility administration."
+            );
+            setIsLoading(false);
+            return;
+          }
+
+          triggerHaptic("success");
+          const target = redirectTo !== "/" ? redirectTo : (profile.role === "admin" || profile.role === "security" ? "/admin" : "/");
+          router.push(target);
+          router.refresh();
           return;
         }
 
-        triggerHaptic("success");
-        router.push(redirectTo);
-        router.refresh();
+        // 2. Check if user is a Platform Admin
+        const { data: platformAdmin } = await supabase
+          .from("platform_admins")
+          .select("role, is_active")
+          .eq("user_id", data.user.id)
+          .maybeSingle();
+
+        if (platformAdmin) {
+          if (!platformAdmin.is_active) {
+            triggerHaptic("error");
+            await supabase.auth.signOut();
+            setErrorMessage(
+              lang === "ar"
+                ? "تم تعطيل حساب مسؤول المنصة. يرجى مراجعة إدارة النظام."
+                : "Platform Administrator account has been deactivated."
+            );
+            setIsLoading(false);
+            return;
+          }
+
+          triggerHaptic("success");
+          const target = redirectTo !== "/" ? redirectTo : "/platform";
+          router.push(target);
+          router.refresh();
+          return;
+        }
+
+        // 3. User authenticated in Supabase auth but has neither profile nor platform_admin record
+        triggerHaptic("error");
+        await supabase.auth.signOut();
+        setErrorMessage(
+          lang === "ar"
+            ? "لا يوجد ملف تعريفي مصرح مرتبط بهذا الحساب."
+            : "No authorized profile associated with this account."
+        );
+        setIsLoading(false);
+        return;
       }
     } catch (err: any) {
       triggerHaptic("error");

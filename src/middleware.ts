@@ -48,15 +48,27 @@ export async function middleware(request: NextRequest) {
   // Login page handling
   if (pathname === "/login") {
     if (user) {
-      // Check if user is active
+      // 1. Check tenant profile
       const { data: profile } = await supabase
         .from("profiles")
         .select("is_active")
         .eq("id", user.id)
-        .single();
+        .maybeSingle();
 
       if (profile && profile.is_active) {
         const redirectUrl = request.nextUrl.searchParams.get("redirectTo") || "/";
+        return NextResponse.redirect(new URL(redirectUrl, request.url));
+      }
+
+      // 2. Check platform admin
+      const { data: platformAdmin } = await supabase
+        .from("platform_admins")
+        .select("is_active")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (platformAdmin && platformAdmin.is_active) {
+        const redirectUrl = request.nextUrl.searchParams.get("redirectTo") || "/platform";
         return NextResponse.redirect(new URL(redirectUrl, request.url));
       }
     }
@@ -72,11 +84,16 @@ export async function middleware(request: NextRequest) {
       );
     }
 
+    // Platform APIs (/api/platform/*) validate platform session independently
+    if (pathname.startsWith("/api/platform/")) {
+      return response;
+    }
+
     const { data: profile } = await supabase
       .from("profiles")
       .select("role, is_active, organization_id")
       .eq("id", user.id)
-      .single();
+      .maybeSingle();
 
     if (!profile || !profile.is_active) {
       return NextResponse.json(
@@ -106,14 +123,41 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // Verify profile and role for page access
+  // Platform page protection (/platform)
+  if (pathname.startsWith("/platform")) {
+    const { data: platformAdmin } = await supabase
+      .from("platform_admins")
+      .select("role, is_active")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (!platformAdmin || !platformAdmin.is_active) {
+      const loginUrl = new URL("/login", request.url);
+      loginUrl.searchParams.set("error", "unauthorized");
+      return NextResponse.redirect(loginUrl);
+    }
+    return response;
+  }
+
+  // Tenant Page Route Protection (/, /admin, /profile, /inbox, etc.)
   const { data: profile } = await supabase
     .from("profiles")
     .select("role, is_active")
     .eq("id", user.id)
-    .single();
+    .maybeSingle();
 
   if (!profile || !profile.is_active) {
+    // If user is a platform admin trying to access tenant pages, route to /platform
+    const { data: platformAdmin } = await supabase
+      .from("platform_admins")
+      .select("is_active")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (platformAdmin && platformAdmin.is_active) {
+      return NextResponse.redirect(new URL("/platform", request.url));
+    }
+
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("error", "disabled");
     return NextResponse.redirect(loginUrl);
