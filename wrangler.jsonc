@@ -11,6 +11,7 @@
     "binding": "ASSETS"
   },
   "vars": {
+    "NEXT_PRIVATE_MINIMAL_MODE": "1",
     "NEXT_PUBLIC_SUPABASE_URL": "https://jcgnhttbkjlpgnekecor.supabase.co",
     "NEXT_PUBLIC_APP_TIMEZONE": "Asia/Qatar",
     "NEXT_PUBLIC_VAPID_PUBLIC_KEY": "BART6R8K4H5UgAnsX0pv2R_EOig_ysflTPNAx_9bYV28ebl9nMusM_TiRzXiyMvhbOto-zgteJ0uw89F4GjxkUc",
