@@ -144,7 +144,6 @@ export async function GET(request: NextRequest) {
       const supabase = await createClient();
       const { data, error } = await supabase.rpc("find_vehicle_by_plate", {
         p_query: normQuery,
-        p_org_id: orgId,
       });
 
       if (!error && Array.isArray(data) && data.length > 0) {
