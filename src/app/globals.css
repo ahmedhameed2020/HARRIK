@@ -83,24 +83,36 @@ body {
 
 /* --- HARRIK Modern Precision Components --- */
 
-/* Signature Qatar License Plate Interpretation */
+/* Signature Qatar License Plate Interpretation (Ultra-Realistic 3D Bevel & Emboss) */
 .qatar-plate-frame {
   background: #ffffff;
   box-shadow:
-    0 4px 12px -2px rgba(15, 23, 42, 0.08),
-    0 1px 3px 0 rgba(15, 23, 42, 0.05),
-    inset 0 1px 1px 0 rgba(255, 255, 255, 0.9),
-    inset 0 -1px 2px 0 rgba(15, 23, 42, 0.12);
-  border: 2px solid #0f172a;
+    0 6px 18px -2px rgba(15, 23, 42, 0.16),
+    0 2px 6px 0 rgba(15, 23, 42, 0.08),
+    inset 0 2px 3px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -2px 3px 0 rgba(15, 23, 42, 0.18);
+  border: 2.5px solid #111827;
 }
 
 .dark .qatar-plate-frame {
-  background: #ffffff; /* Plate face stays white for maximum scannability and realism */
+  background: #ffffff; /* Plate face stays reflective white for authentic realism */
   box-shadow:
-    0 8px 24px -4px rgba(0, 0, 0, 0.6),
-    inset 0 1px 1px 0 rgba(255, 255, 255, 0.8),
-    inset 0 -1px 2px 0 rgba(0, 0, 0, 0.3);
-  border: 2px solid #cbd5e1;
+    0 10px 28px -4px rgba(0, 0, 0, 0.7),
+    0 3px 8px 0 rgba(0, 0, 0, 0.45),
+    inset 0 2px 3px 0 rgba(255, 255, 255, 0.9),
+    inset 0 -2px 3px 0 rgba(0, 0, 0, 0.25);
+  border: 2.5px solid #334155;
+}
+
+/* Stamped 3D Embossed Digits for Qatari Plates */
+.qatar-plate-digits {
+  color: #0a0e17;
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.95),
+    0 -1px 1px rgba(0, 0, 0, 0.35),
+    1px 2px 3px rgba(0, 0, 0, 0.28);
+  letter-spacing: 0.12em;
+  font-feature-settings: "tnum";
 }
 
 /* Tactile Native Buttons */

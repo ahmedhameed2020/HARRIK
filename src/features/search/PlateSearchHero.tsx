@@ -158,28 +158,39 @@ export function PlateSearchHero({ lang }: PlateSearchHeroProps) {
         </p>
       </div>
 
-      {/* Signature Interactive Qatar Plate Component */}
-      <div className="mt-5 flex flex-col items-center justify-center">
-        <QatarPlate plateNumber={query} size="lg" />
+      {/* Signature Interactive Qatar Plate Component (Auto-collapses when active results are displayed to avoid visual duplication) */}
+      <AnimatePresence initial={false}>
+        {results.length === 0 && (
+          <motion.div
+            key="hero-qatar-plate"
+            initial={{ opacity: 0, height: 0, scale: 0.95 }}
+            animate={{ opacity: 1, height: "auto", scale: 1 }}
+            exit={{ opacity: 0, height: 0, scale: 0.95 }}
+            transition={{ duration: DURATION.fast, ease: EASING.standard }}
+            className="mt-5 flex flex-col items-center justify-center overflow-hidden"
+          >
+            <QatarPlate plateNumber={query} size="lg" />
 
-        {/* Subtle Searching Activity Indicator right below plate */}
-        <div className="h-6 mt-2 flex items-center justify-center">
-          <AnimatePresence>
-            {isLoading && (
-              <motion.div
-                initial={{ opacity: 0, y: -4 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -4 }}
-                transition={{ duration: DURATION.fast, ease: EASING.entrance }}
-                className="inline-flex items-center gap-2 text-xs font-bold text-[#8a1538] dark:text-rose-400"
-              >
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                <span>{lang === "ar" ? "جاري البحث عن المركبة…" : "Searching…"}</span>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      </div>
+            {/* Subtle Searching Activity Indicator right below plate */}
+            <div className="h-6 mt-2 flex items-center justify-center">
+              <AnimatePresence>
+                {isLoading && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -4 }}
+                    transition={{ duration: DURATION.fast, ease: EASING.entrance }}
+                    className="inline-flex items-center gap-2 text-xs font-bold text-[#8a1538] dark:text-rose-400"
+                  >
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    <span>{lang === "ar" ? "جاري البحث عن المركبة…" : "Searching…"}</span>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Prominent Mobile-First Search Input Box */}
       <div className="mt-2">
@@ -192,12 +203,17 @@ export function PlateSearchHero({ lang }: PlateSearchHeroProps) {
         >
           <div className="relative flex items-center overflow-hidden rounded-[20px] border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#131926] shadow-sm transition-all focus-within:border-[#8a1538] focus-within:ring-2 focus-within:ring-[#8a1538]/20">
             <div className="flex h-14 w-11 items-center justify-center text-slate-400 flex-shrink-0">
-              <Search className="h-5 w-5" />
+              {isLoading ? (
+                <Loader2 className="h-5 w-5 animate-spin text-[#8a1538] dark:text-rose-400" />
+              ) : (
+                <Search className="h-5 w-5" />
+              )}
             </div>
 
             <input
               type="text"
               inputMode="numeric"
+              dir={query ? "ltr" : (lang === "ar" ? "rtl" : "ltr")}
               value={query}
               onChange={(e) => {
                 setQuery(e.target.value);
@@ -206,7 +222,9 @@ export function PlateSearchHero({ lang }: PlateSearchHeroProps) {
                 }
               }}
               placeholder={t.plateInputPlaceholder}
-              className="h-14 flex-1 min-w-0 bg-transparent px-2 text-lg sm:text-xl font-bold tracking-wider text-slate-950 dark:text-white placeholder:text-slate-400 placeholder:font-normal placeholder:text-sm focus:outline-none font-mono"
+              className={`h-14 flex-1 min-w-0 bg-transparent px-2 text-lg sm:text-xl font-bold tracking-wider text-slate-950 dark:text-white placeholder:text-slate-400 placeholder:font-normal placeholder:text-sm focus:outline-none ${
+                query ? "font-mono text-left" : ""
+              }`}
               autoFocus
             />
 
@@ -227,7 +245,14 @@ export function PlateSearchHero({ lang }: PlateSearchHeroProps) {
               whileTap={shouldReduceMotion ? undefined : TACTILE_TAP}
               className="m-1.5 flex h-11 items-center justify-center rounded-[14px] bg-[#8a1538] hover:bg-[#70112e] px-4 text-xs sm:text-sm font-bold text-white shadow-sm disabled:opacity-50 transition-colors flex-shrink-0"
             >
-              {isLoading ? t.searching : t.searchButton}
+              {isLoading ? (
+                <span className="flex items-center gap-1.5">
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  <span>{t.searching}</span>
+                </span>
+              ) : (
+                t.searchButton
+              )}
             </motion.button>
           </div>
         </form>

@@ -24,28 +24,34 @@ export function QatarPlate({
   // Size styling tokens
   const sizeClasses = {
     sm: {
-      frame: "h-9 rounded-xl border-[1.5px]",
+      frame: "h-9 rounded-lg border-[1.5px]",
       ribbon: "px-2 py-0.5 text-[8px]",
       countryAr: "text-[9px] font-black",
       countryEn: "text-[6px] tracking-wider",
-      digitsArea: "px-2.5 text-base sm:text-lg tracking-wider",
+      digitsArea: "px-2.5 text-base tracking-wider",
       placeholder: "tracking-wider text-xs",
+      hasRivets: false,
+      rivetSize: "",
     },
     md: {
-      frame: "h-13 sm:h-14 rounded-2xl border-2",
-      ribbon: "px-3 py-1 text-[10px]",
+      frame: "h-13 sm:h-14 rounded-xl border-2",
+      ribbon: "pl-4 pr-3 py-1 text-[10px]",
       countryAr: "text-xs font-black",
       countryEn: "text-[7px] tracking-wider",
-      digitsArea: "px-3.5 sm:px-4 text-xl sm:text-2xl tracking-widest",
+      digitsArea: "pl-3.5 pr-5 sm:pl-4 sm:pr-6 text-xl sm:text-2xl tracking-widest",
       placeholder: "tracking-wider text-sm",
+      hasRivets: true,
+      rivetSize: "h-2 w-2",
     },
     lg: {
-      frame: "h-16 sm:h-20 rounded-2xl border-2",
-      ribbon: "px-3.5 sm:px-5 py-1.5 sm:py-2",
+      frame: "h-16 sm:h-20 rounded-2xl border-[2.5px]",
+      ribbon: "pl-5 pr-4 sm:pl-6 sm:pr-5 py-1.5 sm:py-2",
       countryAr: "text-xs sm:text-sm font-black",
       countryEn: "text-[8px] sm:text-[9px] tracking-widest",
-      digitsArea: "px-4 sm:px-8 text-2xl sm:text-4xl tracking-widest",
+      digitsArea: "pl-4 pr-6 sm:pl-8 sm:pr-10 text-2xl sm:text-4xl tracking-widest",
       placeholder: "tracking-widest text-lg sm:text-xl",
+      hasRivets: true,
+      rivetSize: "h-2.5 w-2.5",
     },
   }[size];
 
@@ -53,29 +59,51 @@ export function QatarPlate({
     <div
       className={`qatar-plate-frame relative inline-flex items-stretch overflow-hidden select-none font-mono ${
         sizeClasses.frame
-      } ${isInteractive ? "hover:shadow-lg transition-shadow duration-180" : ""} ${className}`}
+      } ${isInteractive ? "hover:shadow-lg transition-shadow duration-180 cursor-pointer" : ""} ${className}`}
       dir="ltr"
       aria-label={`Qatar license plate ${plateNumber || "empty"}`}
     >
-      {/* Subtle Specular Inset Reflection */}
-      <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/25 to-transparent pointer-events-none z-10" />
+      {/* Specular Surface Gloss Reflection */}
+      <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-transparent pointer-events-none z-10" />
 
-      {/* Qatar Emblem Ribbon Panel */}
-      <div className={`flex flex-col items-center justify-center bg-gradient-to-b from-[#8a1538] to-[#630d27] text-white select-none ${sizeClasses.ribbon}`}>
-        <span className={`${sizeClasses.countryAr} leading-none tracking-normal font-bold`}>
+      {/* Left Mounting Screw Rivet */}
+      {sizeClasses.hasRivets && (
+        <div
+          className={`absolute left-1.5 top-1/2 -translate-y-1/2 rounded-full bg-gradient-to-br from-slate-200 via-slate-300 to-slate-500 shadow-[inset_0_0.5px_1px_rgba(255,255,255,0.9),0_1px_2px_rgba(0,0,0,0.5)] border border-slate-400/80 flex items-center justify-center opacity-75 z-20 pointer-events-none ${sizeClasses.rivetSize}`}
+          aria-hidden="true"
+        >
+          <div className="w-[55%] h-[1px] bg-slate-700/80 rounded-[0.5px] rotate-45" />
+        </div>
+      )}
+
+      {/* Right Mounting Screw Rivet */}
+      {sizeClasses.hasRivets && (
+        <div
+          className={`absolute right-1.5 top-1/2 -translate-y-1/2 rounded-full bg-gradient-to-br from-slate-200 via-slate-300 to-slate-500 shadow-[inset_0_0.5px_1px_rgba(255,255,255,0.9),0_1px_2px_rgba(0,0,0,0.5)] border border-slate-400/80 flex items-center justify-center opacity-75 z-20 pointer-events-none ${sizeClasses.rivetSize}`}
+          aria-hidden="true"
+        >
+          <div className="w-[55%] h-[1px] bg-slate-700/80 rounded-[0.5px] -rotate-25" />
+        </div>
+      )}
+
+      {/* Qatar Flag Maroon Ribbon Panel */}
+      <div
+        className={`relative flex flex-col items-center justify-center bg-gradient-to-b from-[#8a1538] via-[#74112e] to-[#590d23] text-white select-none border-r border-slate-900/30 shadow-[inset_-1px_0_2px_rgba(0,0,0,0.25)] ${sizeClasses.ribbon}`}
+      >
+        <span className={`${sizeClasses.countryAr} leading-none tracking-normal font-bold drop-shadow-[0_1px_1px_rgba(0,0,0,0.5)]`}>
           قطر
         </span>
-        <span className={`${sizeClasses.countryEn} font-extrabold opacity-95 uppercase mt-0.5`}>
+        <span className={`${sizeClasses.countryEn} font-black opacity-95 uppercase mt-0.5 tracking-wider drop-shadow-[0_1px_1px_rgba(0,0,0,0.5)]`}>
           QATAR
         </span>
       </div>
 
-      {/* Plate Digits Area */}
+      {/* Stamped Plate Digits Area */}
       <div
-        className={`flex flex-1 items-center justify-center font-black tracking-widest text-slate-950 numeric-plate bg-white ${sizeClasses.digitsArea}`}
+        className={`flex flex-1 items-center justify-center font-black tracking-widest bg-gradient-to-b from-[#ffffff] via-[#fafafa] to-[#f1f3f5] qatar-plate-digits shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)] ${sizeClasses.digitsArea}`}
       >
         {isEmpty ? (
-          <span className={`text-slate-300 font-normal select-none ${sizeClasses.placeholder}`}>
+          <span className={`text-slate-300 font-mono font-medium select-none ${sizeClasses.placeholder}`}>
             ••••••
           </span>
         ) : (
@@ -104,3 +132,4 @@ export function QatarPlate({
     </div>
   );
 }
+
