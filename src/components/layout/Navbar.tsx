@@ -194,7 +194,7 @@ export function Navbar({
               lang === "ar" ? "التبديل إلى الإنجليزية" : "Switch to Arabic"
             }
             lang={lang === "ar" ? "en" : "ar"}
-            className="flex items-center gap-1.5 rounded-full border border-slate-200/80 bg-white/80 px-3 py-1.5 text-xs font-bold text-slate-700 shadow-sm transition active:scale-90 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900/80 dark:text-slate-200 dark:hover:bg-slate-800"
+            className="flex h-11 items-center gap-1.5 rounded-full border border-slate-200/80 bg-white/80 px-3.5 text-xs font-bold text-slate-700 shadow-sm transition active:scale-90 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900/80 dark:text-slate-200 dark:hover:bg-slate-800"
             title="Switch Language"
           >
             <Globe className="h-3.5 w-3.5 text-qatar" aria-hidden="true" />
@@ -215,7 +215,7 @@ export function Navbar({
                 ? "تفعيل الوضع الفاتح"
                 : "Switch to light mode"
             }
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200/80 bg-white/80 text-slate-600 shadow-sm transition active:scale-90 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900/80 dark:text-slate-300 dark:hover:bg-slate-800"
+            className="flex h-11 w-11 items-center justify-center rounded-full border border-slate-200/80 bg-white/80 text-slate-600 shadow-sm transition active:scale-90 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900/80 dark:text-slate-300 dark:hover:bg-slate-800"
           >
             {theme === "light" ? (
               <Moon className="h-4 w-4" aria-hidden="true" />

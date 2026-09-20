@@ -39,9 +39,15 @@ import {
   Legend,
 } from "recharts";
 import { DashboardOverview as IDashboardOverview } from "@/types";
+import {
+  share,
+  type DashboardRange,
+  type DashboardSeries,
+} from "@/lib/analytics/dashboard-series";
 import { translations, Language } from "@/i18n/translations";
 import { triggerHaptic } from "@/lib/haptics";
 import { useEntityConfig } from "@/contexts/EntityConfigContext";
+import { useLocale } from "@/contexts/LocaleContext";
 import { motion } from "motion/react";
 import { SPRINGS } from "@/lib/motion";
 
@@ -49,41 +55,85 @@ interface DashboardOverviewProps {
   lang: Language;
 }
 
-// 7-day trend sample data based on facility operation
-const trafficTrendData = [
-  { day: "الخميس", dayEn: "Thu", searches: 28, alerts: 8, resolved: 8 },
-  { day: "الجمعة", dayEn: "Fri", searches: 4, alerts: 0, resolved: 0 },
-  { day: "السبت", dayEn: "Sat", searches: 6, alerts: 1, resolved: 1 },
-  { day: "الأحد", dayEn: "Sun", searches: 42, alerts: 14, resolved: 13 },
-  { day: "الإثنين", dayEn: "Mon", searches: 38, alerts: 11, resolved: 9 },
-  { day: "الثلاثاء", dayEn: "Tue", searches: 45, alerts: 13, resolved: 12 },
-  { day: "اليوم", dayEn: "Today", searches: 34, alerts: 7, resolved: 6 },
-];
+/**
+ * Chart palette. Recharts requires concrete colour values, so the theme is
+ * resolved here instead of relying on CSS variables (which silently came out
+ * bright-white on dark cards before).
+ */
+function chartTheme(theme: "light" | "dark") {
+  return theme === "dark"
+    ? {
+        grid: "#27272a",
+        axis: "#a1a1aa",
+        cursor: "rgba(255,255,255,0.06)",
+        bar: "#e11d48",
+        barSoft: "rgba(225,29,72,0.35)",
+      }
+    : {
+        grid: "#e2e8f0",
+        axis: "#64748b",
+        cursor: "rgba(15,23,42,0.04)",
+        bar: "#8a1538",
+        barSoft: "rgba(138,21,56,0.35)",
+      };
+}
 
-// Peak hours distribution (Universal Traffic Patterns)
-const peakHoursData = [
-  { time: "7:00 ص", timeEn: "7:00 AM", count: 18, label: "دخول الفترة الصباحية", labelEn: "Morning Entry" },
-  { time: "8:00 ص", timeEn: "8:00 AM", count: 12, label: "حركة الوصول الصباحي", labelEn: "Morning Arrival" },
-  { time: "10:00 ص", timeEn: "10:00 AM", count: 15, label: "حركة منتصف اليوم والخدمات", labelEn: "Midday & Services" },
-  { time: "12:00 م", timeEn: "12:00 PM", count: 22, label: "حركة فترة الظهيرة", labelEn: "Midday Movement" },
-  { time: "1:00 م", timeEn: "1:00 PM", count: 46, label: "ذروة الخروج", labelEn: "Peak Departure", isPeak: true },
-  { time: "2:00 م", timeEn: "2:00 PM", count: 28, label: "حركة المغادرة الرئيسية", labelEn: "Main Departure" },
-  { time: "3:30 م", timeEn: "3:30 PM", count: 14, label: "حركة ما بعد الظهيرة", labelEn: "Afternoon Traffic" },
-  { time: "5:00 م", timeEn: "5:00 PM", count: 8, label: "هدوء الحركة المسائية", labelEn: "Evening Calm" },
-];
+/** "4 د 18 ث" / "4m 18s" from a seconds value. */
+function formatDuration(seconds: number, lang: Language): string {
+  const total = Math.max(0, Math.round(seconds));
+  const minutes = Math.floor(total / 60);
+  const rest = total % 60;
+  if (lang === "ar") return minutes ? `${minutes} د ${rest} ث` : `${rest} ث`;
+  return minutes ? `${minutes}m ${rest}s` : `${rest}s`;
+}
 
-// Incident resolution breakdown
-const resolutionSpeedData = [
-  { name: "أقل من 5 دقائق", nameEn: "Under 5 minutes", value: 78, color: "#10b981" },
-  { name: "5 - 15 دقيقة", nameEn: "5 - 15 minutes", value: 14, color: "#3b82f6" },
-  { name: "أكثر من 15 دقيقة", nameEn: "Over 15 minutes", value: 8, color: "#f59e0b" },
-];
+/** Empty series placeholder so charts never render undefined data. */
+const EMPTY_SERIES: DashboardSeries = {
+  range: "week",
+  traffic: [],
+  peakHours: [],
+  resolution: { under5: 0, mid: 0, over15: 0, total: 0, averageSeconds: null },
+  sampleSize: 0,
+  truncated: false,
+  generatedAt: "",
+};
+
+/** Neutral placeholder shown inside a chart card when there is nothing to plot. */
+function ChartEmptyState({
+  loading,
+  label,
+  hint,
+}: {
+  loading: boolean;
+  label: string;
+  hint: string;
+}) {
+  return (
+    <div className="flex h-full w-full flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-slate-200 bg-slate-50/60 px-6 text-center dark:border-zinc-800 dark:bg-zinc-900/40">
+      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-slate-400 shadow-sm dark:bg-zinc-900 dark:text-zinc-500">
+        {loading ? (
+          <RefreshCw className="h-4 w-4 animate-spin text-qatar" />
+        ) : (
+          <TrendingUp className="h-4 w-4" aria-hidden="true" />
+        )}
+      </div>
+      <p className="text-xs font-bold text-slate-600 dark:text-zinc-300">
+        {loading ? "" : label}
+      </p>
+      {!loading && (
+        <p className="max-w-xs text-[11px] text-slate-500 dark:text-zinc-400">{hint}</p>
+      )}
+    </div>
+  );
+}
 
 export function DashboardOverview({ lang }: DashboardOverviewProps) {
   const { config } = useEntityConfig();
+  const { theme } = useLocale();
+  const c = chartTheme(theme);
   const [data, setData] = useState<IDashboardOverview | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [timeRange, setTimeRange] = useState<"today" | "week" | "month">("week");
+  const [timeRange, setTimeRange] = useState<DashboardRange>("week");
   const [isMounted, setIsMounted] = useState(false);
   const t = translations[lang];
   const L = (ar: string, en: string) => (lang === "ar" ? ar : en);
@@ -92,10 +142,40 @@ export function DashboardOverview({ lang }: DashboardOverviewProps) {
     setIsMounted(true);
   }, []);
 
-  const fetchOverview = async () => {
+  const series = data?.series ?? EMPTY_SERIES;
+  const traffic = series.traffic;
+  const peakHours = series.peakHours;
+  const resolution = series.resolution;
+
+  const resolutionSpeedData = [
+    { name: "أقل من 5 دقائق", nameEn: "Under 5 minutes", value: share(resolution.under5, resolution.total), color: "#10b981" },
+    { name: "5 - 15 دقيقة", nameEn: "5 - 15 minutes", value: share(resolution.mid, resolution.total), color: "#3b82f6" },
+    { name: "أكثر من 15 دقيقة", nameEn: "Over 15 minutes", value: share(resolution.over15, resolution.total), color: "#f59e0b" },
+  ];
+  const hasResolution = resolution.total > 0;
+  const hasTraffic = traffic.some((p) => p.searches + p.alerts > 0);
+  const peakHour = peakHours.reduce(
+    (best, p) => (p.count > (best?.count ?? -1) ? p : best),
+    peakHours[0]
+  );
+  const hasPeak = peakHours.some((p) => p.count > 0);
+
+  /** Labels that follow the selected window instead of always saying "today". */
+  const rangeWord = L(
+    timeRange === "today" ? "اليوم" : timeRange === "week" ? "آخر 7 أيام" : "آخر 30 يومًا",
+    timeRange === "today" ? "today" : timeRange === "week" ? "last 7 days" : "last 30 days"
+  );
+
+  /** Renders a metric, showing an em dash while it is loading or unavailable. */
+  const metric = (value: number | null | undefined, suffix = "") => {
+    if (value === null || value === undefined) return isLoading ? "…" : "—";
+    return `${value}${suffix}`;
+  };
+
+  const fetchOverview = async (range: DashboardRange = timeRange) => {
     setIsLoading(true);
     try {
-      const res = await fetch("/api/dashboard");
+      const res = await fetch(`/api/dashboard?range=${range}`);
       const json = await res.json();
       setData(json);
     } catch {
@@ -106,8 +186,10 @@ export function DashboardOverview({ lang }: DashboardOverviewProps) {
   };
 
   useEffect(() => {
-    fetchOverview();
-  }, []);
+    fetchOverview(timeRange);
+    // `timeRange` is the only input; `fetchOverview` is recreated each render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [timeRange]);
 
   const m = data?.metrics;
   const ci = data?.currentIssues;
@@ -215,10 +297,10 @@ export function DashboardOverview({ lang }: DashboardOverviewProps) {
           </div>
           <div className="mt-3 flex items-baseline gap-2">
             <span className="text-3xl font-black tracking-tight text-amber-600 dark:text-amber-400 font-mono">
-              {ci?.activeTotal ?? 0}
+              {metric(ci?.activeTotal)}
             </span>
             <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-800 dark:bg-amber-950/60 dark:text-amber-300">
-              {ci?.pending ?? 0} {L("بانتظار", "pending")}
+              {metric(ci?.pending)} {L("بانتظار", "pending")}
             </span>
           </div>
           <div className="mt-3 text-[11px] text-slate-500 dark:text-zinc-400 flex items-center justify-between">
@@ -247,18 +329,21 @@ export function DashboardOverview({ lang }: DashboardOverviewProps) {
           </div>
           <div className="mt-3 flex items-baseline gap-2">
             <span className="text-3xl font-black tracking-tight text-slate-950 dark:text-white font-mono">
-              {m?.registeredVehicles?.value ?? 0}
+              {metric(m?.registeredVehicles?.value)}
             </span>
             <span className="inline-flex items-center gap-0.5 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-bold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400">
               <TrendingUp className="h-3 w-3" />
-              <span>{m?.vehicleCoverage?.value ?? 0}% تغطية</span>
+              <span>{metric(m?.vehicleCoverage?.value, "%")} {L("تغطية", "coverage")}</span>
             </span>
           </div>
           {/* Mini Sparkline Bar */}
           <div className="mt-3">
             <div className="flex justify-between text-[10px] text-slate-500 dark:text-zinc-400 font-semibold mb-1">
               <span>{lang === "ar" ? `نسبة تسجيل ${config.memberLabel}` : `${config.memberLabelEn} Registration`}</span>
-              <span>{m?.registeredStaff?.value ?? 0} {lang === "ar" ? `${config.memberSingle} مسجل` : `Registered ${config.memberSingleEn}`}</span>
+              <span>
+                {metric(m?.registeredStaff?.value)}{" "}
+                {lang === "ar" ? `${config.memberSingle} مسجل` : `Registered ${config.memberSingleEn}`}
+              </span>
             </div>
             <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-zinc-800">
               <div
@@ -279,7 +364,9 @@ export function DashboardOverview({ lang }: DashboardOverviewProps) {
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-500 dark:text-zinc-400">
-              {t.metric_searchesToday}
+              {timeRange === "today"
+                ? t.metric_searchesToday
+                : `${L("عمليات البحث", "Searches")} · ${rangeWord}`}
             </span>
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400">
               <Search className="h-5 w-5" />
@@ -287,11 +374,11 @@ export function DashboardOverview({ lang }: DashboardOverviewProps) {
           </div>
           <div className="mt-3 flex items-baseline gap-2">
             <span className="text-3xl font-black tracking-tight text-slate-950 dark:text-white font-mono">
-              {m?.searches?.value ?? 0}
+              {metric(m?.searches?.value)}
             </span>
             <span className="inline-flex items-center gap-0.5 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-bold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400">
               <TrendingUp className="h-3 w-3" />
-              <span>{m?.searchSuccessRate?.value ?? 0}% {L("نجاح", "success")}</span>
+              <span>{metric(m?.searchSuccessRate?.value, "%")} {L("نجاح", "success")}</span>
             </span>
           </div>
           {/* Mini Sparkline Bar */}
@@ -328,16 +415,23 @@ export function DashboardOverview({ lang }: DashboardOverviewProps) {
           </div>
           <div className="mt-3 flex items-baseline gap-2">
             <span className="text-3xl font-black tracking-tight text-emerald-600 dark:text-emerald-400 font-mono">
-              {m?.resolutionRate?.value ?? 90.0}%
+              {metric(m?.resolutionRate?.value, "%")}
             </span>
             <span className="text-xs font-semibold text-slate-500 dark:text-zinc-400">
-              {L("(9 من كل 10)", "(9 out of 10)")}
+              {m?.resolvedAlerts?.value != null && m?.alertsCreated?.value
+                ? L(
+                    `(${m.resolvedAlerts.value} من ${m.alertsCreated.value})`,
+                    `(${m.resolvedAlerts.value} of ${m.alertsCreated.value})`
+                  )
+                : ""}
             </span>
           </div>
           <div className="mt-3 text-[11px] text-slate-500 dark:text-zinc-400 flex items-center justify-between">
             <span>{L("متوسط زمن الحل الميداني:", "Average field resolution time:")}</span>
             <span className="font-mono font-bold text-emerald-700 dark:text-emerald-400">
-              {L("4 د 18 ث", "4m 18s")}
+              {m?.averageResolutionTime?.value != null
+                ? formatDuration(m.averageResolutionTime.value, lang)
+                : metric(null)}
             </span>
           </div>
         </motion.div>
@@ -352,7 +446,13 @@ export function DashboardOverview({ lang }: DashboardOverviewProps) {
             <div>
               <h3 className="text-base font-black text-slate-900 dark:text-white font-arabic flex items-center gap-2">
                 <TrendingUp className="h-4 w-4 text-qatar" />
-                <span>{L("حركة البحث وبلاغات المواقف الأسبوعية", "Weekly search & parking alert traffic")}</span>
+                <span>
+                  {timeRange === "today"
+                    ? L("حركة البحث والتنبيهات اليومية", "Today's search & alert traffic")
+                    : timeRange === "week"
+                    ? L("حركة البحث وبلاغات المواقف الأسبوعية", "Weekly search & parking alert traffic")
+                    : L("حركة البحث وبلاغات المواقف الشهرية", "Monthly search & parking alert traffic")}
+                </span>
               </h3>
               <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">
                 {L("مقارنة حجم عمليات البحث الميداني مع التنبيهات المرسلة", "Compare field search volume with dispatched alerts")}
@@ -371,11 +471,11 @@ export function DashboardOverview({ lang }: DashboardOverviewProps) {
           </div>
 
           {/* Decorative: the same series is stated in text above the chart. */}
-          <div className="h-72 w-full" aria-hidden="true">
-            {isMounted && (
+          <div className="relative h-72 w-full" aria-hidden="true">
+            {isMounted && hasTraffic && (
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart
-                  data={trafficTrendData}
+                  data={traffic}
                   accessibilityLayer={false}
                   margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
                 >
@@ -389,19 +489,22 @@ export function DashboardOverview({ lang }: DashboardOverviewProps) {
                       <stop offset="95%" stopColor="#8A1538" stopOpacity={0.0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" opacity={0.5} />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={c.grid} opacity={0.6} />
                   <XAxis
-                    dataKey="day"
-                    tick={{ fontSize: 12, fill: "#64748b" }}
+                    dataKey={lang === "ar" ? "labelAr" : "labelEn"}
+                    tick={{ fontSize: 12, fill: c.axis }}
                     axisLine={false}
                     tickLine={false}
+                    interval="preserveStartEnd"
+                    minTickGap={12}
                   />
                   <YAxis
-                    tick={{ fontSize: 12, fill: "#64748b" }}
+                    tick={{ fontSize: 12, fill: c.axis }}
                     axisLine={false}
                     tickLine={false}
+                    allowDecimals={false}
                   />
-                  <Tooltip content={<CustomAreaTooltip />} />
+                  <Tooltip content={<CustomAreaTooltip />} cursor={{ stroke: c.axis, strokeOpacity: 0.2 }} />
                   <Area
                     type="monotone"
                     dataKey="searches"
@@ -421,7 +524,19 @@ export function DashboardOverview({ lang }: DashboardOverviewProps) {
                 </AreaChart>
               </ResponsiveContainer>
             )}
+            {isMounted && !hasTraffic && (
+              <ChartEmptyState
+                loading={isLoading}
+                label={L("لا توجد حركة مسجّلة في هذه الفترة", "No recorded traffic in this period")}
+                hint={L("ستظهر البيانات هنا بمجرد تسجيل أول عملية بحث أو تنبيه.", "Data appears as soon as the first search or alert is logged.")}
+              />
+            )}
           </div>
+          {series.truncated && (
+            <p className="mt-2 text-[10px] font-bold text-amber-600 dark:text-amber-400">
+              {L("الرسم مبني على أحدث 20,000 سجل في الفترة.", "Chart is based on the latest 20,000 records in the range.")}
+            </p>
+          )}
         </div>
 
         {/* Chart 2: Resolution Speed Breakdown (Donut Chart) */}
@@ -441,7 +556,7 @@ export function DashboardOverview({ lang }: DashboardOverviewProps) {
             className="relative h-48 w-full my-2 flex items-center justify-center"
             aria-hidden="true"
           >
-            {isMounted && (
+            {isMounted && hasResolution && (
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart accessibilityLayer={false}>
                   <Pie
@@ -464,10 +579,26 @@ export function DashboardOverview({ lang }: DashboardOverviewProps) {
                 </PieChart>
               </ResponsiveContainer>
             )}
-            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-              <span className="text-2xl font-black text-slate-900 dark:text-white font-mono">77.8%</span>
-              <span className="text-[10px] font-bold text-slate-500 dark:text-zinc-400 font-arabic">{L("< 5 دقائق", "< 5 min")}</span>
-            </div>
+            {isMounted && !hasResolution && (
+              <ChartEmptyState
+                loading={isLoading}
+                label={L("لا توجد بلاغات مُغلقة بعد", "No closed incidents yet")}
+                hint={L(
+                  "يظهر التوزيع بعد إغلاق أول بلاغ مواقف.",
+                  "The distribution appears once the first parking incident is resolved."
+                )}
+              />
+            )}
+            {isMounted && hasResolution && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <span className="text-2xl font-black text-slate-900 dark:text-white font-mono">
+                  {resolutionSpeedData[0].value}%
+                </span>
+                <span className="text-[10px] font-bold text-slate-500 dark:text-zinc-400 font-arabic">
+                  {L("< 5 دقائق", "< 5 min")}
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Legend Items */}
@@ -479,10 +610,18 @@ export function DashboardOverview({ lang }: DashboardOverviewProps) {
                   <span className="text-slate-600 dark:text-zinc-400 font-arabic">{lang === "ar" ? item.name : item.nameEn}</span>
                 </div>
                 <span className="font-mono font-bold text-slate-900 dark:text-white">
-                  {item.value}%
+                  {hasResolution ? `${item.value}%` : "—"}
                 </span>
               </div>
             ))}
+            <p className="pt-1 text-[10px] text-slate-500 dark:text-zinc-400">
+              {hasResolution
+                ? L(
+                    `متوسط زمن الحل: ${formatDuration(resolution.averageSeconds ?? 0, lang)}`,
+                    `Average resolution: ${formatDuration(resolution.averageSeconds ?? 0, lang)}`
+                  )
+                : L("لم تُسجَّل أوقات حل بعد", "No resolution times recorded yet")}
+            </p>
           </div>
         </div>
       </div>
@@ -502,50 +641,69 @@ export function DashboardOverview({ lang }: DashboardOverviewProps) {
                   : "Daily Entry & Exit Traffic Patterns"}
               </p>
             </div>
-            <span className="inline-flex items-center gap-1 rounded-full bg-qatar/10 px-2.5 py-1 text-xs font-bold text-qatar">
-              <Sparkles className="h-3.5 w-3.5" />
-              <span>{lang === "ar" ? "الذروة: 1:00 م" : "Peak: 1:00 PM"}</span>
-            </span>
+            {hasPeak && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-qatar/10 px-2.5 py-1 text-xs font-bold text-qatar">
+                <Sparkles className="h-3.5 w-3.5" />
+                <span>
+                  {L("الذروة: ", "Peak: ")}
+                  {lang === "ar" ? peakHour?.labelAr : peakHour?.labelEn}
+                </span>
+              </span>
+            )}
           </div>
 
           {/* Decorative: peak times are labelled in text beneath the chart. */}
-          <div className="h-64 w-full" aria-hidden="true">
-            {isMounted && (
+          <div className="relative h-64 w-full" aria-hidden="true">
+            {isMounted && hasPeak && (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
-                  data={peakHoursData}
+                  data={peakHours}
                   accessibilityLayer={false}
                   margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
                 >
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" opacity={0.5} />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={c.grid} opacity={0.6} />
                   <XAxis
-                    dataKey={lang === "ar" ? "time" : "timeEn"}
-                    tick={{ fontSize: 11, fill: "#64748b" }}
+                    dataKey={lang === "ar" ? "labelAr" : "labelEn"}
+                    tick={{ fontSize: 11, fill: c.axis }}
                     axisLine={false}
                     tickLine={false}
+                    interval={2}
+                    minTickGap={8}
                   />
                   <YAxis
-                    tick={{ fontSize: 11, fill: "#64748b" }}
+                    tick={{ fontSize: 11, fill: c.axis }}
                     axisLine={false}
                     tickLine={false}
+                    allowDecimals={false}
                   />
                   <Tooltip
-                    formatter={(value: any, name: any, item: any) => [
-                      lang === "ar" ? `${value} حركة سيارة` : `${value} vehicle movements`,
-                      lang === "ar" ? item.payload.label : item.payload.labelEn,
+                    cursor={{ fill: c.cursor }}
+                    formatter={(value: any) => [
+                      lang === "ar" ? `${value} حركة` : `${value} movements`,
+                      L("إجمالي النشاط", "Total activity"),
                     ]}
                   />
                   <Bar dataKey="count" radius={[6, 6, 0, 0]}>
-                    {peakHoursData.map((entry, index) => (
+                    {peakHours.map((entry) => (
                       <Cell
-                        key={`bar-${index}`}
-                        fill={entry.isPeak ? "#8A1538" : "#cbd5e1"}
+                        key={`bar-${entry.hour}`}
+                        fill={entry.hour === peakHour?.hour ? c.bar : c.barSoft}
                         className="transition-all hover:opacity-80"
                       />
                     ))}
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
+            )}
+            {isMounted && !hasPeak && (
+              <ChartEmptyState
+                loading={isLoading}
+                label={L("لا يوجد نشاط مسجّل في هذه الفترة", "No recorded activity in this period")}
+                hint={L(
+                  "يُبنى التوزيع من عمليات البحث والتنبيهات الفعلية.",
+                  "Built from actual searches and alerts."
+                )}
+              />
             )}
           </div>
         </div>

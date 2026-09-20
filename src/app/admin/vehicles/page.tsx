@@ -17,6 +17,7 @@ import {
   Download,
 } from "lucide-react";
 import { triggerHaptic } from "@/lib/haptics";
+import { TableSkeleton } from "@/components/ui/Skeleton";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { normalizePlateNumber } from "@/lib/plate-normalizer";
 import { exportVehiclesToExcel } from "@/lib/excel-utils";
@@ -359,10 +360,7 @@ export default function VehiclesDirectoryPage() {
 
       {/* Vehicles Grid */}
       {isLoading ? (
-        <div className="py-20 text-center text-slate-400">
-          <RefreshCw className="h-6 w-6 animate-spin mx-auto text-qatar" />
-          <p className="mt-2 text-xs font-bold">{L("جاري تحميل سجل السيارات...", "Loading vehicle records...")}</p>
-        </div>
+        <TableSkeleton rows={6} cols={5} />
       ) : filteredVehicles.length === 0 ? (
         <div className="py-20 text-center text-slate-400">
           <AlertCircle className="h-8 w-8 mx-auto text-slate-300 dark:text-slate-600" />

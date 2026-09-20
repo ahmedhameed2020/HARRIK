@@ -2,6 +2,8 @@
  * حَرِّك | HARRIK — Canonical Types and Contracts
  */
 
+import type { DashboardSeries } from "@/lib/analytics/dashboard-series";
+
 export type Role = "staff" | "security" | "admin" | "super_admin";
 export type AlertStatus = "pending" | "acknowledged" | "resolved" | "cancelled";
 export type PrivacyMode = "mode_a" | "mode_b" | "mode_c";
@@ -199,6 +201,11 @@ export interface DashboardOverview {
   timezone: string;
   metrics: DashboardMetricSet;
   currentIssues: CurrentIssuesSummary;
+  /**
+   * Real chart series for the requested range (`?range=today|week|month`).
+   * Absent only on older payloads; the dashboard renders empty states then.
+   */
+  series?: DashboardSeries;
 }
 
 export interface AuditLog {

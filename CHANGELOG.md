@@ -93,6 +93,39 @@ All notable changes to the **حَرِّك | HARRIK** project will be documented 
 - **Decorative donut chart (axe `aria-hidden-focus`):** Recharts keeps a `tabindex="0"` on its pie layer even with `accessibilityLayer={false}`; `<Pie rootTabIndex={-1}>` removes it from the tab order inside the `aria-hidden` wrapper.
 - **Silent requests on public pages:** the realtime-alerts hook and the tenant-settings fetch now wait for a session, and the declared app icon points at a file that exists — `/login` no longer logs `401`/`404` console errors. Lighthouse best-practices on `/login`: 96 → 100.
 
+### Fixed (dashboard was showing invented analytics) + Added (real chart series)
+- **No more fabricated numbers.** The three dashboard charts were bound to hard-coded module
+  constants (fake weekly totals, a painted "77.8%" donut, "4 د 18 ث" resolution time) and
+  `/api/dashboard` had a fallback that returned invented KPIs (30 staff, 38 vehicles, 93.3 %
+  coverage…). Both paths now use real data; the fallback returns `null` values with
+  `status: "unavailable"` so the UI shows an em dash instead of a lie.
+- **New `GET /api/dashboard?range=today|week|month`** builds real series from
+  `vehicle_search_events` + `parking_alerts` via `lib/analytics/dashboard-series.ts`:
+  24 hourly buckets for today, 7 / 30 daily buckets otherwise, hour-of-day activity, and
+  resolution-speed buckets with a true average. Bucketing is done in Asia/Qatar (fixed UTC+03:00).
+- **The range selector now works.** It was a dead control — it never reached the API. It now
+  refetches and drives both the KPIs and the charts, and the card labels follow the window
+  ("اليوم" / "آخر 7 أيام" / "آخر 30 يومًا").
+- **Charts respect the colour scheme.** Grid and axis colours were hard-coded light values
+  (`#e2e8f0`, `#64748b`) that turned into glaring white gridlines on the dark surface; the
+  palette is now resolved from the active theme.
+- **Honest empty states** for every chart (with a loading variant) plus a truncation notice when
+  the 20 000-row cap is reached.
+- New `tests/unit/dashboard-series.test.ts` (16 tests) covering ranges, bucketing, resolution
+  math, edge cases and formatting — **132 tests** in total.
+
+### Changed (modern polish found by the UI review)
+- **Touch targets:** language toggle 30 px → 44 px, theme toggle 36 px → 44 px, admin mobile nav
+  items 28 px → 44 px, "Open Admin Menu" and the drawer close button → 44 px.
+- **Search CTA:** the disabled state is no longer a 50 %-opacity maroon button (it read as
+  broken); it is a neutral, readable disabled control, and turns brand-maroon with a hover lift
+  once a plate is typed.
+- **Recent searches:** the home screen shows the last five lookups from this device (localStorage,
+  no server call) as 44 px chips that re-run the search, with a clear-all action — filling the
+  empty space on both mobile and desktop.
+- **Admin lists** (staff, vehicles, audit) now render the existing `TableSkeleton` instead of a
+  spinner plus "loading…" text.
+
 ### Fixed (Cloudflare build)
 - **`opennextjs-cloudflare build` failed on the native `sharp` binary:** `sharp` is an optional Next.js dependency of the image optimizer, and the adapter bundles Next's own server sources with esbuild — which cannot inline `sharp`'s `.node` binary (`No loader is configured for ".node" files`). Because `sharp` is an unusable, unused dependency here (`images.unoptimized: true`, no `next/image` usage) it is now:
   - excluded from the install via `pnpm.ignoredOptionalDependencies`, and

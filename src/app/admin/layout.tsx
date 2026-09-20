@@ -253,7 +253,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                       triggerHaptic("selection");
                       setIsMobileDrawerOpen(true);
                     }}
-                    className="flex items-center gap-1.5 rounded-xl border border-slate-200/80 bg-white/90 px-2.5 py-1.5 text-xs font-bold text-slate-700 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/90 dark:text-zinc-300 active:scale-95 transition"
+                    className="flex h-11 items-center gap-1.5 rounded-xl border border-slate-200/80 bg-white/90 px-3 text-xs font-bold text-slate-700 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/90 dark:text-zinc-300 active:scale-95 transition"
                     aria-label="Open Admin Menu"
                   >
                     <Menu className="h-4 w-4 text-qatar" />
@@ -280,7 +280,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                       key={item.href}
                       href={item.href}
                       onClick={() => triggerHaptic("selection")}
-                      className={`group relative flex shrink-0 items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold transition-all active:scale-95 ${
+                      className={`group relative flex min-h-[44px] shrink-0 items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-bold transition-all active:scale-95 ${
                         active
                           ? "bg-qatar text-white shadow-md shadow-qatar/20 dark:bg-qatar dark:text-white"
                           : "text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-400 dark:hover:bg-zinc-800/70 dark:hover:text-zinc-200"
@@ -365,7 +365,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                       triggerHaptic("light");
                       setIsMobileDrawerOpen(false);
                     }}
-                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-500 hover:bg-slate-200 dark:bg-zinc-800 dark:text-zinc-400 active:scale-95 transition"
+                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-500 hover:bg-slate-200 dark:bg-zinc-800 dark:text-zinc-400 active:scale-95 transition"
                     aria-label="Close"
                   >
                     <X className="h-5 w-5" />

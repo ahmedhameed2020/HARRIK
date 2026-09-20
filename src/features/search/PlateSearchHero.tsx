@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
-import { Search, X, Camera, Loader2, Car, AlertCircle, ArrowRight } from "lucide-react";
+import { Search, X, Camera, Loader2, Car, AlertCircle, ArrowRight, History } from "lucide-react";
 import { motion, AnimatePresence, useReducedMotion } from "motion/react";
 import { SearchResultVehicle } from "@/types";
 import { translations, Language } from "@/i18n/translations";
@@ -34,6 +34,34 @@ interface PlateSearchHeroProps {
   lang: Language;
 }
 
+/** A plate the operator looked up from this device. */
+interface RecentSearch {
+  q: string;
+  plate?: string;
+}
+
+const RECENT_KEY = "harrik_recent_searches";
+const RECENT_MAX = 5;
+
+function readRecentSearches(): RecentSearch[] {
+  try {
+    const raw = window.localStorage.getItem(RECENT_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed.slice(0, RECENT_MAX) : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeRecentSearches(list: RecentSearch[]) {
+  try {
+    window.localStorage.setItem(RECENT_KEY, JSON.stringify(list.slice(0, RECENT_MAX)));
+  } catch {
+    /* storage disabled — the list simply stays empty */
+  }
+}
+
 export function PlateSearchHero({ lang }: PlateSearchHeroProps) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResultVehicle[]>([]);
@@ -47,6 +75,7 @@ export function PlateSearchHero({ lang }: PlateSearchHeroProps) {
   const [hasSearched, setHasSearched] = useState(false);
   const [showKeypad, setShowKeypad] = useState(false);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
+  const [recentSearches, setRecentSearches] = useState<RecentSearch[]>([]);
 
   // Dialog states
   const [alertTargetVehicle, setAlertTargetVehicle] = useState<SearchResultVehicle | null>(null);
@@ -58,6 +87,24 @@ export function PlateSearchHero({ lang }: PlateSearchHeroProps) {
   const shouldReduceMotion = useReducedMotion();
   const { settings } = useEntityConfig();
   const minDigits = settings.min_partial_digits || 3;
+
+  useEffect(() => {
+    setRecentSearches(readRecentSearches());
+  }, []);
+
+  /** Keeps the device-local lookup history (newest first, de-duplicated). */
+  const rememberSearch = (q: string, plate?: string) => {
+    const entry: RecentSearch = { q, plate };
+    const next = [entry, ...readRecentSearches().filter((item) => item.q !== q)].slice(0, RECENT_MAX);
+    writeRecentSearches(next);
+    setRecentSearches(next);
+  };
+
+  const clearRecentSearches = () => {
+    triggerHaptic("light");
+    writeRecentSearches([]);
+    setRecentSearches([]);
+  };
 
   // Perform plate lookup (network lookup begins immediately)
   const handleSearch = async (overrideQuery?: string) => {
@@ -82,6 +129,11 @@ export function PlateSearchHero({ lang }: PlateSearchHeroProps) {
 
       if (data.success && Array.isArray(data.results)) {
         setResults(data.results);
+        if (data.results.length === 1) {
+          rememberSearch(clean, data.results[0]?.plate_number);
+        } else if (data.results.length > 0) {
+          rememberSearch(clean);
+        }
         if (data.escalation) {
           setEscalation(data.escalation);
         }
@@ -249,7 +301,11 @@ export function PlateSearchHero({ lang }: PlateSearchHeroProps) {
               type="submit"
               disabled={isLoading || !query.trim()}
               whileTap={shouldReduceMotion ? undefined : TACTILE_TAP}
-              className="m-1.5 flex h-11 items-center justify-center rounded-[14px] bg-[#8a1538] hover:bg-[#70112e] px-4 text-xs sm:text-sm font-bold text-white shadow-sm disabled:opacity-50 transition-colors flex-shrink-0"
+              className={`m-1.5 flex h-11 min-w-[96px] items-center justify-center rounded-[14px] px-4 text-xs font-bold shadow-sm transition-all flex-shrink-0 sm:text-sm ${
+                query.trim() && !isLoading
+                  ? "bg-[#8a1538] text-white hover:bg-[#70112e] hover:shadow-md"
+                  : "cursor-not-allowed bg-slate-100 text-slate-500 dark:bg-zinc-800/70 dark:text-zinc-400"
+              }`}
             >
               {isLoading ? (
                 <span className="flex items-center gap-1.5">
@@ -295,6 +351,42 @@ export function PlateSearchHero({ lang }: PlateSearchHeroProps) {
             <span>{lang === "ar" ? "مسح بالكاميرا" : "Scan Plate"}</span>
           </button>
         </div>
+
+        {/* Recent searches — device-local, no server round-trip */}
+        {!hasSearched && recentSearches.length > 0 && (
+          <div className="mt-6">
+            <div className="mb-2 flex items-center justify-between">
+              <span className="flex items-center gap-1.5 text-[11px] font-bold text-slate-500 dark:text-zinc-400">
+                <History className="h-3.5 w-3.5" aria-hidden="true" />
+                {lang === "ar" ? "أحدث عمليات البحث على هذا الجهاز" : "Recent searches on this device"}
+              </span>
+              <button
+                type="button"
+                onClick={clearRecentSearches}
+                className="rounded-lg px-2 py-1 text-[11px] font-bold text-slate-400 transition hover:text-qatar dark:text-zinc-500 dark:hover:text-rose-400"
+              >
+                {lang === "ar" ? "مسح" : "Clear"}
+              </button>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {recentSearches.map((item) => (
+                <button
+                  key={item.q}
+                  type="button"
+                  onClick={() => {
+                    triggerHaptic("selection");
+                    setQuery(item.q);
+                    handleSearch(item.q);
+                  }}
+                  className="group flex min-h-[44px] items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3.5 text-xs font-bold text-slate-700 shadow-sm transition hover:border-qatar/40 hover:text-qatar dark:border-zinc-800 dark:bg-[#131926] dark:text-zinc-200 dark:hover:border-rose-500/40"
+                >
+                  <Search className="h-3.5 w-3.5 text-slate-400 transition group-hover:text-qatar dark:text-zinc-500" aria-hidden="true" />
+                  <span className="font-mono">{item.plate ?? item.q}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Mobile Tactile Keypad */}
         <AnimatePresence>

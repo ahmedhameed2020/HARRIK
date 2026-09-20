@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { triggerHaptic } from "@/lib/haptics";
 import { BottomSheet } from "@/components/ui/BottomSheet";
+import { TableSkeleton } from "@/components/ui/Skeleton";
 import { exportStaffToExcel } from "@/lib/excel-utils";
 import { useEntityConfig } from "@/contexts/EntityConfigContext";
 import { useLocale } from "@/contexts/LocaleContext";
@@ -393,10 +394,7 @@ export default function StaffDirectoryPage() {
 
         {/* Staff Table / List */}
         {isLoading ? (
-          <div className="py-20 text-center text-slate-400">
-            <RefreshCw className="h-6 w-6 animate-spin mx-auto text-qatar" />
-            <p className="mt-2 text-xs font-bold">{L(`جاري تحميل دليل ${memberLabel}...`, `Loading ${memberLabel} directory...`)}</p>
-          </div>
+          <TableSkeleton rows={6} cols={5} />
         ) : filteredStaff.length === 0 ? (
           <div className="py-20 text-center text-slate-400">
             <AlertCircle className="h-8 w-8 mx-auto text-slate-300 dark:text-slate-600" />

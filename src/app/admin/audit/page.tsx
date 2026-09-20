@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowLeft, ShieldAlert, Filter, RefreshCw, CheckCircle2, FileText } from "lucide-react";
 import { AuditLog } from "@/types";
 import { triggerHaptic } from "@/lib/haptics";
+import { TableSkeleton } from "@/components/ui/Skeleton";
 import { useLocale } from "@/contexts/LocaleContext";
 
 export default function AdminAuditPage() {
@@ -133,9 +134,8 @@ export default function AdminAuditPage() {
       {/* Audit Log Table / Cards */}
       <div className="rounded-3xl border border-slate-200/80 bg-white/80 shadow-sm backdrop-blur-md overflow-hidden dark:border-slate-800/80 dark:bg-slate-900/80">
         {isLoading ? (
-          <div className="py-16 text-center text-slate-400">
-            <RefreshCw className="h-6 w-6 animate-spin mx-auto text-qatar" />
-            <p className="mt-2 text-xs font-bold">{L("جاري تحميل سجل التدقيق...", "Loading audit log...")}</p>
+          <div className="p-4">
+            <TableSkeleton rows={8} cols={4} />
           </div>
         ) : logs.length === 0 ? (
           <div className="py-16 text-center text-slate-400">
