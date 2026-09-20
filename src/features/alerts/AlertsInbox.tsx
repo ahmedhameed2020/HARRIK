@@ -202,7 +202,7 @@ export function AlertsInbox({ lang }: AlertsInboxProps) {
             initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.2 }}
-            className="rounded-3xl border border-dashed border-slate-300/90 bg-white/80 p-8 text-center backdrop-blur-sm dark:border-slate-800 dark:bg-slate-900/50"
+            className="rounded-surface border border-dashed border-slate-300 bg-surface-card/70 p-10 text-center dark:border-slate-800"
           >
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400">
               <CheckCircle2 className="h-8 w-8" />
@@ -225,9 +225,9 @@ export function AlertsInbox({ lang }: AlertsInboxProps) {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95 }}
               transition={SPRINGS.sheet}
-              className="overflow-hidden rounded-[24px] border border-slate-200/90 bg-white shadow-lg shadow-slate-200/40 transition-all dark:border-slate-800 dark:bg-slate-900 dark:shadow-none"
+              className="surface-card surface-card-hover overflow-hidden rounded-[24px]"
             >
-              <div className="flex items-center justify-between border-b bg-gradient-to-r from-slate-50 to-slate-100/60 px-5 py-3 border-slate-100 dark:from-slate-800/60 dark:to-slate-900/60 dark:border-slate-800">
+              <div className="flex items-center justify-between border-b border-line bg-surface-sunken/60 px-5 py-3.5">
                 {/* Authentic Qatar Plate Header */}
                 <QatarPlate
                   plateNumber={alert.vehicle?.plate_number || "482731"}
@@ -296,7 +296,7 @@ export function AlertsInbox({ lang }: AlertsInboxProps) {
             {lang === "ar" ? "سجل التنبيهات السابقة التي تم حلها" : "Resolved History"}
           </h2>
 
-          <div className="divide-y rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+          <div className="surface-card divide-y divide-slate-100 overflow-hidden dark:divide-slate-800">
             {pastAlerts.map((alert) => (
               <div key={alert.id} className="flex items-center justify-between p-4">
                 <div className="flex items-center gap-3">
@@ -336,7 +336,7 @@ export function AlertsInbox({ lang }: AlertsInboxProps) {
               fetchAlerts(alerts.length, true);
             }}
             disabled={isLoadingMore}
-            className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 py-2.5 text-xs font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:opacity-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
+            className="btn btn-secondary text-slate-700 dark:text-slate-200"
           >
             {isLoadingMore ? (
               <RefreshCw className="h-3.5 w-3.5 animate-spin text-qatar" />
