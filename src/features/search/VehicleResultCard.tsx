@@ -81,10 +81,10 @@ export function VehicleResultCard({
       initial={shouldReduceMotion ? undefined : "hidden"}
       animate={shouldReduceMotion ? undefined : "visible"}
       exit={shouldReduceMotion ? undefined : "exit"}
-      className="overflow-hidden rounded-[24px] bg-white dark:bg-[#131926] border border-slate-200/90 dark:border-slate-800 shadow-xl transition-colors"
+      className="overflow-hidden rounded-[24px] bg-white dark:bg-surface-card border border-slate-200/90 dark:border-slate-800 shadow-xl transition-colors"
     >
       {/* 1. Header Banner — Plate & Primary Vehicle Identity */}
-      <div className="border-b border-slate-200/80 dark:border-slate-800/80 bg-slate-50/70 dark:bg-[#1a2234]/50 p-4 sm:p-5">
+      <div className="border-b border-slate-200/80 dark:border-slate-800/80 bg-slate-50/70 dark:bg-surface-raised/50 p-4 sm:p-5">
         <div className="flex flex-col gap-3">
           {/* Top Row: Plate + Primary Badge */}
           <div className="flex items-center justify-between gap-3">
@@ -112,7 +112,7 @@ export function VehicleResultCard({
 
       {/* 2. Owner Information Section (Respecting Privacy Mode) */}
       <div className="p-4 sm:p-5">
-        <div className="rounded-[18px] bg-slate-50/80 dark:bg-[#1a2234]/60 p-3.5 sm:p-4 border border-slate-200/70 dark:border-slate-800">
+        <div className="rounded-[18px] bg-slate-50/80 dark:bg-surface-raised/60 p-3.5 sm:p-4 border border-slate-200/70 dark:border-slate-800">
           <div className="flex items-center gap-3.5">
             {/* Avatar with Initials */}
             <div className="flex h-11 w-11 sm:h-12 sm:w-12 flex-shrink-0 items-center justify-center rounded-[14px] bg-[#8a1538] text-white font-bold font-arabic shadow-sm">

@@ -74,7 +74,7 @@ export function BottomSheet({
             initial={shouldReduceMotion ? undefined : "hidden"}
             animate={shouldReduceMotion ? undefined : "visible"}
             exit={shouldReduceMotion ? undefined : "exit"}
-            className="relative z-10 w-full sm:max-w-lg rounded-t-[28px] sm:rounded-[24px] border-t sm:border border-slate-200/90 bg-white dark:bg-[#131926] dark:border-slate-800 p-5 sm:p-6 shadow-2xl max-h-[92vh] overflow-y-auto pb-[max(1.5rem,env(safe-area-inset-bottom))]"
+            className="relative z-10 w-full sm:max-w-lg rounded-t-[28px] sm:rounded-[24px] border-t sm:border border-slate-200/90 bg-white dark:bg-surface-card dark:border-slate-800 p-5 sm:p-6 shadow-2xl max-h-[92vh] overflow-y-auto pb-[max(1.5rem,env(safe-area-inset-bottom))]"
           >
             {/* Grab Handle */}
             <div className="mx-auto -mt-1 mb-4 h-1.5 w-12 rounded-full bg-slate-300 dark:bg-slate-700 sm:hidden" />

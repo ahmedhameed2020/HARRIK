@@ -85,7 +85,7 @@ export function ParkingPermitModal({
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95 }}
         transition={SPRINGS.sheet}
-        className="relative w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl dark:bg-[#0c0c0f] dark:border dark:border-slate-800"
+        className="relative w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl dark:bg-surface-card dark:border dark:border-slate-800"
       >
         {/* Header */}
         <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">

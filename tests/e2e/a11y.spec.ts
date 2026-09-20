@@ -19,6 +19,11 @@ const hasCreds = Boolean(EMAIL && PASSWORD);
 const BLOCKING_IMPACTS = new Set(["serious", "critical"]);
 
 async function audit(page: Page, label: string) {
+  // Data-dependent surfaces (inbox history, admin tables) render their rows a
+  // moment after the shell. Settle first, otherwise the audit silently checks
+  // the empty state and misses real violations.
+  await page.waitForTimeout(2500);
+
   const results = await new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
     // The QR code is decorative in context and has an adjacent text label.

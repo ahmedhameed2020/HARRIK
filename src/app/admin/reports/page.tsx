@@ -314,7 +314,7 @@ export default function AdminReportsPage() {
       )}
 
       {/* Printable executive report */}
-      <div className="rounded-3xl border border-slate-200/90 bg-white p-6 sm:p-10 shadow-lg dark:border-zinc-800 dark:bg-[#0c0c0f] print:border-none print:shadow-none print:p-0 print:m-0 print:bg-white print:text-black">
+      <div className="rounded-3xl border border-slate-200/90 bg-white p-6 sm:p-10 shadow-lg dark:border-zinc-800 dark:bg-surface-card print:border-none print:shadow-none print:p-0 print:m-0 print:bg-white print:text-black">
         {/* 1. Official State of Qatar Header */}
         <div className="border-b-2 border-qatar pb-6 mb-8 flex items-start justify-between">
           <div className="flex items-center gap-4">
@@ -499,7 +499,7 @@ export default function AdminReportsPage() {
             </table>
           </div>
           {filteredAlerts.length > 15 && (
-            <p className="text-[10px] text-slate-400 mt-2 text-center">{t.repPrintNote}</p>
+            <p className="text-[10px] text-slate-500 mt-2 text-center">{t.repPrintNote}</p>
           )}
         </div>
 
@@ -507,14 +507,14 @@ export default function AdminReportsPage() {
         <div className="mt-12 pt-8 border-t-2 border-slate-200 print:border-slate-400 grid grid-cols-3 gap-6 text-center text-xs">
           <div>
             <div className="font-bold text-slate-700 print:text-black mb-1">{t.repSignSecurity}</div>
-            <div className="text-[11px] text-slate-400">{t.repSignSecurityEn}</div>
+            <div className="text-[11px] text-slate-500">{t.repSignSecurityEn}</div>
             <div className="mt-8 border-b border-dashed border-slate-400 w-32 mx-auto" />
-            <div className="text-[10px] text-slate-400 mt-1">{t.repSignDate}</div>
+            <div className="text-[10px] text-slate-500 mt-1">{t.repSignDate}</div>
           </div>
 
           <div>
             <div className="font-bold text-slate-700 print:text-black mb-1">{t.repSeal}</div>
-            <div className="text-[11px] text-slate-400">{t.repSealEn}</div>
+            <div className="text-[11px] text-slate-500">{t.repSealEn}</div>
             <div className="mt-2 h-16 w-28 mx-auto rounded-xl border border-dashed border-slate-300 flex items-center justify-center text-[10px] text-slate-300">
               {t.repSealPlaceholder}
             </div>
@@ -522,9 +522,9 @@ export default function AdminReportsPage() {
 
           <div>
             <div className="font-bold text-slate-700 print:text-black mb-1">{t.repSignOps}</div>
-            <div className="text-[11px] text-slate-400">{t.repSignOpsEn}</div>
+            <div className="text-[11px] text-slate-500">{t.repSignOpsEn}</div>
             <div className="mt-8 border-b border-dashed border-slate-400 w-32 mx-auto" />
-            <div className="text-[10px] text-slate-400 mt-1">{t.repSignDate}</div>
+            <div className="text-[10px] text-slate-500 mt-1">{t.repSignDate}</div>
           </div>
         </div>
       </div>

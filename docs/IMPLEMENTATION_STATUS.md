@@ -141,6 +141,27 @@ pnpm deploy:cf    # opennextjs-cloudflare deploy  -> Worker `harrik`
 - **Required patch:** `patches/@opennextjs__cloudflare@1.20.6.patch` aliases `sharp` to OpenNext's `empty.js` shim. Without it the build dies in “Bundling the OpenNext server…” with `No loader is configured for ".node" files`, because Next's optional `sharp` dependency is a native binary that esbuild cannot inline for Workers. `pnpm.patchedDependencies` applies the patch automatically on install — do not delete `patches/`.
 - Image optimization stays off (`images.unoptimized: true`); if it is ever needed, use a Cloudflare Images loader rather than re-enabling `sharp`.
 
+#### Premium design system (warm neutral + one accent)
+
+The interface was re-skinned to a premium, calm aesthetic without changing structure or content:
+
+| Layer | Where | What it defines |
+| --- | --- | --- |
+| Colour ramps | `tailwind.config.ts` | `slate`/`zinc` remapped to a **warm** ramp (soft white `#F8F6F3` → warm grey → charcoal `#0E0C0A`; dark surfaces `#191715`), so ~900 existing utility usages inherit it |
+| Accent | `tailwind.config.ts` | Qatar maroon `#8A1538` — the single accent, tied to the brand and plate artwork |
+| Tokens | `src/styles/tokens.css` | surfaces, hairline borders, warm text scale, layered elevation, glass, radii, spacing |
+| Primitives | `src/app/globals.css` | `.surface-card`, `.surface-card-hover`, `.surface-glass`, `.eyebrow`, `.heading-page/section/card`, `.hairline` |
+| Type scale | `tailwind.config.ts` | `micro · caption · body · lead · h3 · h2 · h1 · display · hero` with paired line-height + tracking |
+| Depth | `tailwind.config.ts` | `shadow-soft · shadow-card · shadow-float`, `radius-control · radius-card · radius-surface` |
+
+Rules of thumb for new work: use `surface-*` / `ink-*` / `line-*` / `brand-*` aliases instead of
+literal hexes, prefer the named type sizes over ad-hoc `text-[13px]`, and keep **one** accent
+colour — status colours (emerald/amber/red/sky) are reserved for state, never decoration.
+
+**Accessibility note:** the warm ramp initially dropped muted copy to 4.21:1 on the warmer canvas;
+`slate-500` is now `#6E675F` (≈5.1:1). `pnpm test:a11y:local` must stay green (16/16) after any
+palette change — it caught this on the first pass.
+
 ## Remaining / follow-ups
 
 - **Both migrations are applied and verified on both stacks** — local 10/10, remote 10/10 (`pnpm db:verify` / `pnpm db:verify:local`). The durable rate limiter, timed escalation and the unknown-report → vehicle link are therefore live; no code path depends on the "degrades safely" fallbacks any more.

@@ -584,7 +584,7 @@ export default function SettingsPage() {
         {activeTab === "profile" && (
           <div className="space-y-6">
             {/* Entity Category Selector */}
-            <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-[#0c0c0f]">
+            <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-surface-card">
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <h3 className="text-base font-black text-slate-950 dark:text-white font-arabic">
@@ -627,7 +627,7 @@ export default function SettingsPage() {
                       <span className="text-xs font-bold text-slate-900 dark:text-white font-arabic">
                         {preset.labelAr}
                       </span>
-                      <span className="text-[10px] text-slate-400 mt-0.5 font-sans">
+                      <span className="text-[10px] text-slate-500 mt-0.5 font-sans">
                         {preset.labelEn}
                       </span>
                     </button>
@@ -689,7 +689,7 @@ export default function SettingsPage() {
             {/* Venue Names & Regional Setup */}
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
               <div className="lg:col-span-2 space-y-6">
-                <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-[#0c0c0f] space-y-4">
+                <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-surface-card space-y-4">
                   <h3 className="text-base font-black text-slate-950 dark:text-white font-arabic">
                     {L("البيانات الرسمية للمنشأة", "Official organization details")}
                   </h3>
@@ -733,7 +733,7 @@ export default function SettingsPage() {
                         placeholder={L("مثال: البرج، المجمع، المدرسة، الوزارة، المستشفى...", "e.g. Tower, Compound, School, Ministry, Hospital...")}
                         className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-bold text-slate-900 focus:border-qatar focus:outline-none focus:ring-2 focus:ring-qatar/20 dark:border-zinc-800 dark:bg-zinc-900 dark:text-white font-arabic"
                       />
-                      <span className="text-[10px] text-slate-400 mt-1 block">
+                      <span className="text-[10px] text-slate-500 mt-1 block">
                         {L("يظهر في النصوص التلقائية:", "Appears in automatic texts:")} {isEn ? `"in ${venueLabel} parking"` : `"في مواقف ${venueLabel}"`}
                       </span>
                     </div>
@@ -789,7 +789,7 @@ export default function SettingsPage() {
                 </div>
 
                 {/* Primary Brand Color Selection */}
-                <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-[#0c0c0f]">
+                <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-surface-card">
                   <h3 className="text-base font-black text-slate-950 dark:text-white font-arabic mb-3">
                     {L("اللون الرئيسي لشعار وهوية المنشأة", "Primary brand color")}
                   </h3>
@@ -821,7 +821,7 @@ export default function SettingsPage() {
 
               {/* Live Preview Card */}
               <div>
-                <div className="sticky top-20 rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xl dark:border-zinc-800 dark:bg-[#0c0c0f]">
+                <div className="sticky top-20 rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xl dark:border-zinc-800 dark:bg-surface-card">
                   <div className="flex items-center gap-2 text-xs font-bold text-qatar mb-4">
                     <Eye className="h-4 w-4" />
                     <span>{L("معاينة حية لهوية المنشأة للمستخدمين", "Live preview of the organization branding")}</span>
@@ -839,14 +839,14 @@ export default function SettingsPage() {
                         <span className="block text-xs font-black text-slate-900 dark:text-white font-arabic">
                           {nameAr || L("اسم المنشأة", "Organization name")}
                         </span>
-                        <span className="text-[10px] text-slate-400 font-sans">
+                        <span className="text-[10px] text-slate-500 font-sans">
                           {nameEn || "Organization Name"}
                         </span>
                       </div>
                     </div>
 
                     <div className="mt-3">
-                      <span className="text-[10px] text-slate-400">{L("عينة رسالة التنبيه الواردة للمالك:", "Sample alert message received by the owner:")}</span>
+                      <span className="text-[10px] text-slate-500">{L("عينة رسالة التنبيه الواردة للمالك:", "Sample alert message received by the owner:")}</span>
                       <div className="mt-1.5 rounded-xl bg-white p-3 text-xs text-slate-700 shadow-xs border border-slate-200 dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-200">
                         {L("مرحباً، سيارتك متوقفة أمام سيارتي في مواقف", "Hello, your vehicle is parked in front of mine in")} <strong>{venueLabel || L("المكان", "the venue")}</strong>{L(". يرجى التكرم بتحريكها.", " parking. Please kindly move it.")}
                       </div>
@@ -870,7 +870,7 @@ export default function SettingsPage() {
         {/* =================================================================== */}
         {activeTab === "privacy" && (
           <div className="space-y-6">
-            <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-[#0c0c0f] space-y-4">
+            <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-surface-card space-y-4">
               <div className="flex items-center gap-2">
                 <Shield className="h-5 w-5 text-qatar" />
                 <h3 className="text-base font-black text-slate-950 dark:text-white font-arabic">
@@ -929,7 +929,7 @@ export default function SettingsPage() {
             </div>
 
             {/* Plate Search Rules */}
-            <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-[#0c0c0f] space-y-4">
+            <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-surface-card space-y-4">
               <div className="flex items-center gap-2">
                 <Search className="h-5 w-5 text-qatar" />
                 <h3 className="text-base font-black text-slate-950 dark:text-white font-arabic">
@@ -986,7 +986,7 @@ export default function SettingsPage() {
         {activeTab === "alerts" && (
           <div className="space-y-6">
             {/* Alert types manager (§6) */}
-            <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-[#0c0c0f] space-y-4">
+            <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-surface-card space-y-4">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
                   <Bell className="h-5 w-5 text-qatar" />
@@ -1168,7 +1168,7 @@ export default function SettingsPage() {
               </div>
             </div>
 
-            <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-[#0c0c0f] space-y-4">
+            <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-surface-card space-y-4">
               <div className="flex items-center gap-2">
                 <MessageSquare className="h-5 w-5 text-emerald-600" />
                 <h3 className="text-base font-black text-slate-950 dark:text-white font-arabic">
@@ -1217,7 +1217,7 @@ export default function SettingsPage() {
         {/* =================================================================== */}
         {activeTab === "operations" && (
           <div className="space-y-6">
-            <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-[#0c0c0f] space-y-4">
+            <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-surface-card space-y-4">
               <div className="flex items-center gap-2">
                 <Clock className="h-5 w-5 text-qatar" />
                 <h3 className="text-base font-black text-slate-950 dark:text-white font-arabic">
@@ -1282,7 +1282,7 @@ export default function SettingsPage() {
                     className="flex-1 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-mono text-slate-900 dark:border-zinc-800 dark:bg-zinc-900 dark:text-white"
                   />
                 </div>
-                <span className="text-[10px] text-slate-400 mt-1 block">
+                <span className="text-[10px] text-slate-500 mt-1 block">
                   {L("يظهر في أسفل بطاقات السيارات كجهة طوارئ بديلة في حال عدم استجابة المالك", "Shown at the bottom of vehicle cards as a fallback contact when the owner does not respond")}
                 </span>
               </div>
@@ -1295,7 +1295,7 @@ export default function SettingsPage() {
         {/* =================================================================== */}
         {activeTab === "backup" && (
           <div className="space-y-6">
-            <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-[#0c0c0f] space-y-4">
+            <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-surface-card space-y-4">
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-base font-black text-slate-950 dark:text-white font-arabic">

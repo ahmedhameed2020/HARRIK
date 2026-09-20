@@ -308,7 +308,7 @@ export function AlertsInbox({ lang }: AlertsInboxProps) {
                     <span className="font-bold text-sm text-slate-900 dark:text-white font-arabic">
                       {alert.message}
                     </span>
-                    <span className="block text-[11px] text-slate-400 font-mono mt-0.5">
+                    <span className="block text-[11px] text-slate-500 font-mono mt-0.5">
                       {new Date(alert.created_at).toLocaleTimeString(lang === "ar" ? "ar-QA" : "en-US", {
                         hour: "2-digit",
                         minute: "2-digit",

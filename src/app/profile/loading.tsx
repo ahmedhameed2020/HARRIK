@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import { PageHeaderSkeleton, Skeleton } from "@/components/ui/Skeleton";
 
 export default function Loading() {
@@ -8,7 +8,7 @@ export default function Loading() {
       {[0, 1, 2].map((i) => (
         <div
           key={i}
-          className="space-y-4 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-[#0c0c0f]"
+          className="space-y-4 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-surface-card"
         >
           <div className="flex items-center gap-2">
             <Skeleton className="h-8 w-8 rounded-xl" />

@@ -44,29 +44,29 @@
   --color-info-soft: #f0f9ff;
   --color-info-border: #bae6fd;
 
-  /* --- Surfaces (Light Mode) --- */
-  --surface-page: #f8fafc;        /* Canvas */
+  /* --- Surfaces (Light Mode) — warm, paper-like neutrals --- */
+  --surface-page: #f7f5f1;        /* Canvas: soft warm white, lets white cards lift */
   --surface-card: #ffffff;        /* Pure Clean White */
   --surface-raised: #ffffff;      /* Raised Card */
-  --surface-sunken: #f1f5f9;      /* Inset Areas */
-  --surface-glass: rgba(255, 255, 255, 0.88);
-  --surface-pearl: #fcfaee;       /* Warm Pearl */
+  --surface-sunken: #f3f1ee;      /* Inset Areas */
+  --surface-glass: rgba(255, 255, 255, 0.72);
+  --surface-pearl: #fdfbf6;       /* Warm Pearl */
 
-  /* --- Text & Content (Light Mode) --- */
-  --text-primary: #0f172a;        /* Slate 950 — Crisp Sunlight Readability */
-  --text-secondary: #334155;      /* Slate 700 */
-  --text-muted: #64748b;          /* Slate 500 */
-  --text-subtle: #94a3b8;         /* Slate 400 */
+  /* --- Text & Content (Light Mode) — warm charcoal, never pure black --- */
+  --text-primary: #1c1917;        /* Warm Charcoal — crisp in sunlight */
+  --text-secondary: #44403c;      /* Stone 700 */
+  --text-muted: #6e675f;          /* Warm grey — 5.1:1 on the canvas (AA) */
+  --text-subtle: #a29a90;         /* Decorative / placeholder only */
   --text-inverse: #ffffff;
 
-  /* --- Borders (Light Mode) --- */
-  --border-default: #e2e8f0;      /* Slate 200 */
-  --border-subtle: #f1f5f9;       /* Slate 100 */
-  --border-strong: #cbd5e1;       /* Slate 300 */
+  /* --- Borders (Light Mode) — hairline warm greys --- */
+  --border-default: #eae6e1;
+  --border-subtle: #f3f1ee;
+  --border-strong: #d8d2ca;
   --border-focus: var(--harrik-maroon-700);
 
   /* --- Radius System --- */
-  --radius-control: 12px;
+  --radius-control: 14px;
   --radius-input: 16px;
   --radius-card: 20px;
   --radius-card-premium: 24px;
@@ -74,12 +74,12 @@
   --radius-sheet: 28px;
   --radius-pill: 9999px;
 
-  /* --- Elevation System (Light Mode: Soft, Neutral, Never Harsh Black) --- */
+  /* --- Elevation System (Light: warm, layered, low-contrast) --- */
   --elevation-0: none;
-  --elevation-1: 0 1px 3px -1px rgba(15, 23, 42, 0.05), 0 1px 2px -1px rgba(15, 23, 42, 0.03);
-  --elevation-2: 0 6px 16px -3px rgba(15, 23, 42, 0.06), 0 2px 6px -2px rgba(15, 23, 42, 0.03);
-  --elevation-3: 0 12px 28px -4px rgba(15, 23, 42, 0.08), 0 4px 10px -2px rgba(15, 23, 42, 0.04);
-  --elevation-4: 0 20px 40px -8px rgba(15, 23, 42, 0.16), 0 8px 16px -4px rgba(15, 23, 42, 0.08);
+  --elevation-1: 0 1px 2px rgba(28, 25, 23, 0.04), 0 1px 3px rgba(28, 25, 23, 0.03);
+  --elevation-2: 0 2px 4px -2px rgba(28, 25, 23, 0.05), 0 8px 20px -12px rgba(28, 25, 23, 0.10);
+  --elevation-3: 0 12px 32px -12px rgba(28, 25, 23, 0.18), 0 2px 8px -4px rgba(28, 25, 23, 0.06);
+  --elevation-4: 0 24px 48px -16px rgba(28, 25, 23, 0.22), 0 8px 16px -8px rgba(28, 25, 23, 0.08);
 
   /* --- Spacing Scale --- */
   --space-1: 4px;
@@ -126,30 +126,30 @@
   --color-info-soft: rgba(56, 189, 248, 0.14);
   --color-info-border: rgba(56, 189, 248, 0.3);
 
-  /* Surfaces (Charcoal / Graphite) */
-  --surface-page: #0b0f17;        /* Deep Graphite */
-  --surface-card: #131926;        /* Raised Charcoal Card */
-  --surface-raised: #1a2234;      /* Floating Surface */
-  --surface-sunken: #080c12;      /* Sunken Depth */
-  --surface-glass: rgba(19, 25, 38, 0.85);
-  --surface-pearl: #161e2e;
+  /* Surfaces (Warm Charcoal) */
+  --surface-page: #0d0c0b;        /* Deep warm charcoal */
+  --surface-card: #191715;        /* Raised charcoal card */
+  --surface-raised: #211f1c;      /* Floating surface */
+  --surface-sunken: #080706;      /* Sunken depth */
+  --surface-glass: rgba(25, 23, 21, 0.78);
+  --surface-pearl: #211f1c;
 
   /* Text & Content (Dark Mode) */
-  --text-primary: #f8fafc;        /* Slate 50 */
-  --text-secondary: #cbd5e1;      /* Slate 300 */
-  --text-muted: #94a3b8;          /* Slate 400 */
-  --text-subtle: #64748b;         /* Slate 500 */
-  --text-inverse: #0f172a;
+  --text-primary: #faf9f7;        /* Warm white */
+  --text-secondary: #d1cbc3;
+  --text-muted: #a69f96;
+  --text-subtle: #7a736b;
+  --text-inverse: #1c1917;
 
   /* Borders (Dark Mode) */
-  --border-default: #1e293b;      /* Slate 800 */
-  --border-subtle: #141c2b;
-  --border-strong: #334155;       /* Slate 700 */
+  --border-default: #2a2724;
+  --border-subtle: #211f1c;
+  --border-strong: #413c36;
   --border-focus: #a31a43;
 
-  /* Elevations (Dark Mode: Ambient + Subtle Border) */
-  --elevation-1: 0 1px 3px 0 rgba(0, 0, 0, 0.4);
-  --elevation-2: 0 6px 18px -2px rgba(0, 0, 0, 0.55);
-  --elevation-3: 0 12px 28px -4px rgba(0, 0, 0, 0.7);
-  --elevation-4: 0 24px 48px -8px rgba(0, 0, 0, 0.85);
+  /* Elevations (Dark Mode: ambient depth, never pure black) */
+  --elevation-1: 0 1px 3px 0 rgba(0, 0, 0, 0.45);
+  --elevation-2: 0 4px 14px -4px rgba(0, 0, 0, 0.6);
+  --elevation-3: 0 14px 32px -8px rgba(0, 0, 0, 0.72);
+  --elevation-4: 0 28px 56px -12px rgba(0, 0, 0, 0.85);
 }

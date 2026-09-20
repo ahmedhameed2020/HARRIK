@@ -221,7 +221,7 @@ export default function RegisterPage() {
             </div>
 
             {/* Card */}
-            <div className="mt-6 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-[#0c0c0f]">
+            <div className="mt-6 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-surface-card">
               {errorMessage && (
                 <div className="mb-4 flex items-center gap-3 rounded-2xl border border-red-200 bg-red-50 p-3.5 text-xs font-bold text-red-800 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-300">
                   <AlertCircle className="h-4 w-4 flex-shrink-0" />

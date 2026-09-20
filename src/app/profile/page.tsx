@@ -567,7 +567,7 @@ export default function ProfilePage() {
             {vehicles.map((v) => (
               <div
                 key={v.id}
-                className="relative overflow-hidden rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm transition hover:shadow-md dark:border-zinc-800 dark:bg-[#0c0c0f]"
+                className="relative overflow-hidden rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm transition hover:shadow-md dark:border-zinc-800 dark:bg-surface-card"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div>
@@ -639,7 +639,7 @@ export default function ProfilePage() {
       </div>
 
       {/* SECTION 2: Contact & Notification Preferences */}
-      <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-[#0c0c0f]">
+      <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-surface-card">
         <h2 className="text-lg font-black text-slate-900 dark:text-white font-arabic mb-1 flex items-center gap-2">
           <Phone className="h-5 w-5 text-qatar" />
           <span>{L("بيانات التواصل واستقبال التنبيهات", "Contact details & alert reception")}</span>
@@ -693,7 +693,7 @@ export default function ProfilePage() {
       </div>
 
       {/* SECTION 3: Lockscreen Web Push Notifications */}
-      <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-[#0c0c0f]">
+      <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-surface-card">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
@@ -761,7 +761,7 @@ export default function ProfilePage() {
       </div>
 
       {/* SECTION 4: Biometric Device Unlock */}
-      <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-[#0c0c0f]">
+      <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-surface-card">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
@@ -820,7 +820,7 @@ export default function ProfilePage() {
       </div>
 
       {/* SECTION 5: Devices & Sessions */}
-      <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-[#0c0c0f]">
+      <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-surface-card">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
@@ -875,11 +875,11 @@ export default function ProfilePage() {
                   </div>
                   <div className="min-w-0">
                     <div className="truncate text-xs font-bold text-slate-800 dark:text-zinc-200">{d.host}</div>
-                    <div className="truncate text-[10px] text-slate-400">
+                    <div className="truncate text-[10px] text-slate-500">
                       {d.userAgent || L("جهاز غير معروف", "Unknown device")}
                     </div>
                     {d.createdAt && (
-                      <div className="text-[10px] text-slate-400">
+                      <div className="text-[10px] text-slate-500">
                         {new Date(d.createdAt).toLocaleDateString(lang === "ar" ? "ar-QA" : "en-US")}
                       </div>
                     )}
@@ -904,7 +904,7 @@ export default function ProfilePage() {
       {/* MODAL: Add / Edit Vehicle */}
       {isVehicleModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="relative w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl dark:bg-[#0c0c0f] dark:border dark:border-zinc-800">
+          <div className="relative w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl dark:bg-surface-card dark:border dark:border-zinc-800">
             <h3 className="text-base font-extrabold text-slate-900 dark:text-white font-arabic mb-1">
               {editingVehicleId ? L("تعديل بيانات السيارة", "Edit vehicle details") : L("إضافة سيارة جديدة إلى ملفك", "Add a new vehicle to your profile")}
             </h3>

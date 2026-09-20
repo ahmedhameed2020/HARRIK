@@ -231,31 +231,31 @@ export default function AdminVisitorsPage() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-3 gap-4">
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-[#0c0c0f]">
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-surface-card">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-600 dark:text-slate-400">{L("التصاريح السارية", "Active passes")}</span>
             <CheckCircle2 className="h-4 w-4 text-emerald-600" />
           </div>
           <div className="text-2xl font-black text-emerald-600 mt-2 font-arabic">{stats.active}</div>
-          <p className="text-[10px] text-slate-400 mt-0.5">{L("مصرّح لها بالوقوف حالياً", "Currently authorized to park")}</p>
+          <p className="text-[10px] text-slate-500 mt-0.5">{L("مصرّح لها بالوقوف حالياً", "Currently authorized to park")}</p>
         </div>
 
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-[#0c0c0f]">
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-surface-card">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-600 dark:text-slate-400">{L("التصاريح المنتهية", "Expired passes")}</span>
             <Clock className="h-4 w-4 text-amber-500" />
           </div>
           <div className="text-2xl font-black text-slate-700 dark:text-zinc-300 mt-2 font-arabic">{stats.expired}</div>
-          <p className="text-[10px] text-slate-400 mt-0.5">{L("انتهت صلاحية الوقوف", "Parking validity ended")}</p>
+          <p className="text-[10px] text-slate-500 mt-0.5">{L("انتهت صلاحية الوقوف", "Parking validity ended")}</p>
         </div>
 
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-[#0c0c0f]">
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-surface-card">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-600 dark:text-slate-400">{L("إجمالي السجلات", "Total records")}</span>
             <UserCheck className="h-4 w-4 text-qatar" />
           </div>
           <div className="text-2xl font-black text-slate-900 dark:text-white mt-2 font-arabic">{stats.total}</div>
-          <p className="text-[10px] text-slate-400 mt-0.5">{L("كل التصاريح الصادرة", "All issued passes")}</p>
+          <p className="text-[10px] text-slate-500 mt-0.5">{L("كل التصاريح الصادرة", "All issued passes")}</p>
         </div>
       </div>
 
@@ -301,7 +301,7 @@ export default function AdminVisitorsPage() {
       </div>
 
       {/* Visitor Passes List / Table */}
-      <div className="rounded-3xl border border-slate-200/80 bg-white shadow-sm dark:border-zinc-800 dark:bg-[#0c0c0f] overflow-hidden">
+      <div className="rounded-3xl border border-slate-200/80 bg-white shadow-sm dark:border-zinc-800 dark:bg-surface-card overflow-hidden">
         {isLoading ? (
           <div className="flex min-h-[250px] items-center justify-center">
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-qatar border-t-transparent" />
@@ -360,7 +360,7 @@ export default function AdminVisitorsPage() {
                       </td>
                       <td className="p-4">
                         <div className="font-bold text-slate-800 dark:text-zinc-200">{pass.host_name || L("عام", "General")}</div>
-                        <div className="text-[10px] text-slate-400">{pass.purpose}</div>
+                        <div className="text-[10px] text-slate-500">{pass.purpose}</div>
                       </td>
                       <td className="p-4 font-mono text-slate-700 dark:text-zinc-300">
                         <div>
@@ -370,7 +370,7 @@ export default function AdminVisitorsPage() {
                             minute: "2-digit",
                           })}
                         </div>
-                        <div className="text-[10px] text-slate-400">
+                        <div className="text-[10px] text-slate-500">
                           {new Date(pass.valid_until).toLocaleDateString(lang === "ar" ? "ar-QA" : "en-US")}
                         </div>
                       </td>
@@ -433,7 +433,7 @@ export default function AdminVisitorsPage() {
       {/* MODAL: Issue Visitor Pass */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="relative w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl dark:bg-[#0c0c0f] dark:border dark:border-zinc-800">
+          <div className="relative w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl dark:bg-surface-card dark:border dark:border-zinc-800">
             <h3 className="text-base font-extrabold text-slate-900 dark:text-white font-arabic mb-1 flex items-center gap-2">
               <ShieldCheck className="h-5 w-5 text-qatar" />
               <span>{L("إصدار تصريح موقف زائر مؤقت", "Issue a temporary visitor parking pass")}</span>
@@ -609,7 +609,7 @@ export default function AdminVisitorsPage() {
       {/* PRINTABLE / VIEW VISITOR PASS MODAL */}
       {selectedPass && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="relative w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl dark:bg-[#0c0c0f] dark:border dark:border-zinc-800 text-center">
+          <div className="relative w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl dark:bg-surface-card dark:border dark:border-zinc-800 text-center">
             <button
               onClick={() => setSelectedPass(null)}
               className="absolute left-4 top-4 rounded-full p-1.5 text-slate-400 hover:bg-slate-100 dark:hover:bg-zinc-800"

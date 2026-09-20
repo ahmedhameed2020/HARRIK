@@ -212,7 +212,7 @@ export default function OnboardingSetupPage() {
                 placeholder={t.onbTemplatePlaceholder}
                 className={`${inputClass} resize-none`}
               />
-              <p className="mt-1 text-[10px] text-slate-400">{t.onbTemplateVars}</p>
+              <p className="mt-1 text-[10px] text-slate-500">{t.onbTemplateVars}</p>
             </div>
             <div>
               <label className="mb-1.5 block text-xs font-bold text-slate-700 dark:text-slate-300">{t.onbPrivacy}</label>
@@ -326,7 +326,7 @@ function StepCard({
   children?: React.ReactNode;
 }) {
   return (
-    <div className="mt-4 rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-[#0c0c0f]">
+    <div className="mt-4 rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-surface-card">
       <div className="flex items-center gap-3">
         <div className={`flex h-10 w-10 items-center justify-center rounded-2xl ${done ? "bg-emerald-500 text-white" : "bg-slate-100 text-slate-500 dark:bg-slate-800"}`}>
           {done ? <CheckCircle2 className="h-5 w-5" /> : icon}

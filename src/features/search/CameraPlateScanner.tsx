@@ -255,7 +255,7 @@ export function CameraPlateScanner({
               <h3 className="text-base font-black font-arabic">
                 {lang === "ar" ? "مسح اللوحة بالكاميرا" : "Camera Plate OCR"}
               </h3>
-              <p className="text-[11px] text-slate-400">
+              <p className="text-[11px] text-slate-500">
                 {lang === "ar" ? "وجّه الكاميرا نحو لوحة السيارة القطرية" : "Point camera at Qatar license plate"}
               </p>
             </div>

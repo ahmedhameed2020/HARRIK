@@ -45,7 +45,7 @@ export function PlateKeypad({
   };
 
   return (
-    <div className="w-full max-w-sm mx-auto rounded-[24px] p-3.5 sm:p-4 bg-white/95 dark:bg-[#131926]/95 border border-slate-200/90 dark:border-slate-800 shadow-xl backdrop-blur-xl select-none">
+    <div className="w-full max-w-sm mx-auto rounded-[24px] p-3.5 sm:p-4 bg-white/95 dark:bg-surface-card/95 border border-slate-200/90 dark:border-slate-800 shadow-xl backdrop-blur-xl select-none">
       {/* Top Controls Bar */}
       <div className="mb-3 flex items-center justify-between px-1">
         <button
@@ -83,7 +83,7 @@ export function PlateKeypad({
               type="button"
               whileTap={shouldReduceMotion ? undefined : TACTILE_KEYPAD_TAP}
               onClick={() => handlePress(digit)}
-              className="flex min-h-[56px] h-14 items-center justify-center rounded-[16px] bg-slate-50 hover:bg-slate-100 dark:bg-[#1a2234] dark:hover:bg-[#232d42] border border-slate-200/80 dark:border-slate-700/60 shadow-sm text-2xl font-black font-mono text-slate-950 dark:text-white tabular-nums transition-colors"
+              className="flex min-h-[56px] h-14 items-center justify-center rounded-[16px] bg-slate-50 hover:bg-slate-100 dark:bg-surface-raised dark:hover:bg-[#232d42] border border-slate-200/80 dark:border-slate-700/60 shadow-sm text-2xl font-black font-mono text-slate-950 dark:text-white tabular-nums transition-colors"
             >
               {digit}
             </motion.button>
@@ -98,7 +98,7 @@ export function PlateKeypad({
             triggerHaptic("warning");
             onClear();
           }}
-          className="flex min-h-[56px] h-14 items-center justify-center rounded-[16px] bg-slate-50 hover:bg-rose-50 dark:bg-[#1a2234] dark:hover:bg-rose-950/30 border border-slate-200/80 dark:border-slate-700/60 text-xs font-bold text-slate-500 hover:text-red-600 dark:text-slate-400 dark:hover:text-red-400 transition-colors"
+          className="flex min-h-[56px] h-14 items-center justify-center rounded-[16px] bg-slate-50 hover:bg-rose-50 dark:bg-surface-raised dark:hover:bg-rose-950/30 border border-slate-200/80 dark:border-slate-700/60 text-xs font-bold text-slate-500 hover:text-red-600 dark:text-slate-400 dark:hover:text-red-400 transition-colors"
         >
           <span>{L("مسح", "Clear")}</span>
         </motion.button>
@@ -108,7 +108,7 @@ export function PlateKeypad({
           type="button"
           whileTap={shouldReduceMotion ? undefined : TACTILE_KEYPAD_TAP}
           onClick={() => handlePress(currentDigits[9])}
-          className="flex min-h-[56px] h-14 items-center justify-center rounded-[16px] bg-slate-50 hover:bg-slate-100 dark:bg-[#1a2234] dark:hover:bg-[#232d42] border border-slate-200/80 dark:border-slate-700/60 shadow-sm text-2xl font-black font-mono text-slate-950 dark:text-white tabular-nums transition-colors"
+          className="flex min-h-[56px] h-14 items-center justify-center rounded-[16px] bg-slate-50 hover:bg-slate-100 dark:bg-surface-raised dark:hover:bg-[#232d42] border border-slate-200/80 dark:border-slate-700/60 shadow-sm text-2xl font-black font-mono text-slate-950 dark:text-white tabular-nums transition-colors"
         >
           {currentDigits[9]}
         </motion.button>
@@ -121,7 +121,7 @@ export function PlateKeypad({
             triggerHaptic("light");
             onBackspace();
           }}
-          className="flex min-h-[56px] h-14 items-center justify-center rounded-[16px] bg-slate-50 hover:bg-slate-100 dark:bg-[#1a2234] dark:hover:bg-[#232d42] border border-slate-200/80 dark:border-slate-700/60 text-slate-700 dark:text-slate-300 transition-colors"
+          className="flex min-h-[56px] h-14 items-center justify-center rounded-[16px] bg-slate-50 hover:bg-slate-100 dark:bg-surface-raised dark:hover:bg-[#232d42] border border-slate-200/80 dark:border-slate-700/60 text-slate-700 dark:text-slate-300 transition-colors"
           aria-label="Backspace"
         >
           <Delete className="h-6 w-6" />

@@ -17,7 +17,7 @@ export default function Loading() {
         {[0, 1, 2].map((i) => (
           <div
             key={i}
-            className="rounded-[24px] border border-slate-200/80 bg-white p-5 dark:border-slate-800 dark:bg-[#0c0c0f]"
+            className="rounded-[24px] border border-slate-200/80 bg-white p-5 dark:border-slate-800 dark:bg-surface-card"
           >
             <div className="flex items-center justify-between">
               <div className="h-8 w-28 animate-pulse rounded-lg bg-slate-200 dark:bg-slate-800" />

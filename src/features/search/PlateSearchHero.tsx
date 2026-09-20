@@ -256,7 +256,7 @@ export function PlateSearchHero({ lang }: PlateSearchHeroProps) {
           }}
           className="relative"
         >
-          <div className="relative flex items-center overflow-hidden rounded-[20px] border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#131926] shadow-sm transition-all focus-within:border-[#8a1538] focus-within:ring-2 focus-within:ring-[#8a1538]/20">
+          <div className="relative flex items-center overflow-hidden rounded-[20px] border border-slate-300 dark:border-slate-700 bg-white dark:bg-surface-card shadow-sm transition-all focus-within:border-[#8a1538] focus-within:ring-2 focus-within:ring-[#8a1538]/20">
             <div className="flex h-14 w-11 items-center justify-center text-slate-400 flex-shrink-0">
               {isLoading ? (
                 <Loader2 className="h-5 w-5 animate-spin text-[#8a1538] dark:text-rose-400" />
@@ -330,7 +330,7 @@ export function PlateSearchHero({ lang }: PlateSearchHeroProps) {
             className={`flex h-9 items-center gap-1.5 rounded-xl px-3.5 text-xs font-bold transition-all border ${
               showKeypad
                 ? "bg-[#8a1538] text-white border-[#8a1538] shadow-sm shadow-[#8a1538]/20"
-                : "bg-white dark:bg-[#131926] border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 shadow-sm hover:border-slate-300 dark:hover:border-slate-700"
+                : "bg-white dark:bg-surface-card border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 shadow-sm hover:border-slate-300 dark:hover:border-slate-700"
             }`}
             title={lang === "ar" ? "لوحة الأرقام الملموسة" : "Numeric keypad"}
           >
@@ -344,7 +344,7 @@ export function PlateSearchHero({ lang }: PlateSearchHeroProps) {
               triggerHaptic("selection");
               setIsCameraOpen(true);
             }}
-            className="flex h-9 items-center gap-1.5 rounded-xl px-3.5 text-xs font-bold bg-white dark:bg-[#131926] border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 shadow-sm hover:text-[#8a1538] hover:border-slate-300 dark:hover:border-slate-700 transition-all"
+            className="flex h-9 items-center gap-1.5 rounded-xl px-3.5 text-xs font-bold bg-white dark:bg-surface-card border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 shadow-sm hover:text-[#8a1538] hover:border-slate-300 dark:hover:border-slate-700 transition-all"
             title={lang === "ar" ? "مسح اللوحة بالكاميرا" : "Scan plate with camera"}
           >
             <Camera className="h-4 w-4 text-[#8a1538] dark:text-rose-400" />
@@ -363,7 +363,7 @@ export function PlateSearchHero({ lang }: PlateSearchHeroProps) {
               <button
                 type="button"
                 onClick={clearRecentSearches}
-                className="rounded-lg px-2 py-1 text-[11px] font-bold text-slate-400 transition hover:text-qatar dark:text-zinc-500 dark:hover:text-rose-400"
+                className="rounded-lg px-2 py-1 text-[11px] font-bold text-slate-500 transition hover:text-qatar dark:text-zinc-500 dark:hover:text-rose-400"
               >
                 {lang === "ar" ? "مسح" : "Clear"}
               </button>
@@ -378,7 +378,7 @@ export function PlateSearchHero({ lang }: PlateSearchHeroProps) {
                     setQuery(item.q);
                     handleSearch(item.q);
                   }}
-                  className="group flex min-h-[44px] items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3.5 text-xs font-bold text-slate-700 shadow-sm transition hover:border-qatar/40 hover:text-qatar dark:border-zinc-800 dark:bg-[#131926] dark:text-zinc-200 dark:hover:border-rose-500/40"
+                  className="group flex min-h-[44px] items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3.5 text-xs font-bold text-slate-700 shadow-sm transition hover:border-qatar/40 hover:text-qatar dark:border-zinc-800 dark:bg-surface-card dark:text-zinc-200 dark:hover:border-rose-500/40"
                 >
                   <Search className="h-3.5 w-3.5 text-slate-400 transition group-hover:text-qatar dark:text-zinc-500" aria-hidden="true" />
                   <span className="font-mono">{item.plate ?? item.q}</span>

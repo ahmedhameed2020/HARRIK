@@ -126,6 +126,29 @@ All notable changes to the **حَرِّك | HARRIK** project will be documented 
 - **Admin lists** (staff, vehicles, audit) now render the existing `TableSkeleton` instead of a
   spinner plus "loading…" text.
 
+### Changed (premium design system — warm neutral palette, one accent)
+- **The neutral ramp is remapped at the theme level.** `slate` and `zinc` no longer resolve to
+  Tailwind's cool blue-greys; they are a warm, premium ramp (soft white `#F8F6F3` → warm grey →
+  charcoal `#0E0C0A`, dark surfaces `#191715`). Because the whole codebase uses those utilities,
+  ~900 places inherit the new palette at once and stay consistent by default.
+- **Qatar maroon stays the single accent colour** — it is the brand and the colour of the Qatar
+  plate artwork, so the redesign refines everything *around* it rather than replacing it.
+- **Token layer rewritten for warmth:** page/card/sunken surfaces, hairline borders
+  (`#EAE6E1` / `#2A2724`), warm-charcoal text (`#1C1917`), softened layered elevation, and a
+  72 %-opacity glass surface.
+- **Type scale with paired line-height and tracking** (`micro`/`caption`/`body`/`lead`/`h3`/`h2`/
+  `h1`/`display`/`hero`) plus `radius-control|card|surface`, `shadow-soft|card|float`, and semantic
+  `surface-*` / `ink-*` / `line-*` / `brand-*` colour aliases.
+- **New component primitives** in `globals.css`: `.surface-card`, `.surface-card-hover`,
+  `.surface-glass`, `.eyebrow`, `.heading-page|section|card`, `.hairline` — so later screens share
+  one vocabulary instead of re-inventing card styling.
+- **Removed the cool near-black literals:** 60 occurrences of `dark:bg-[#0c0c0f]`,
+  `dark:bg-[#131926]`, `dark:bg-[#1a2234]` and `dark:bg-[#232d42]` now use the semantic
+  `dark:bg-surface-card` / `dark:bg-surface-raised`.
+- **Accessibility held:** the first pass of the new ramp landed muted copy at 4.21:1 on the warm
+  canvas; `slate-500` was darkened to `#6E675F` (≈5.1:1) and the axe suite is green again —
+  **16/16**.
+
 ### Fixed (Cloudflare build)
 - **`opennextjs-cloudflare build` failed on the native `sharp` binary:** `sharp` is an optional Next.js dependency of the image optimizer, and the adapter bundles Next's own server sources with esbuild — which cannot inline `sharp`'s `.node` binary (`No loader is configured for ".node" files`). Because `sharp` is an unusable, unused dependency here (`images.unoptimized: true`, no `next/image` usage) it is now:
   - excluded from the install via `pnpm.ignoredOptionalDependencies`, and

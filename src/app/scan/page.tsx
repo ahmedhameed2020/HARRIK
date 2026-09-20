@@ -193,7 +193,7 @@ function ScanContent() {
       </div>
 
       {/* Minimal Zero-PII Vehicle Context Card */}
-      <div className="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-lg dark:border-zinc-800 dark:bg-[#0c0c0f]">
+      <div className="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-lg dark:border-zinc-800 dark:bg-surface-card">
         <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-zinc-800">
           <div className="flex items-center gap-3">
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-qatar/10 text-qatar dark:bg-qatar/20">
@@ -212,7 +212,7 @@ function ScanContent() {
 
           {vehicle.venueName && (
             <div className="text-end">
-              <div className="flex items-center gap-1 text-[10px] font-bold text-slate-400">
+              <div className="flex items-center gap-1 text-[10px] font-bold text-slate-500">
                 <Building2 className="h-3 w-3" />
                 <span>{t.scanVenueLabel}:</span>
               </div>

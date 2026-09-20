@@ -129,14 +129,14 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50/50 pb-16 dark:bg-[#09090b]">
+    <div className="min-h-screen bg-slate-50/50 pb-16 dark:bg-surface-page">
       {/* Container with responsive flex: vertical sidebar on lg+, horizontal sub-header on mobile */}
       <div className="mx-auto flex max-w-7xl">
         {/* ==================================================================== */}
         {/* DESKTOP DOCKED SIDEBAR (Visible on lg+)                              */}
         {/* In RTL (Arabic): docked on the RIGHT. In LTR (English): on the LEFT. */}
         {/* ==================================================================== */}
-        <aside className="hidden lg:flex w-72 shrink-0 flex-col justify-between border-e border-slate-200/80 bg-white/80 p-5 backdrop-blur-xl dark:border-zinc-800/80 dark:bg-[#0c0c0f]/80 sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto z-20">
+        <aside className="hidden lg:flex w-72 shrink-0 flex-col justify-between border-e border-slate-200/80 bg-white/80 p-5 backdrop-blur-xl dark:border-zinc-800/80 dark:bg-surface-card/80 sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto z-20">
           <div className="space-y-6">
             {/* Tenant Organization Branding */}
             <div className="flex items-center gap-3 pb-4 border-b border-slate-100 dark:border-zinc-800/60">
@@ -158,7 +158,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
             {/* Vertical Nav List */}
             <nav aria-label="Admin Navigation" className="space-y-1">
-              <p className="px-3 pb-2 text-[10px] font-bold tracking-wider text-slate-400 dark:text-zinc-500 uppercase font-arabic">
+              <p className="px-3 pb-2 text-[10px] font-bold tracking-wider text-slate-500 dark:text-zinc-500 uppercase font-arabic">
                 {isRtl ? "أقسام الإدارة" : "Administration"}
               </p>
               {navItems.map((item) => {
@@ -230,7 +230,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         {/* ==================================================================== */}
         <div className="flex-1 min-w-0">
           {/* Mobile Sub-Header Banner (Only visible on < lg screens) */}
-          <div className="lg:hidden border-b border-slate-200/80 bg-white/70 backdrop-blur-xl dark:border-zinc-800/80 dark:bg-[#0c0c0f]/70">
+          <div className="lg:hidden border-b border-slate-200/80 bg-white/70 backdrop-blur-xl dark:border-zinc-800/80 dark:bg-surface-card/70">
             <div className="px-4 py-3">
               <div className="flex items-center justify-between gap-3 mb-2">
                 <div className="flex items-center gap-2.5 min-w-0">
@@ -336,7 +336,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
               animate={{ x: 0 }}
               exit={{ x: isRtl ? "100%" : "-100%" }}
               transition={{ type: "spring", damping: 28, stiffness: 300 }}
-              className={`fixed inset-y-0 z-50 flex w-80 max-w-[85vw] flex-col justify-between bg-white p-5 shadow-2xl dark:bg-[#0c0c0f] lg:hidden overflow-y-auto ${
+              className={`fixed inset-y-0 z-50 flex w-80 max-w-[85vw] flex-col justify-between bg-white p-5 shadow-2xl dark:bg-surface-card lg:hidden overflow-y-auto ${
                 isRtl ? "right-0 border-l border-slate-200 dark:border-zinc-800" : "left-0 border-r border-slate-200 dark:border-zinc-800"
               }`}
             >
@@ -374,7 +374,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
                 {/* Drawer Nav Items */}
                 <nav aria-label="Mobile Drawer Navigation" className="space-y-1">
-                  <p className="px-3 pb-2 text-[10px] font-bold tracking-wider text-slate-400 dark:text-zinc-500 uppercase font-arabic">
+                  <p className="px-3 pb-2 text-[10px] font-bold tracking-wider text-slate-500 dark:text-zinc-500 uppercase font-arabic">
                     {isRtl ? "أقسام الإدارة" : "Administration"}
                   </p>
                   {navItems.map((item) => {

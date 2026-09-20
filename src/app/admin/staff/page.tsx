@@ -428,7 +428,7 @@ export default function StaffDirectoryPage() {
                         <span className="font-bold text-slate-900 dark:text-white block font-arabic text-sm">
                           {lang === "ar" ? staff.name_ar : staff.name_en || staff.name_ar}
                         </span>
-                        <span className="text-[11px] text-slate-400 font-sans">
+                        <span className="text-[11px] text-slate-500 font-sans">
                           {lang === "ar" ? staff.name_en : staff.name_ar}
                         </span>
                       </td>

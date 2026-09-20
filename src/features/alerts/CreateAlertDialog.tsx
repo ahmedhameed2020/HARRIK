@@ -167,7 +167,7 @@ export function CreateAlertDialog({
                     className={`flex cursor-pointer items-center justify-between rounded-[16px] p-3 transition-colors border ${
                       isSelected
                         ? "border-[#8a1538] bg-[#fdf5f7] dark:bg-[#8a1538]/20 dark:border-[#a31a43] shadow-sm"
-                        : "border-slate-200/90 bg-white hover:bg-slate-50 dark:border-slate-800 dark:bg-[#1a2234]/70"
+                        : "border-slate-200/90 bg-white hover:bg-slate-50 dark:border-slate-800 dark:bg-surface-raised/70"
                     }`}
                   >
                     <div className="flex items-center gap-3">
@@ -215,7 +215,7 @@ export function CreateAlertDialog({
                     ? "ملاحظة إضافية لصاحب السيارة (اختياري)..."
                     : "Additional note for owner (optional)..."
                 }
-                className="w-full rounded-[16px] border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#1a2234]/70 p-3 text-sm focus:border-[#8a1538] focus:ring-1 focus:ring-[#8a1538] focus:outline-none dark:text-white transition-colors resize-none"
+                className="w-full rounded-[16px] border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-surface-raised/70 p-3 text-sm focus:border-[#8a1538] focus:ring-1 focus:ring-[#8a1538] focus:outline-none dark:text-white transition-colors resize-none"
                 rows={2}
               />
             </div>

@@ -165,7 +165,7 @@ export default function AdminAuditPage() {
                         {L("بواسطة:", "By:")} {log.actor?.name_ar || log.actor?.name_en || L("مدير النظام", "System admin")}
                       </span>
                       {log.actor?.employee_id && (
-                        <span className="text-[10px] text-slate-400 font-mono">
+                        <span className="text-[10px] text-slate-500 font-mono">
                           ({L("رقم", "ID")}: {log.actor.employee_id})
                         </span>
                       )}
@@ -186,7 +186,7 @@ export default function AdminAuditPage() {
                   </div>
                 </div>
 
-                <div className="text-start sm:text-end text-[11px] text-slate-400 font-mono">
+                <div className="text-start sm:text-end text-[11px] text-slate-500 font-mono">
                   {new Date(log.created_at).toLocaleString(lang === "ar" ? "ar-QA" : "en-US", {
                     month: "short",
                     day: "numeric",
