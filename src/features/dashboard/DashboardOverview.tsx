@@ -74,9 +74,9 @@ const peakHoursData = [
 
 // Incident resolution breakdown
 const resolutionSpeedData = [
-  { name: "أقل من 5 دقائق", value: 78, color: "#10b981" },
-  { name: "5 - 15 دقيقة", value: 14, color: "#3b82f6" },
-  { name: "أكثر من 15 دقيقة", value: 8, color: "#f59e0b" },
+  { name: "أقل من 5 دقائق", nameEn: "Under 5 minutes", value: 78, color: "#10b981" },
+  { name: "5 - 15 دقيقة", nameEn: "5 - 15 minutes", value: 14, color: "#3b82f6" },
+  { name: "أكثر من 15 دقيقة", nameEn: "Over 15 minutes", value: 8, color: "#f59e0b" },
 ];
 
 export function DashboardOverview({ lang }: DashboardOverviewProps) {
@@ -86,6 +86,7 @@ export function DashboardOverview({ lang }: DashboardOverviewProps) {
   const [timeRange, setTimeRange] = useState<"today" | "week" | "month">("week");
   const [isMounted, setIsMounted] = useState(false);
   const t = translations[lang];
+  const L = (ar: string, en: string) => (lang === "ar" ? ar : en);
 
   useEffect(() => {
     setIsMounted(true);
@@ -119,11 +120,11 @@ export function DashboardOverview({ lang }: DashboardOverviewProps) {
           <p className="font-black text-slate-900 dark:text-white mb-2">{label}</p>
           <div className="space-y-1">
             <p className="flex items-center justify-between gap-4 text-blue-600 dark:text-blue-400 font-bold">
-              <span>عمليات البحث:</span>
+              <span>{L("عمليات البحث:", "Searches:")}</span>
               <span className="font-mono">{payload[0]?.value}</span>
             </p>
             <p className="flex items-center justify-between gap-4 text-qatar font-bold">
-              <span>تنبيهات المواقف:</span>
+              <span>{L("تنبيهات المواقف:", "Parking alerts:")}</span>
               <span className="font-mono">{payload[1]?.value}</span>
             </p>
           </div>
@@ -142,7 +143,7 @@ export function DashboardOverview({ lang }: DashboardOverviewProps) {
             {t.dashboardGreeting}
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-zinc-400 mt-1">
-            المؤشرات الحية والبيانات التحليلية لمواقف السيارات والحركة الميدانية
+            {L("المؤشرات الحية والبيانات التحليلية لمواقف السيارات والحركة الميدانية", "Live KPIs and analytics for parking and field movement")}
           </p>
         </div>
 
@@ -153,10 +154,10 @@ export function DashboardOverview({ lang }: DashboardOverviewProps) {
               const active = timeRange === range;
               const label =
                 range === "today"
-                  ? "اليوم"
+                  ? L("اليوم", "Today")
                   : range === "week"
-                  ? "آخر 7 أيام"
-                  : "هذا الشهر";
+                  ? L("آخر 7 أيام", "Last 7 days")
+                  : L("هذا الشهر", "This month");
 
               return (
                 <button
@@ -187,7 +188,7 @@ export function DashboardOverview({ lang }: DashboardOverviewProps) {
             }}
             disabled={isLoading}
             className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:bg-slate-50 active:scale-95 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300"
-            title="تحديث البيانات"
+            title={L("تحديث البيانات", "Refresh data")}
           >
             <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin text-qatar" : ""}`} />
           </button>
@@ -217,13 +218,13 @@ export function DashboardOverview({ lang }: DashboardOverviewProps) {
               {ci?.activeTotal ?? 0}
             </span>
             <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-800 dark:bg-amber-950/60 dark:text-amber-300">
-              {ci?.pending ?? 0} بانتظار
+              {ci?.pending ?? 0} {L("بانتظار", "pending")}
             </span>
           </div>
           <div className="mt-3 text-[11px] text-slate-500 dark:text-zinc-400 flex items-center justify-between">
-            <span>أقدم حالة نشطة:</span>
+            <span>{L("أقدم حالة نشطة:", "Oldest active incident:")}</span>
             <span className="font-mono font-bold text-slate-800 dark:text-zinc-200">
-              {ci?.oldestActiveIncident ? `لوحة ${ci.oldestActiveIncident.plateDisplay}` : "لا توجد بلاغات نشطة"}
+              {ci?.oldestActiveIncident ? L(`لوحة ${ci.oldestActiveIncident.plateDisplay}`, `Plate ${ci.oldestActiveIncident.plateDisplay}`) : L("لا توجد بلاغات نشطة", "No active incidents")}
             </span>
           </div>
         </motion.div>
@@ -255,7 +256,7 @@ export function DashboardOverview({ lang }: DashboardOverviewProps) {
           </div>
           {/* Mini Sparkline Bar */}
           <div className="mt-3">
-            <div className="flex justify-between text-[10px] text-slate-400 font-semibold mb-1">
+            <div className="flex justify-between text-[10px] text-slate-500 dark:text-zinc-400 font-semibold mb-1">
               <span>{lang === "ar" ? `نسبة تسجيل ${config.memberLabel}` : `${config.memberLabelEn} Registration`}</span>
               <span>{m?.registeredStaff?.value ?? 0} {lang === "ar" ? `${config.memberSingle} مسجل` : `Registered ${config.memberSingleEn}`}</span>
             </div>
@@ -290,14 +291,14 @@ export function DashboardOverview({ lang }: DashboardOverviewProps) {
             </span>
             <span className="inline-flex items-center gap-0.5 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-bold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400">
               <TrendingUp className="h-3 w-3" />
-              <span>{m?.searchSuccessRate?.value ?? 0}% نجاح</span>
+              <span>{m?.searchSuccessRate?.value ?? 0}% {L("نجاح", "success")}</span>
             </span>
           </div>
           {/* Mini Sparkline Bar */}
           <div className="mt-3">
-            <div className="flex justify-between text-[10px] text-slate-400 font-semibold mb-1">
-              <span>دقة العثور على المالك</span>
-              <span>{m?.searches?.value ? `${Math.round((m.searches.value * (m.searchSuccessRate?.value ?? 100)) / 100)} بحث ناجح` : "جاهز للبحث"}</span>
+            <div className="flex justify-between text-[10px] text-slate-500 dark:text-zinc-400 font-semibold mb-1">
+              <span>{L("دقة العثور على المالك", "Owner lookup accuracy")}</span>
+              <span>{m?.searches?.value ? L(`${Math.round((m.searches.value * (m.searchSuccessRate?.value ?? 100)) / 100)} بحث ناجح`, `${Math.round((m.searches.value * (m.searchSuccessRate?.value ?? 100)) / 100)} successful searches`) : L("جاهز للبحث", "Ready to search")}</span>
             </div>
             <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-zinc-800">
               <div
@@ -330,13 +331,13 @@ export function DashboardOverview({ lang }: DashboardOverviewProps) {
               {m?.resolutionRate?.value ?? 90.0}%
             </span>
             <span className="text-xs font-semibold text-slate-500 dark:text-zinc-400">
-              (9 من كل 10)
+              {L("(9 من كل 10)", "(9 out of 10)")}
             </span>
           </div>
           <div className="mt-3 text-[11px] text-slate-500 dark:text-zinc-400 flex items-center justify-between">
-            <span>متوسط زمن الحل الميداني:</span>
-            <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">
-              4 د 18 ث
+            <span>{L("متوسط زمن الحل الميداني:", "Average field resolution time:")}</span>
+            <span className="font-mono font-bold text-emerald-700 dark:text-emerald-400">
+              {L("4 د 18 ث", "4m 18s")}
             </span>
           </div>
         </motion.div>
@@ -351,29 +352,31 @@ export function DashboardOverview({ lang }: DashboardOverviewProps) {
             <div>
               <h3 className="text-base font-black text-slate-900 dark:text-white font-arabic flex items-center gap-2">
                 <TrendingUp className="h-4 w-4 text-qatar" />
-                <span>حركة البحث وبلاغات المواقف الأسبوعية</span>
+                <span>{L("حركة البحث وبلاغات المواقف الأسبوعية", "Weekly search & parking alert traffic")}</span>
               </h3>
               <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">
-                مقارنة حجم عمليات البحث الميداني مع التنبيهات المرسلة
+                {L("مقارنة حجم عمليات البحث الميداني مع التنبيهات المرسلة", "Compare field search volume with dispatched alerts")}
               </p>
             </div>
             <div className="flex items-center gap-4 text-xs font-bold">
               <div className="flex items-center gap-1.5">
                 <span className="h-2.5 w-2.5 rounded-full bg-blue-600" />
-                <span className="text-slate-600 dark:text-zinc-300">عمليات البحث</span>
+                <span className="text-slate-600 dark:text-zinc-300">{L("عمليات البحث", "Searches")}</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <span className="h-2.5 w-2.5 rounded-full bg-qatar" />
-                <span className="text-slate-600 dark:text-zinc-300">تنبيهات المواقف</span>
+                <span className="text-slate-600 dark:text-zinc-300">{L("تنبيهات المواقف", "Parking alerts")}</span>
               </div>
             </div>
           </div>
 
-          <div className="h-72 w-full">
+          {/* Decorative: the same series is stated in text above the chart. */}
+          <div className="h-72 w-full" aria-hidden="true">
             {isMounted && (
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart
                   data={trafficTrendData}
+                  accessibilityLayer={false}
                   margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
                 >
                   <defs>
@@ -433,10 +436,14 @@ export function DashboardOverview({ lang }: DashboardOverviewProps) {
             </p>
           </div>
 
-          <div className="relative h-48 w-full my-2 flex items-center justify-center">
+          {/* Decorative: the breakdown is repeated in the legend below. */}
+          <div
+            className="relative h-48 w-full my-2 flex items-center justify-center"
+            aria-hidden="true"
+          >
             {isMounted && (
               <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
+                <PieChart accessibilityLayer={false}>
                   <Pie
                     data={resolutionSpeedData}
                     cx="50%"
@@ -445,6 +452,10 @@ export function DashboardOverview({ lang }: DashboardOverviewProps) {
                     outerRadius={80}
                     paddingAngle={4}
                     dataKey="value"
+                    // Decorative chart: keep the layer out of the tab order so it
+                    // does not sit inside an aria-hidden container (axe
+                    // `aria-hidden-focus`). The legend below repeats the values.
+                    rootTabIndex={-1}
                   >
                     {resolutionSpeedData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
@@ -455,7 +466,7 @@ export function DashboardOverview({ lang }: DashboardOverviewProps) {
             )}
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
               <span className="text-2xl font-black text-slate-900 dark:text-white font-mono">77.8%</span>
-              <span className="text-[10px] font-bold text-slate-400 font-arabic">&lt; 5 دقائق</span>
+              <span className="text-[10px] font-bold text-slate-500 dark:text-zinc-400 font-arabic">{L("< 5 دقائق", "< 5 min")}</span>
             </div>
           </div>
 
@@ -465,7 +476,7 @@ export function DashboardOverview({ lang }: DashboardOverviewProps) {
               <div key={item.name} className="flex items-center justify-between text-xs">
                 <div className="flex items-center gap-2">
                   <span className="h-2 w-2 rounded-full" style={{ backgroundColor: item.color }} />
-                  <span className="text-slate-600 dark:text-zinc-400 font-arabic">{item.name}</span>
+                  <span className="text-slate-600 dark:text-zinc-400 font-arabic">{lang === "ar" ? item.name : item.nameEn}</span>
                 </div>
                 <span className="font-mono font-bold text-slate-900 dark:text-white">
                   {item.value}%
@@ -497,11 +508,13 @@ export function DashboardOverview({ lang }: DashboardOverviewProps) {
             </span>
           </div>
 
-          <div className="h-64 w-full">
+          {/* Decorative: peak times are labelled in text beneath the chart. */}
+          <div className="h-64 w-full" aria-hidden="true">
             {isMounted && (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                   data={peakHoursData}
+                  accessibilityLayer={false}
                   margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" opacity={0.5} />
@@ -541,10 +554,10 @@ export function DashboardOverview({ lang }: DashboardOverviewProps) {
         <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-[#0c0c0f] flex flex-col justify-between">
           <div>
             <h3 className="text-base font-black text-slate-900 dark:text-white font-arabic">
-              إجراءات الإدارة السريعة
+              {L("إجراءات الإدارة السريعة", "Quick admin actions")}
             </h3>
             <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">
-              اختصارات المهام المتكررة للإشراف الميداني
+              {L("اختصارات المهام المتكررة للإشراف الميداني", "Shortcuts for recurring field supervision tasks")}
             </p>
 
             <div className="mt-4 space-y-2">
@@ -556,9 +569,9 @@ export function DashboardOverview({ lang }: DashboardOverviewProps) {
                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-qatar/10 text-qatar">
                     <Users className="h-4 w-4" />
                   </div>
-                  <span>إضافة / تعديل {config.memberLabel}</span>
+                  <span>{L(`إضافة / تعديل ${config.memberLabel}`, `Add / edit ${config.memberLabelEn}`)}</span>
                 </div>
-                <ChevronRight className="h-4 w-4 text-slate-400 rotate-180" />
+                <ChevronRight className="h-4 w-4 text-slate-400 rotate-180" aria-hidden="true" />
               </Link>
 
               <Link
@@ -569,9 +582,9 @@ export function DashboardOverview({ lang }: DashboardOverviewProps) {
                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-950/50">
                     <Car className="h-4 w-4" />
                   </div>
-                  <span>تسجيل مركبة جديدة وتعيين مالك</span>
+                  <span>{L("تسجيل مركبة جديدة وتعيين مالك", "Register a new vehicle and assign an owner")}</span>
                 </div>
-                <ChevronRight className="h-4 w-4 text-slate-400 rotate-180" />
+                <ChevronRight className="h-4 w-4 text-slate-400 rotate-180" aria-hidden="true" />
               </Link>
 
               <Link
@@ -582,9 +595,9 @@ export function DashboardOverview({ lang }: DashboardOverviewProps) {
                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50">
                     <FileSpreadsheet className="h-4 w-4" />
                   </div>
-                  <span>استيراد وتصدير إكسل (.xlsx)</span>
+                  <span>{L("استيراد وتصدير إكسل (.xlsx)", "Import & export Excel (.xlsx)")}</span>
                 </div>
-                <ChevronRight className="h-4 w-4 text-slate-400 rotate-180" />
+                <ChevronRight className="h-4 w-4 text-slate-400 rotate-180" aria-hidden="true" />
               </Link>
 
               <Link
@@ -595,16 +608,16 @@ export function DashboardOverview({ lang }: DashboardOverviewProps) {
                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-50 text-purple-600 dark:bg-purple-950/50">
                     <AlertTriangle className="h-4 w-4" />
                   </div>
-                  <span>فحص السيارات غير المسجلة</span>
+                  <span>{L("فحص السيارات غير المسجلة", "Review unregistered vehicles")}</span>
                 </div>
-                <ChevronRight className="h-4 w-4 text-slate-400 rotate-180" />
+                <ChevronRight className="h-4 w-4 text-slate-400 rotate-180" aria-hidden="true" />
               </Link>
             </div>
           </div>
 
           <div className="mt-4 rounded-xl bg-qatar/5 border border-qatar/15 p-3 text-center">
-            <span className="text-[11px] font-bold text-qatar">نظام حَرِّك الذكي v1.0</span>
-            <p className="text-[10px] text-slate-400 mt-0.5">جاهز للربط مع كاميرات البوابات الرقمية</p>
+            <span className="text-[11px] font-bold text-qatar">{L("نظام حَرِّك الذكي v1.0", "HARRIK Smart System v1.0")}</span>
+            <p className="text-[10px] text-slate-500 dark:text-zinc-400 mt-0.5">{L("جاهز للربط مع كاميرات البوابات الرقمية", "Ready to integrate with digital gate cameras")}</p>
           </div>
         </div>
       </div>

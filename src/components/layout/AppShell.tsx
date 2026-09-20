@@ -1,26 +1,41 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Search, Bell, Shield, User } from "lucide-react";
 import { Navbar } from "./Navbar";
-import { Language, translations } from "@/i18n/translations";
+import { translations } from "@/i18n/translations";
 import { triggerHaptic } from "@/lib/haptics";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { LocaleProvider, useLocale } from "@/contexts/LocaleContext";
 import { PWAInstallPrompt } from "@/components/ui/PWAInstallPrompt";
+import { BiometricLock } from "@/components/auth/BiometricLock";
+import { OfflineBanner } from "@/components/ui/OfflineBanner";
+import { ErrorReporter } from "@/components/system/ErrorReporter";
 import { useRealtimeAlerts } from "@/hooks/useRealtimeAlerts";
 import { motion } from "motion/react";
 import { SPRINGS } from "@/lib/motion";
 
 function AppShellContent({ children }: { children: React.ReactNode }) {
-  const [lang, setLang] = useState<Language>("ar");
-  const [theme, setTheme] = useState<"light" | "dark">("light");
+  const { lang, setLang, theme, toggleTheme } = useLocale();
   const pathname = usePathname();
   const t = translations[lang];
   const { isAdmin, isSecurity, profile } = useAuth();
+
+  const isLoginPage = pathname === "/login";
+  const isPlatformPage = pathname.startsWith("/platform");
+  const isAuthFlowPage =
+    pathname === "/forgot-password" ||
+    pathname === "/reset-password" ||
+    pathname === "/register" ||
+    pathname.startsWith("/onboarding");
+
+  // Realtime alerts only matter inside the authenticated shell. On the public /
+  // auth pages there is no session yet, so querying `parking_alerts` would 401.
   const { activeCount } = useRealtimeAlerts({
     organizationId: profile?.organization_id,
+    enabled: !isLoginPage && !isPlatformPage && !isAuthFlowPage,
   });
 
   useEffect(() => {
@@ -32,28 +47,7 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  useEffect(() => {
-    // Sync HTML direction and lang
-    document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
-    document.documentElement.lang = lang;
-  }, [lang]);
-
-  useEffect(() => {
-    // Sync Dark mode class
-    if (theme === "dark") {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  }, [theme]);
-
-  const toggleTheme = () => {
-    setTheme((prev) => (prev === "light" ? "dark" : "light"));
-  };
-
-  const isLoginPage = pathname === "/login";
-  const isPlatformPage = pathname.startsWith("/platform");
-  if (isLoginPage || isPlatformPage) {
+  if (isLoginPage || isPlatformPage || isAuthFlowPage) {
     return <>{children}</>;
   }
 
@@ -63,7 +57,13 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
   const canAccessAdmin = isAdmin || isSecurity;
 
   return (
-    <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100">
+    <BiometricLock>
+      <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100">
+      {/* Keyboard users can jump straight past the navigation. */}
+      <a href="#main-content" className="skip-link" data-testid="skip-link">
+        {lang === "ar" ? "تخطَّ إلى المحتوى الرئيسي" : "Skip to main content"}
+      </a>
+
       <Navbar
         lang={lang}
         onLanguageChange={setLang}
@@ -72,7 +72,14 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
         activeCount={activeCount}
       />
 
-      <main className="flex-1 pb-[max(5.5rem,calc(env(safe-area-inset-bottom)+4rem))] md:pb-12">
+      <OfflineBanner />
+
+      <main
+        id="main-content"
+        tabIndex={-1}
+        data-testid="main-content"
+        className="flex-1 pb-[max(5.5rem,calc(env(safe-area-inset-bottom)+4rem))] md:pb-12"
+      >
         {children}
       </main>
 
@@ -86,6 +93,7 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
           <Link
             href="/"
             onClick={() => triggerHaptic("selection")}
+            aria-current={isSearch ? "page" : undefined}
             className="relative flex flex-1 flex-col items-center justify-center py-1.5 transition-colors active:scale-95"
           >
             {isSearch && (
@@ -98,12 +106,12 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
             <div className="relative z-10 flex flex-col items-center">
               <Search
                 className={`h-5 w-5 transition-transform duration-150 ${
-                  isSearch ? "text-[#8a1538] dark:text-rose-400 scale-105" : "text-slate-400 dark:text-slate-500"
+                  isSearch ? "text-[#8a1538] dark:text-rose-400 scale-105" : "text-slate-600 dark:text-slate-400"
                 }`}
               />
               <span
                 className={`text-[10px] font-bold mt-0.5 transition-colors ${
-                  isSearch ? "text-[#8a1538] dark:text-rose-400" : "text-slate-400 dark:text-slate-500"
+                  isSearch ? "text-[#8a1538] dark:text-rose-400" : "text-slate-600 dark:text-slate-400"
                 }`}
               >
                 {t.navSearch}
@@ -115,6 +123,7 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
           <Link
             href="/inbox"
             onClick={() => triggerHaptic("selection")}
+            aria-current={isInbox ? "page" : undefined}
             className="relative flex flex-1 flex-col items-center justify-center py-1.5 transition-colors active:scale-95"
           >
             {isInbox && (
@@ -128,7 +137,7 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
               <div className="relative">
                 <Bell
                   className={`h-5 w-5 transition-transform duration-150 ${
-                    isInbox ? "text-[#8a1538] dark:text-rose-400 scale-105" : "text-slate-400 dark:text-slate-500"
+                    isInbox ? "text-[#8a1538] dark:text-rose-400 scale-105" : "text-slate-600 dark:text-slate-400"
                   }`}
                 />
                 {activeCount > 0 && (
@@ -139,7 +148,7 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
               </div>
               <span
                 className={`text-[10px] font-bold mt-0.5 transition-colors ${
-                  isInbox ? "text-[#8a1538] dark:text-rose-400" : "text-slate-400 dark:text-slate-500"
+                  isInbox ? "text-[#8a1538] dark:text-rose-400" : "text-slate-600 dark:text-slate-400"
                 }`}
               >
                 {t.navInbox}
@@ -151,6 +160,7 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
           <Link
             href="/profile"
             onClick={() => triggerHaptic("selection")}
+            aria-current={pathname === "/profile" ? "page" : undefined}
             className="relative flex flex-1 flex-col items-center justify-center py-1.5 transition-colors active:scale-95"
           >
             {pathname === "/profile" && (
@@ -163,12 +173,12 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
             <div className="relative z-10 flex flex-col items-center">
               <User
                 className={`h-5 w-5 transition-transform duration-150 ${
-                  pathname === "/profile" ? "text-[#8a1538] dark:text-rose-400 scale-105" : "text-slate-400 dark:text-slate-500"
+                  pathname === "/profile" ? "text-[#8a1538] dark:text-rose-400 scale-105" : "text-slate-600 dark:text-slate-400"
                 }`}
               />
               <span
                 className={`text-[10px] font-bold mt-0.5 transition-colors ${
-                  pathname === "/profile" ? "text-[#8a1538] dark:text-rose-400" : "text-slate-400 dark:text-slate-500"
+                  pathname === "/profile" ? "text-[#8a1538] dark:text-rose-400" : "text-slate-600 dark:text-slate-400"
                 }`}
               >
                 {lang === "ar" ? "ملفي" : "Profile"}
@@ -181,6 +191,7 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
             <Link
               href="/admin"
               onClick={() => triggerHaptic("selection")}
+              aria-current={isAdminPath ? "page" : undefined}
               className="relative flex flex-1 flex-col items-center justify-center py-1.5 transition-colors active:scale-95"
             >
               {isAdminPath && (
@@ -193,12 +204,12 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
               <div className="relative z-10 flex flex-col items-center">
                 <Shield
                   className={`h-5 w-5 transition-transform duration-150 ${
-                    isAdminPath ? "text-[#8a1538] dark:text-rose-400 scale-105" : "text-slate-400 dark:text-slate-500"
+                    isAdminPath ? "text-[#8a1538] dark:text-rose-400 scale-105" : "text-slate-600 dark:text-slate-400"
                   }`}
                 />
                 <span
                   className={`text-[10px] font-bold mt-0.5 transition-colors ${
-                    isAdminPath ? "text-[#8a1538] dark:text-rose-400" : "text-slate-400 dark:text-slate-500"
+                    isAdminPath ? "text-[#8a1538] dark:text-rose-400" : "text-slate-600 dark:text-slate-400"
                   }`}
                 >
                   {t.navAdmin}
@@ -210,7 +221,9 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
       </nav>
 
       <PWAInstallPrompt />
-    </div>
+      <ErrorReporter />
+      </div>
+    </BiometricLock>
   );
 }
 
@@ -218,11 +231,13 @@ import { EntityConfigProvider } from "@/contexts/EntityConfigContext";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   return (
-    <AuthProvider>
-      <EntityConfigProvider>
-        <AppShellContent>{children}</AppShellContent>
-      </EntityConfigProvider>
-    </AuthProvider>
+    <LocaleProvider>
+      <AuthProvider>
+        <EntityConfigProvider>
+          <AppShellContent>{children}</AppShellContent>
+        </EntityConfigProvider>
+      </AuthProvider>
+    </LocaleProvider>
   );
 }
 

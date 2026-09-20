@@ -1,0 +1,5 @@
+# حَرِّك | HARRIK — internal parking-management platform.
+# Visitor QR links (/scan?token=…) are single-use credentials and must never be
+# indexed, so the whole origin is closed to crawlers.
+User-agent: *
+Disallow: /

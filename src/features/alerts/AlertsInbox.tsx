@@ -16,8 +16,11 @@ interface AlertsInboxProps {
 }
 
 export function AlertsInbox({ lang }: AlertsInboxProps) {
+  const PAGE_SIZE = 50;
   const [alerts, setAlerts] = useState<ParkingAlert[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(false);
   const [notifPermission, setNotifPermission] = useState<NotificationPermission | null>(null);
   const t = translations[lang];
 
@@ -33,23 +36,30 @@ export function AlertsInbox({ lang }: AlertsInboxProps) {
     setNotifPermission(perm);
   };
 
-  const fetchAlerts = useCallback(async () => {
-    setIsLoading(true);
+  const fetchAlerts = useCallback(async (offset = 0, append = false) => {
+    if (append) setIsLoadingMore(true);
+    else setIsLoading(true);
     try {
-      const res = await fetch("/api/alerts");
+      const res = await fetch(`/api/alerts?limit=${PAGE_SIZE}&offset=${offset}`);
       const data = await res.json();
       if (data.success && Array.isArray(data.alerts)) {
-        setAlerts(data.alerts);
+        setAlerts((prev) => {
+          if (!append) return data.alerts;
+          const seen = new Set(prev.map((a) => a.id));
+          return [...prev, ...data.alerts.filter((a: ParkingAlert) => !seen.has(a.id))];
+        });
+        setHasMore(Boolean(data.hasMore));
       }
     } catch {
       // Handled
     } finally {
-      setIsLoading(false);
+      if (append) setIsLoadingMore(false);
+      else setIsLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    fetchAlerts();
+    fetchAlerts(0, false);
   }, [fetchAlerts]);
 
   // Hook into Realtime WebSockets for instant delivery
@@ -66,7 +76,7 @@ export function AlertsInbox({ lang }: AlertsInboxProps) {
       );
     },
     onAnyChange: () => {
-      fetchAlerts();
+      fetchAlerts(0, false);
     },
   });
 
@@ -129,12 +139,17 @@ export function AlertsInbox({ lang }: AlertsInboxProps) {
           whileTap={{ scale: 0.94 }}
           onClick={() => {
             triggerHaptic("light");
-            fetchAlerts();
+            fetchAlerts(0, false);
           }}
           className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
           title="Refresh"
+          data-icon-button="true"
+          aria-label={lang === "ar" ? "تحديث التنبيهات" : "Refresh alerts"}
         >
-          <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin text-qatar" : ""}`} />
+          <RefreshCw
+            aria-hidden="true"
+            className={`h-4 w-4 ${isLoading ? "animate-spin text-qatar" : ""}`}
+          />
         </motion.button>
       </div>
 
@@ -308,6 +323,26 @@ export function AlertsInbox({ lang }: AlertsInboxProps) {
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Load more (server-side pagination) */}
+      {hasMore && (
+        <div className="mt-6 flex justify-center">
+          <button
+            type="button"
+            onClick={() => {
+              triggerHaptic("light");
+              fetchAlerts(alerts.length, true);
+            }}
+            disabled={isLoadingMore}
+            className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 py-2.5 text-xs font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:opacity-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
+          >
+            {isLoadingMore ? (
+              <RefreshCw className="h-3.5 w-3.5 animate-spin text-qatar" />
+            ) : null}
+            <span>{t.loadMore}</span>
+          </button>
         </div>
       )}
     </div>

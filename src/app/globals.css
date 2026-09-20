@@ -184,3 +184,60 @@ body {
     scroll-behavior: auto !important;
   }
 }
+
+/* --- Accessibility (§11.7) --- */
+
+/* Visible keyboard focus everywhere (never removed for mouse users). */
+:focus-visible {
+  outline: 2px solid var(--color-brand, #8a1538);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+.dark :focus-visible {
+  outline-color: #f8a5bd;
+}
+
+/* Skip link — hidden until focused by keyboard. */
+.skip-link {
+  position: absolute;
+  inset-inline-start: 1rem;
+  top: -100px;
+  z-index: 100;
+  padding: 0.75rem 1.25rem;
+  border-radius: 1rem;
+  background: #8a1538;
+  color: #ffffff;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: 0 10px 24px -6px rgba(15, 23, 42, 0.4);
+  transition: top 0.15s ease-out;
+}
+
+.skip-link:focus,
+.skip-link:focus-visible {
+  top: calc(0.75rem + env(safe-area-inset-top));
+}
+
+/* Screen-reader-only helper. */
+.sr-only-focusable:not(:focus):not(:focus-within) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Ensure icon-only controls always meet the 44px touch target guidance. */
+@media (pointer: coarse) {
+  button[data-icon-button="true"],
+  a[data-icon-button="true"] {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}

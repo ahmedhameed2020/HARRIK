@@ -7,23 +7,17 @@ import {
   Search,
   UserPlus,
   Car,
-  Phone,
-  Building,
   RefreshCw,
   Edit2,
-  CheckCircle2,
-  XCircle,
   AlertCircle,
   FileSpreadsheet,
   Download,
-  Users,
-  Shield,
-  Check,
 } from "lucide-react";
 import { triggerHaptic } from "@/lib/haptics";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { exportStaffToExcel } from "@/lib/excel-utils";
 import { useEntityConfig } from "@/contexts/EntityConfigContext";
+import { useLocale } from "@/contexts/LocaleContext";
 
 interface StaffRow {
   id: string;
@@ -41,21 +35,33 @@ interface StaffRow {
 
 export default function StaffDirectoryPage() {
   const { config } = useEntityConfig();
+  const { lang } = useLocale();
+  const L = (ar: string, en: string) => (lang === "ar" ? ar : en);
+
+  const memberLabel = lang === "ar" ? config.memberLabel : config.memberLabelEn;
+  const memberSingle = lang === "ar" ? config.memberSingle : config.memberSingleEn;
+  const unitLabel = lang === "ar" ? config.unitLabel : config.unitLabelEn;
+  const unitPlural = lang === "ar" ? config.unitLabelPlural : config.unitLabelPluralEn;
+  const identifierLabel = lang === "ar" ? config.identifierLabel : config.identifierLabelEn;
+  const securityLabel = lang === "ar" ? config.securityLabel : config.securityLabelEn;
+  const emptyState = lang === "ar" ? config.emptyState : config.emptyStateEn;
+
   const [staffList, setStaffList] = useState<StaffRow[]>([]);
   const [departments, setDepartments] = useState<Array<{ id: string; name_ar: string; name_en: string }>>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedTerm, setDebouncedTerm] = useState("");
   const [deptFilter, setDeptFilter] = useState("ALL");
   const [statusFilter, setStatusFilter] = useState("ALL");
 
-  // Modal states
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [selectedStaff, setSelectedStaff] = useState<StaffRow | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
-  // Form fields
   const [formEmployeeId, setFormEmployeeId] = useState("");
   const [formNameAr, setFormNameAr] = useState("");
   const [formNameEn, setFormNameEn] = useState("");
@@ -64,32 +70,76 @@ export default function StaffDirectoryPage() {
   const [formRole, setFormRole] = useState("staff");
   const [formIsActive, setFormIsActive] = useState(true);
 
-  const fetchStaff = async () => {
-    setIsLoading(true);
+  const PAGE_SIZE = 50;
+
+  // Debounce the search box so typing does not spam the server.
+  useEffect(() => {
+    const id = setTimeout(() => setDebouncedTerm(searchTerm), 350);
+    return () => clearTimeout(id);
+  }, [searchTerm]);
+
+  const buildStaffUrl = (offset: number) => {
+    const params = new URLSearchParams({
+      limit: String(PAGE_SIZE),
+      offset: String(offset),
+    });
+    if (debouncedTerm.trim()) params.set("q", debouncedTerm.trim());
+    if (statusFilter !== "ALL") params.set("status", statusFilter);
+    if (deptFilter !== "ALL") params.set("departmentId", deptFilter);
+    return `/api/admin/staff?${params.toString()}`;
+  };
+
+  // Server-side search + pagination (loading "more" appends the next page).
+  const fetchStaff = async (offset = 0, append = false, loadDepartments = false) => {
+    if (append) setIsLoadingMore(true);
+    else setIsLoading(true);
+
     try {
       const [staffRes, deptRes] = await Promise.all([
-        fetch("/api/admin/staff"),
-        fetch("/api/admin/departments"),
+        fetch(buildStaffUrl(offset)),
+        loadDepartments ? fetch("/api/admin/departments") : Promise.resolve(null),
       ]);
-      const staffData = await staffRes.json();
-      const deptData = await deptRes.json();
 
+      const staffData = await staffRes.json();
       if (staffData.success && Array.isArray(staffData.staff)) {
-        setStaffList(staffData.staff);
+        setStaffList((prev) => {
+          if (!append) return staffData.staff;
+          const seen = new Set(prev.map((s) => s.id));
+          return [...prev, ...staffData.staff.filter((s: StaffRow) => !seen.has(s.id))];
+        });
+        setHasMore(Boolean(staffData.hasMore));
       }
-      if (deptData.success && Array.isArray(deptData.departments)) {
-        setDepartments(deptData.departments);
+
+      if (deptRes) {
+        const deptData = await deptRes.json();
+        if (deptData.success && Array.isArray(deptData.departments)) {
+          setDepartments(deptData.departments);
+        }
       }
     } catch {
       // Handled
     } finally {
-      setIsLoading(false);
+      if (append) setIsLoadingMore(false);
+      else setIsLoading(false);
     }
   };
 
+  // Initial load (departments included).
   useEffect(() => {
-    fetchStaff();
+    fetchStaff(0, false, true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Re-query from the first page whenever search or filters change.
+  const isFirstFilterRun = React.useRef(true);
+  useEffect(() => {
+    if (isFirstFilterRun.current) {
+      isFirstFilterRun.current = false;
+      return;
+    }
+    fetchStaff(0, false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedTerm, statusFilter, deptFilter]);
 
   const openAddModal = () => {
     triggerHaptic("selection");
@@ -123,7 +173,7 @@ export default function StaffDirectoryPage() {
     setFormError(null);
 
     if (!formEmployeeId.trim() || !formNameAr.trim() || !formMobile.trim()) {
-      setFormError("يرجى ملء جميع الحقول الإلزامية: الرقم الوظيفي، الاسم بالعربية، ورقم الجوال");
+      setFormError(L("يرجى ملء جميع الحقول الإلزامية: الرقم الوظيفي، الاسم بالعربية، ورقم الجوال", "Please fill all required fields: ID, Arabic name and mobile"));
       triggerHaptic("warning");
       return;
     }
@@ -148,15 +198,15 @@ export default function StaffDirectoryPage() {
 
       const data = await res.json();
       if (!res.ok || !data.success) {
-        setFormError(data.error || "فشلت إضافة الموظف");
+        setFormError(data.error || L("فشلت إضافة الموظف", "Failed to add the member"));
         triggerHaptic("error");
       } else {
         triggerHaptic("success");
         setIsAddOpen(false);
-        fetchStaff();
+        fetchStaff(0, false);
       }
     } catch (err: any) {
-      setFormError(err.message || "حدث خطأ في الاتصال بالسيرفر");
+      setFormError(err.message || L("حدث خطأ في الاتصال بالسيرفر", "A server connection error occurred"));
       triggerHaptic("error");
     } finally {
       setIsSubmitting(false);
@@ -169,7 +219,7 @@ export default function StaffDirectoryPage() {
     setFormError(null);
 
     if (!formEmployeeId.trim() || !formNameAr.trim() || !formMobile.trim()) {
-      setFormError("يرجى ملء جميع الحقول الإلزامية");
+      setFormError(L("يرجى ملء جميع الحقول الإلزامية", "Please fill all required fields"));
       triggerHaptic("warning");
       return;
     }
@@ -195,15 +245,15 @@ export default function StaffDirectoryPage() {
 
       const data = await res.json();
       if (!res.ok || !data.success) {
-        setFormError(data.error || "فشل تحديث بيانات الموظف");
+        setFormError(data.error || L("فشل تحديث بيانات الموظف", "Failed to update the member record"));
         triggerHaptic("error");
       } else {
         triggerHaptic("success");
         setIsEditOpen(false);
-        fetchStaff();
+        fetchStaff(0, false);
       }
     } catch (err: any) {
-      setFormError(err.message || "حدث خطأ في الاتصال بالسيرفر");
+      setFormError(err.message || L("حدث خطأ في الاتصال بالسيرفر", "A server connection error occurred"));
       triggerHaptic("error");
     } finally {
       setIsSubmitting(false);
@@ -231,29 +281,15 @@ export default function StaffDirectoryPage() {
     }
   };
 
-  const filteredStaff = staffList.filter((s) => {
-    const term = searchTerm.toLowerCase();
-    const matchSearch =
-      s.name_ar?.includes(term) ||
-      s.name_en?.toLowerCase().includes(term) ||
-      s.employee_id?.includes(term) ||
-      s.mobile?.includes(term);
+  // Search and filters are applied server-side; staffList already holds the
+  // current page(s) matching the active criteria.
+  const filteredStaff = staffList;
 
-    const deptName = s.department?.name_ar || "";
-    const matchDept =
-      deptFilter === "ALL" || deptName === deptFilter || s.department_id === deptFilter;
-
-    const matchStatus =
-      statusFilter === "ALL" ||
-      (statusFilter === "ACTIVE" && s.is_active) ||
-      (statusFilter === "INACTIVE" && !s.is_active);
-
-    return matchSearch && matchDept && matchStatus;
-  });
+  const roleLabel = (role: string) =>
+    role === "admin" ? L("مدير نظام", "Admin") : role === "security" ? securityLabel : memberSingle;
 
   return (
     <div className="relative min-h-screen">
-      {/* Ambient Qatar Maroon Glow */}
       <div className="ambient-glow-qatar top-10 start-10 opacity-60 pointer-events-none" />
       <div className="ambient-glow-qatar bottom-20 end-10 opacity-40 pointer-events-none" />
 
@@ -265,23 +301,25 @@ export default function StaffDirectoryPage() {
               href="/admin"
               className="inline-flex items-center gap-1.5 text-xs font-bold text-qatar hover:underline mb-2 transition active:scale-95"
             >
-              <ArrowLeft className="h-3.5 w-3.5" />
-              <span>العودة للوحة الإدارة</span>
+              <ArrowLeft className="h-3.5 w-3.5 rtl:rotate-180" />
+              <span>{L("العودة للوحة الإدارة", "Back to dashboard")}</span>
             </Link>
             <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white font-arabic flex items-center gap-2.5">
-              <span>دليل {config.memberLabel}</span>
+              <span>{L(`دليل ${memberLabel}`, `${memberLabel} Directory`)}</span>
               <span className="rounded-full bg-qatar-50 px-2.5 py-0.5 text-xs font-bold text-qatar dark:bg-qatar-950 dark:text-qatar-300">
-                {staffList.length} {config.memberSingle}
+                {staffList.length} {memberSingle}
               </span>
             </h1>
             <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-              إدارة {config.memberLabel} في {config.venueName || "المنشأة"}، بيانات التواصل، الصلاحيات، والربط بالمركبات
+              {L(
+                `إدارة ${memberLabel} في ${config.venueName || "المنشأة"}، بيانات التواصل، الصلاحيات، والربط بالمركبات`,
+                `Manage ${memberLabel} at ${config.venueName || "the facility"} — contact details, roles and vehicle links`
+              )}
             </p>
           </div>
 
-          {/* Action Buttons: Add, Export Excel, Bulk Import */}
+          {/* Action Buttons */}
           <div className="flex flex-wrap items-center gap-2.5">
-            {/* Export Staff to Excel Button */}
             <button
               type="button"
               onClick={() => {
@@ -289,31 +327,29 @@ export default function StaffDirectoryPage() {
                 exportStaffToExcel(filteredStaff, `HARRIK_${config.venueName || "Directory"}_Export.xlsx`);
               }}
               className="glass-btn-secondary inline-flex items-center gap-2 rounded-2xl px-4 py-2.5 text-xs font-bold text-slate-800 dark:text-slate-100 shadow-sm"
-              title={`تصدير بيانات ${config.memberLabel} إلى ملف إكسل`}
+              title={L(`تصدير بيانات ${memberLabel} إلى ملف إكسل`, `Export ${memberLabel} to Excel`)}
             >
               <Download className="h-4 w-4 text-qatar" />
-              <span>تصدير Excel (.xlsx)</span>
+              <span>{L("تصدير Excel (.xlsx)", "Export Excel (.xlsx)")}</span>
             </button>
 
-            {/* Add Staff Button - Now Fully Connected to BottomSheet */}
             <button
               type="button"
               onClick={openAddModal}
               className="glass-btn-primary inline-flex items-center gap-2 rounded-2xl px-4 py-2.5 text-xs font-bold shadow-md"
             >
               <UserPlus className="h-4 w-4" />
-              <span>إضافة {config.memberSingle} جديد</span>
+              <span>{L(`إضافة ${memberSingle} جديد`, `Add new ${memberSingle}`)}</span>
             </button>
 
-            {/* Bulk Import Link */}
             <Link
               href="/admin/import"
               onClick={() => triggerHaptic("light")}
               className="glass-btn-secondary inline-flex items-center gap-2 rounded-2xl px-3.5 py-2.5 text-xs font-bold text-slate-700 dark:text-slate-200"
-              title={`استيراد دفعات ${config.memberLabel} والسيارات من ملفات إكسل`}
+              title={L(`استيراد دفعات ${memberLabel} والسيارات من ملفات إكسل`, `Bulk-import ${memberLabel} and vehicles from Excel`)}
             >
               <FileSpreadsheet className="h-4 w-4 text-emerald-600" />
-              <span>استيراد جماعي</span>
+              <span>{L("استيراد جماعي", "Bulk import")}</span>
             </Link>
           </div>
         </div>
@@ -326,7 +362,7 @@ export default function StaffDirectoryPage() {
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder={`ابحث بالاسم، ${config.identifierLabel}، أو رقم الجوال...`}
+              placeholder={L(`ابحث بالاسم، ${identifierLabel}، أو رقم الجوال...`, `Search by name, ${identifierLabel}, or mobile...`)}
               className="w-full rounded-2xl border border-slate-200/80 bg-white/80 ps-10 pe-4 py-3 text-xs font-medium text-slate-900 placeholder:text-slate-400 shadow-sm backdrop-blur focus:border-qatar focus:outline-none dark:border-slate-800 dark:bg-slate-900/80 dark:text-white"
             />
           </div>
@@ -336,10 +372,10 @@ export default function StaffDirectoryPage() {
             onChange={(e) => setDeptFilter(e.target.value)}
             className="w-full sm:w-56 rounded-2xl border border-slate-200/80 bg-white/80 px-3.5 py-3 text-xs font-bold text-slate-700 shadow-sm backdrop-blur focus:border-qatar focus:outline-none dark:border-slate-800 dark:bg-slate-900/80 dark:text-slate-300"
           >
-            <option value="ALL">{config.unitLabelPlural || "كافة الأقسام"}</option>
+            <option value="ALL">{unitPlural || L("كافة الأقسام", "All units")}</option>
             {departments.map((d) => (
-              <option key={d.id} value={d.name_ar}>
-                {d.name_ar}
+              <option key={d.id} value={d.id}>
+                {lang === "ar" ? d.name_ar : d.name_en || d.name_ar}
               </option>
             ))}
           </select>
@@ -349,9 +385,9 @@ export default function StaffDirectoryPage() {
             onChange={(e) => setStatusFilter(e.target.value)}
             className="w-full sm:w-44 rounded-2xl border border-slate-200/80 bg-white/80 px-3.5 py-3 text-xs font-bold text-slate-700 shadow-sm backdrop-blur focus:border-qatar focus:outline-none dark:border-slate-800 dark:bg-slate-900/80 dark:text-slate-300"
           >
-            <option value="ALL">كافة الحالات</option>
-            <option value="ACTIVE">الحسابات النشطة</option>
-            <option value="INACTIVE">الحسابات المعطلة</option>
+            <option value="ALL">{L("كافة الحالات", "All statuses")}</option>
+            <option value="ACTIVE">{L("الحسابات النشطة", "Active accounts")}</option>
+            <option value="INACTIVE">{L("الحسابات المعطلة", "Disabled accounts")}</option>
           </select>
         </div>
 
@@ -359,13 +395,13 @@ export default function StaffDirectoryPage() {
         {isLoading ? (
           <div className="py-20 text-center text-slate-400">
             <RefreshCw className="h-6 w-6 animate-spin mx-auto text-qatar" />
-            <p className="mt-2 text-xs font-bold">جاري تحميل دليل {config.memberLabel}...</p>
+            <p className="mt-2 text-xs font-bold">{L(`جاري تحميل دليل ${memberLabel}...`, `Loading ${memberLabel} directory...`)}</p>
           </div>
         ) : filteredStaff.length === 0 ? (
           <div className="py-20 text-center text-slate-400">
             <AlertCircle className="h-8 w-8 mx-auto text-slate-300 dark:text-slate-600" />
             <p className="mt-2 text-sm font-bold text-slate-700 dark:text-slate-300">
-              {staffList.length === 0 ? config.emptyState : `لا يوجد ${config.memberSingle} يطابق معايير البحث`}
+              {staffList.length === 0 ? emptyState : L(`لا يوجد ${memberSingle} يطابق معايير البحث`, `No ${memberSingle} matches the search criteria`)}
             </p>
           </div>
         ) : (
@@ -374,14 +410,14 @@ export default function StaffDirectoryPage() {
               <table className="w-full text-start text-xs text-slate-600 dark:text-slate-300">
                 <thead className="border-b border-slate-100 bg-slate-100/70 text-[11px] font-bold text-slate-600 dark:border-slate-800 dark:bg-slate-800/60 dark:text-slate-300">
                   <tr>
-                    <th className="px-5 py-3.5 text-start">{config.identifierLabel}</th>
-                    <th className="px-5 py-3.5 text-start">الاسم</th>
-                    <th className="px-5 py-3.5 text-start">{config.unitLabel}</th>
-                    <th className="px-5 py-3.5 text-start">الجوال</th>
-                    <th className="px-5 py-3.5 text-start">السيارات المسجلة</th>
-                    <th className="px-5 py-3.5 text-start">الصلاحية</th>
-                    <th className="px-5 py-3.5 text-start">الحالة</th>
-                    <th className="px-5 py-3.5 text-center">الإجراءات</th>
+                    <th className="px-5 py-3.5 text-start">{identifierLabel}</th>
+                    <th className="px-5 py-3.5 text-start">{L("الاسم", "Name")}</th>
+                    <th className="px-5 py-3.5 text-start">{unitLabel}</th>
+                    <th className="px-5 py-3.5 text-start">{L("الجوال", "Mobile")}</th>
+                    <th className="px-5 py-3.5 text-start">{L("السيارات المسجلة", "Registered vehicles")}</th>
+                    <th className="px-5 py-3.5 text-start">{L("الصلاحية", "Role")}</th>
+                    <th className="px-5 py-3.5 text-start">{L("الحالة", "Status")}</th>
+                    <th className="px-5 py-3.5 text-center">{L("الإجراءات", "Actions")}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800 bg-white/40 dark:bg-slate-900/40">
@@ -392,12 +428,16 @@ export default function StaffDirectoryPage() {
                       </td>
                       <td className="px-5 py-4">
                         <span className="font-bold text-slate-900 dark:text-white block font-arabic text-sm">
-                          {staff.name_ar}
+                          {lang === "ar" ? staff.name_ar : staff.name_en || staff.name_ar}
                         </span>
-                        <span className="text-[11px] text-slate-400 font-sans">{staff.name_en}</span>
+                        <span className="text-[11px] text-slate-400 font-sans">
+                          {lang === "ar" ? staff.name_en : staff.name_ar}
+                        </span>
                       </td>
                       <td className="px-5 py-4 font-bold text-slate-700 dark:text-slate-300 font-arabic">
-                        {staff.department?.name_ar || "-"}
+                        {lang === "ar"
+                          ? staff.department?.name_ar || "-"
+                          : staff.department?.name_en || staff.department?.name_ar || "-"}
                       </td>
                       <td className="px-5 py-4 font-mono font-semibold text-slate-700 dark:text-slate-300 numeric-plate">
                         {staff.mobile}
@@ -405,7 +445,7 @@ export default function StaffDirectoryPage() {
                       <td className="px-5 py-4">
                         <span className="glass-card inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold text-slate-700 dark:text-slate-300 border border-slate-200/80">
                           <Car className="h-3.5 w-3.5 text-qatar" />
-                          <span>{staff.staff_vehicles?.length || 0} سيارة</span>
+                          <span>{staff.staff_vehicles?.length || 0} {L("سيارة", "veh.")}</span>
                         </span>
                       </td>
                       <td className="px-5 py-4">
@@ -418,7 +458,7 @@ export default function StaffDirectoryPage() {
                               : "bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-950/60 dark:text-blue-300"
                           }`}
                         >
-                          {staff.role === "admin" ? "مدير نظام" : staff.role === "security" ? config.securityLabel : config.memberSingle}
+                          {roleLabel(staff.role)}
                         </span>
                       </td>
                       <td className="px-5 py-4">
@@ -426,17 +466,17 @@ export default function StaffDirectoryPage() {
                           type="button"
                           onClick={() => handleToggleActive(staff)}
                           className="inline-flex items-center gap-1.5 text-xs font-bold transition active:scale-95"
-                          title={staff.is_active ? "تعطيل الحساب" : "تفعيل الحساب"}
+                          title={staff.is_active ? L("تعطيل الحساب", "Disable account") : L("تفعيل الحساب", "Enable account")}
                         >
                           {staff.is_active ? (
                             <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-300">
                               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                              نشط
+                              {L("نشط", "Active")}
                             </span>
                           ) : (
                             <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-0.5 text-slate-500 border border-slate-200 dark:bg-slate-800 dark:text-slate-400">
                               <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
-                              معطل
+                              {L("معطل", "Disabled")}
                             </span>
                           )}
                         </button>
@@ -446,7 +486,7 @@ export default function StaffDirectoryPage() {
                           type="button"
                           onClick={() => openEditModal(staff)}
                           className="glass-btn-secondary inline-flex h-8 w-8 items-center justify-center rounded-xl text-slate-600 hover:text-qatar dark:text-slate-300"
-                          title={`تعديل بيانات ${config.memberSingle} والصلاحيات`}
+                          title={L(`تعديل بيانات ${memberSingle} والصلاحيات`, `Edit ${memberSingle} details and role`)}
                         >
                           <Edit2 className="h-3.5 w-3.5" />
                         </button>
@@ -459,11 +499,29 @@ export default function StaffDirectoryPage() {
           </div>
         )}
 
+        {/* Server-side pagination */}
+        {hasMore && (
+          <div className="flex justify-center">
+            <button
+              type="button"
+              onClick={() => {
+                triggerHaptic("light");
+                fetchStaff(staffList.length, true);
+              }}
+              disabled={isLoadingMore}
+              className="glass-btn-secondary inline-flex items-center gap-2 rounded-2xl px-5 py-2.5 text-xs font-bold text-slate-700 disabled:opacity-50 dark:text-slate-200"
+            >
+              {isLoadingMore ? <RefreshCw className="h-3.5 w-3.5 animate-spin text-qatar" /> : null}
+              <span>{L("تحميل المزيد", "Load more")}</span>
+            </button>
+          </div>
+        )}
+
         {/* Add Staff Modal (BottomSheet) */}
         <BottomSheet
           isOpen={isAddOpen}
           onClose={() => setIsAddOpen(false)}
-          title={`إضافة ${config.memberSingle} جديد إلى دليل ${config.memberLabel}`}
+          title={L(`إضافة ${memberSingle} جديد إلى دليل ${memberLabel}`, `Add a new ${memberSingle} to the ${memberLabel} directory`)}
         >
           <form onSubmit={handleSaveAdd} className="space-y-4">
             {formError && (
@@ -475,14 +533,14 @@ export default function StaffDirectoryPage() {
 
             <div>
               <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                {config.identifierLabel} *
+                {identifierLabel} *
               </label>
               <input
                 type="text"
                 required
                 value={formEmployeeId}
                 onChange={(e) => setFormEmployeeId(e.target.value)}
-                placeholder="مثال: 155 أو 1024"
+                placeholder={L("مثال: 155 أو 1024", "e.g. 155 or 1024")}
                 className="w-full rounded-2xl border border-slate-200 bg-white p-3 text-xs font-bold text-slate-900 focus:border-qatar focus:outline-none dark:border-slate-800 dark:bg-slate-900 dark:text-white font-mono"
               />
             </div>
@@ -490,27 +548,27 @@ export default function StaffDirectoryPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  الاسم بالعربية *
+                  {L("الاسم بالعربية *", "Name (Arabic) *")}
                 </label>
                 <input
                   type="text"
                   required
                   value={formNameAr}
                   onChange={(e) => setFormNameAr(e.target.value)}
-                  placeholder="مثال: ناصر الكواري"
+                  placeholder={L("مثال: ناصر الكواري", "e.g. ناصر الكواري")}
                   className="w-full rounded-2xl border border-slate-200 bg-white p-3 text-xs font-bold text-slate-900 focus:border-qatar focus:outline-none dark:border-slate-800 dark:bg-slate-900 dark:text-white"
                 />
               </div>
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  الاسم بالإنجليزية
+                  {L("الاسم بالإنجليزية", "Name (English)")}
                 </label>
                 <input
                   type="text"
                   value={formNameEn}
                   onChange={(e) => setFormNameEn(e.target.value)}
-                  placeholder="مثال: Nasser Al-Kuwari"
+                  placeholder="e.g. Nasser Al-Kuwari"
                   className="w-full rounded-2xl border border-slate-200 bg-white p-3 text-xs font-bold text-slate-900 focus:border-qatar focus:outline-none dark:border-slate-800 dark:bg-slate-900 dark:text-white"
                 />
               </div>
@@ -519,7 +577,7 @@ export default function StaffDirectoryPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  رقم الجوال *
+                  {L("رقم الجوال *", "Mobile number *")}
                 </label>
                 <input
                   type="text"
@@ -533,17 +591,17 @@ export default function StaffDirectoryPage() {
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  {config.unitLabel}
+                  {unitLabel}
                 </label>
                 <select
                   value={formDepartmentId}
                   onChange={(e) => setFormDepartmentId(e.target.value)}
                   className="w-full rounded-2xl border border-slate-200 bg-white p-3 text-xs font-bold text-slate-900 focus:border-qatar focus:outline-none dark:border-slate-800 dark:bg-slate-900 dark:text-white"
                 >
-                  <option value="">بدون تحديد</option>
+                  <option value="">{L("بدون تحديد", "Unassigned")}</option>
                   {departments.map((d) => (
                     <option key={d.id} value={d.id}>
-                      {d.name_ar}
+                      {lang === "ar" ? d.name_ar : d.name_en || d.name_ar}
                     </option>
                   ))}
                 </select>
@@ -552,16 +610,16 @@ export default function StaffDirectoryPage() {
 
             <div>
               <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                الصلاحية والدور في النظام
+                {L("الصلاحية والدور في النظام", "Role & permissions")}
               </label>
               <select
                 value={formRole}
                 onChange={(e) => setFormRole(e.target.value)}
                 className="w-full rounded-2xl border border-slate-200 bg-white p-3 text-xs font-bold text-slate-900 focus:border-qatar focus:outline-none dark:border-slate-800 dark:bg-slate-900 dark:text-white"
               >
-                <option value="staff">{config.memberSingle} (استعلام وتنبيهات)</option>
-                <option value="security">أمن ({config.securityLabel})</option>
-                <option value="admin">مدير نظام (كامل الصلاحيات والإدارة)</option>
+                <option value="staff">{L(`${memberSingle} (استعلام وتنبيهات)`, `${memberSingle} (lookup & alerts)`)}</option>
+                <option value="security">{L(`أمن (${securityLabel})`, `Security (${securityLabel})`)}</option>
+                <option value="admin">{L("مدير نظام (كامل الصلاحيات والإدارة)", "Admin (full permissions)")}</option>
               </select>
             </div>
 
@@ -574,7 +632,7 @@ export default function StaffDirectoryPage() {
                 className="h-4 w-4 rounded border-slate-300 text-qatar focus:ring-qatar"
               />
               <label htmlFor="staffIsActive" className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                حساب نشط ومفعل
+                {L("حساب نشط ومفعل", "Active and enabled account")}
               </label>
             </div>
 
@@ -583,7 +641,9 @@ export default function StaffDirectoryPage() {
               disabled={isSubmitting}
               className="glass-btn-primary w-full rounded-2xl py-3.5 text-xs font-bold disabled:opacity-50"
             >
-              {isSubmitting ? `جاري إضافة ${config.memberSingle}...` : `حفظ ${config.memberSingle} في الدليل`}
+              {isSubmitting
+                ? L(`جاري إضافة ${memberSingle}...`, `Adding ${memberSingle}...`)
+                : L(`حفظ ${memberSingle} في الدليل`, `Save ${memberSingle} to directory`)}
             </button>
           </form>
         </BottomSheet>
@@ -592,7 +652,7 @@ export default function StaffDirectoryPage() {
         <BottomSheet
           isOpen={isEditOpen}
           onClose={() => setIsEditOpen(false)}
-          title={`تعديل بيانات ${config.memberSingle} والصلاحيات`}
+          title={L(`تعديل بيانات ${memberSingle} والصلاحيات`, `Edit ${memberSingle} details and role`)}
         >
           <form onSubmit={handleSaveEdit} className="space-y-4">
             {formError && (
@@ -604,7 +664,7 @@ export default function StaffDirectoryPage() {
 
             <div>
               <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                {config.identifierLabel} *
+                {identifierLabel} *
               </label>
               <input
                 type="text"
@@ -618,7 +678,7 @@ export default function StaffDirectoryPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  الاسم بالعربية *
+                  {L("الاسم بالعربية *", "Name (Arabic) *")}
                 </label>
                 <input
                   type="text"
@@ -631,7 +691,7 @@ export default function StaffDirectoryPage() {
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  الاسم بالإنجليزية
+                  {L("الاسم بالإنجليزية", "Name (English)")}
                 </label>
                 <input
                   type="text"
@@ -645,7 +705,7 @@ export default function StaffDirectoryPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  رقم الجوال *
+                  {L("رقم الجوال *", "Mobile number *")}
                 </label>
                 <input
                   type="text"
@@ -658,17 +718,17 @@ export default function StaffDirectoryPage() {
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  {config.unitLabel}
+                  {unitLabel}
                 </label>
                 <select
                   value={formDepartmentId}
                   onChange={(e) => setFormDepartmentId(e.target.value)}
                   className="w-full rounded-2xl border border-slate-200 bg-white p-3 text-xs font-bold text-slate-900 focus:border-qatar focus:outline-none dark:border-slate-800 dark:bg-slate-900 dark:text-white"
                 >
-                  <option value="">بدون تحديد</option>
+                  <option value="">{L("بدون تحديد", "Unassigned")}</option>
                   {departments.map((d) => (
                     <option key={d.id} value={d.id}>
-                      {d.name_ar}
+                      {lang === "ar" ? d.name_ar : d.name_en || d.name_ar}
                     </option>
                   ))}
                 </select>
@@ -677,16 +737,16 @@ export default function StaffDirectoryPage() {
 
             <div>
               <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                الصلاحية والدور في النظام
+                {L("الصلاحية والدور في النظام", "Role & permissions")}
               </label>
               <select
                 value={formRole}
                 onChange={(e) => setFormRole(e.target.value)}
                 className="w-full rounded-2xl border border-slate-200 bg-white p-3 text-xs font-bold text-slate-900 focus:border-qatar focus:outline-none dark:border-slate-800 dark:bg-slate-900 dark:text-white"
               >
-                <option value="staff">{config.memberSingle} (استعلام وتنبيهات)</option>
-                <option value="security">أمن ({config.securityLabel})</option>
-                <option value="admin">مدير نظام (كامل الصلاحيات والإدارة)</option>
+                <option value="staff">{L(`${memberSingle} (استعلام وتنبيهات)`, `${memberSingle} (lookup & alerts)`)}</option>
+                <option value="security">{L(`أمن (${securityLabel})`, `Security (${securityLabel})`)}</option>
+                <option value="admin">{L("مدير نظام (كامل الصلاحيات والإدارة)", "Admin (full permissions)")}</option>
               </select>
             </div>
 
@@ -699,7 +759,7 @@ export default function StaffDirectoryPage() {
                 className="h-4 w-4 rounded border-slate-300 text-qatar focus:ring-qatar"
               />
               <label htmlFor="editStaffIsActive" className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                حساب نشط ومفعل
+                {L("حساب نشط ومفعل", "Active and enabled account")}
               </label>
             </div>
 
@@ -708,7 +768,7 @@ export default function StaffDirectoryPage() {
               disabled={isSubmitting}
               className="glass-btn-primary w-full rounded-2xl py-3.5 text-xs font-bold disabled:opacity-50"
             >
-              {isSubmitting ? `جاري تحديث ${config.memberSingle}...` : "حفظ التعديلات"}
+              {isSubmitting ? L(`جاري تحديث ${memberSingle}...`, `Updating ${memberSingle}...`) : L("حفظ التعديلات", "Save changes")}
             </button>
           </form>
         </BottomSheet>

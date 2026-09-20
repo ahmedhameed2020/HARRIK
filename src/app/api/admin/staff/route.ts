@@ -2,6 +2,17 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getAuthenticatedSession } from "@/lib/supabase/auth-helpers";
+import { parsePagination, sanitizeTerm, computeHasMore } from "@/lib/api/query";
+
+/** Generates a strong, non-guessable password (never a shared default). */
+function generateStrongPassword(): string {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%";
+  const bytes = new Uint8Array(20);
+  crypto.getRandomValues(bytes);
+  let out = "";
+  for (let i = 0; i < bytes.length; i++) out += chars[bytes[i] % chars.length];
+  return out;
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -15,7 +26,15 @@ export async function GET(request: NextRequest) {
     }
 
     const supabase = await createClient();
-    const { data: staff, error } = await supabase
+
+    // Server-side search, filtering and pagination.
+    const { searchParams } = new URL(request.url);
+    const term = sanitizeTerm(searchParams.get("q"));
+    const statusFilter = searchParams.get("status") || "ALL";
+    const departmentId = sanitizeTerm(searchParams.get("departmentId"));
+    const { limit, offset } = parsePagination(searchParams);
+
+    let query = supabase
       .from("profiles")
       .select(`
         *,
@@ -26,14 +45,33 @@ export async function GET(request: NextRequest) {
           vehicle:vehicles(id, plate_number, make, model, color, is_active)
         )
       `)
-      .eq("organization_id", session.organizationId)
-      .order("employee_id", { ascending: true });
+      .eq("organization_id", session.organizationId);
+
+    if (term) {
+      query = query.or(
+        `name_ar.ilike.%${term}%,name_en.ilike.%${term}%,employee_id.ilike.%${term}%,mobile.ilike.%${term}%`
+      );
+    }
+    if (statusFilter === "ACTIVE") query = query.eq("is_active", true);
+    if (statusFilter === "INACTIVE") query = query.eq("is_active", false);
+    if (departmentId) query = query.eq("department_id", departmentId);
+
+    query = query.order("employee_id", { ascending: true });
+    if (limit !== null) query = query.range(offset, offset + limit - 1);
+
+    const { data: staff, error } = await query;
 
     if (error) {
       return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true, staff: staff || [] });
+    return NextResponse.json({
+      success: true,
+      staff: staff || [],
+      hasMore: computeHasMore(staff, limit),
+      limit,
+      offset,
+    });
   } catch (err: any) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
   }
@@ -88,30 +126,77 @@ export async function POST(request: NextRequest) {
 
     const adminClient = createAdminClient();
     const sanitizedEmp = employeeId.trim().toLowerCase().replace(/[^a-z0-9]/g, "");
-    const staffEmail = body.email || `staff_${sanitizedEmp}@school.edu.qa`;
+    const providedEmail = String(body.email || "").trim();
+    const staffEmail = providedEmail || `staff_${sanitizedEmp}@harrik.local`;
+    const origin = request.nextUrl.origin;
 
-    let authUserId: string;
-    const { data: authData, error: authCreateError } = await adminClient.auth.admin.createUser({
-      email: staffEmail,
-      password: body.password || "Password123!",
-      email_confirm: true,
-      user_metadata: {
-        name_ar: nameAr.trim(),
-        name_en: (nameEn || nameAr).trim(),
-        employee_id: employeeId.trim(),
-      },
-    });
+    // Never assign a shared/default password. Prefer an email invitation so the
+    // member sets their own password; otherwise create with a random secret and
+    // return a one-time setup link for the admin to share securely.
+    const randomPassword = generateStrongPassword();
 
-    if (authCreateError) {
-      const { data: listRes } = await adminClient.auth.admin.listUsers();
-      const match = listRes?.users?.find((u) => u.email === staffEmail);
-      if (match) {
-        authUserId = match.id;
+    let authUserId: string | null = null;
+    let invitationSent = false;
+    let setupLink: string | null = null;
+    let lastAuthError: any = null;
+
+    if (providedEmail) {
+      const { data: invited, error: inviteErr } = await adminClient.auth.admin.inviteUserByEmail(
+        providedEmail,
+        {
+          redirectTo: `${origin}/reset-password`,
+          data: {
+            name_ar: nameAr.trim(),
+            name_en: (nameEn || nameAr).trim(),
+            employee_id: employeeId.trim(),
+          },
+        }
+      );
+      if (!inviteErr && invited?.user) {
+        authUserId = invited.user.id;
+        invitationSent = true;
       } else {
-        return NextResponse.json({ success: false, error: authCreateError.message }, { status: 400 });
+        lastAuthError = inviteErr;
       }
-    } else {
-      authUserId = authData.user.id;
+    }
+
+    if (!authUserId) {
+      const { data: authData, error: authCreateError } = await adminClient.auth.admin.createUser({
+        email: staffEmail,
+        password: randomPassword,
+        email_confirm: true,
+        user_metadata: {
+          name_ar: nameAr.trim(),
+          name_en: (nameEn || nameAr).trim(),
+          employee_id: employeeId.trim(),
+        },
+      });
+
+      if (!authCreateError && authData?.user) {
+        authUserId = authData.user.id;
+        try {
+          const { data: linkData } = await adminClient.auth.admin.generateLink({
+            type: "recovery",
+            email: staffEmail,
+            options: { redirectTo: `${origin}/reset-password` },
+          });
+          setupLink = (linkData as any)?.properties?.action_link || null;
+        } catch {
+          // setup link is best-effort
+        }
+      } else {
+        lastAuthError = authCreateError || lastAuthError;
+        const { data: listRes } = await adminClient.auth.admin.listUsers();
+        const match = listRes?.users?.find((u) => u.email === staffEmail);
+        if (match) authUserId = match.id;
+      }
+    }
+
+    if (!authUserId) {
+      return NextResponse.json(
+        { success: false, error: lastAuthError?.message || "تعذّر إنشاء حساب الكادر" },
+        { status: 400 }
+      );
     }
 
     const insertPayload = {
@@ -157,7 +242,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       staff: created,
-      message: "Staff member created successfully",
+      invitationSent,
+      setupLink,
+      message: invitationSent
+        ? "تم إنشاء الكادر وإرسال دعوة بالبريد لتعيين كلمة المرور"
+        : "تم إنشاء الكادر بنجاح",
     });
   } catch (err: any) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });

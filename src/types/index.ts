@@ -132,6 +132,10 @@ export interface SearchResultVehicle {
   department_name_en?: string | null;
   department_name_ar?: string | null;
   match_type: MatchType;
+  /** Effective privacy mode applied by the server for this result. */
+  privacy_mode?: PrivacyMode;
+  /** Contact capability derived from privacy mode (mode_a = full). */
+  contact_visibility?: "full" | "alert_only" | "anonymous";
 }
 
 // ============================================================================

@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { Download, X, Share, PlusSquare, Smartphone } from "lucide-react";
 import { triggerHaptic } from "@/lib/haptics";
+import { useLocale } from "@/contexts/LocaleContext";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -10,6 +11,7 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 export function PWAInstallPrompt() {
+  const { lang } = useLocale();
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isIOS, setIsIOS] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
@@ -92,9 +94,9 @@ export function PWAInstallPrompt() {
               <Smartphone className="h-6 w-6" />
             </div>
             <div>
-              <h4 className="text-sm font-black font-arabic">تثبيت تطبيق حَرِّك</h4>
+              <h4 className="text-sm font-black font-arabic">{lang === "ar" ? "تثبيت تطبيق حَرِّك" : "Install the HARRIK app"}</h4>
               <p className="text-[11px] text-slate-300">
-                أيقونة سريعة واستقبال فوري للتنبيهات
+                {lang === "ar" ? "أيقونة سريعة واستقبال فوري للتنبيهات" : "Quick icon and instant alert delivery"}
               </p>
             </div>
           </div>
@@ -105,7 +107,7 @@ export function PWAInstallPrompt() {
               className="flex items-center gap-1.5 rounded-xl bg-qatar px-3.5 py-2 text-xs font-bold text-white shadow-sm transition active:scale-95 hover:bg-qatar-800"
             >
               <Download className="h-3.5 w-3.5" />
-              <span>تثبيت</span>
+              <span>{lang === "ar" ? "تثبيت" : "Install"}</span>
             </button>
             <button
               onClick={handleDismiss}
@@ -134,10 +136,10 @@ export function PWAInstallPrompt() {
                 <Smartphone className="h-7 w-7" />
               </div>
               <h3 className="mt-3 text-lg font-black text-slate-900 dark:text-white font-arabic">
-                تثبيت حَرِّك على أجهزة iPhone و iPad
+                {lang === "ar" ? "تثبيت حَرِّك على أجهزة iPhone و iPad" : "Install HARRIK on iPhone & iPad"}
               </h3>
               <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                اتبع الخطوتين التاليتين لإضافة التطبيق لشاشتك الرئيسية:
+                {lang === "ar" ? "اتبع الخطوتين التاليتين لإضافة التطبيق لشاشتك الرئيسية:" : "Follow these two steps to add the app to your Home Screen:"}
               </p>
             </div>
 
@@ -147,8 +149,8 @@ export function PWAInstallPrompt() {
                   <Share className="h-5 w-5" />
                 </div>
                 <div className="text-xs">
-                  <p className="font-bold text-slate-900 dark:text-white">١. اضغط على زر المشاركة</p>
-                  <p className="text-slate-500 dark:text-slate-400">في شريط متصفح Safari بالأسفل</p>
+                  <p className="font-bold text-slate-900 dark:text-white">{lang === "ar" ? "١. اضغط على زر المشاركة" : "1. Tap the Share button"}</p>
+                  <p className="text-slate-500 dark:text-slate-400">{lang === "ar" ? "في شريط متصفح Safari بالأسفل" : "In the Safari browser bar at the bottom"}</p>
                 </div>
               </div>
 
@@ -157,7 +159,7 @@ export function PWAInstallPrompt() {
                   <PlusSquare className="h-5 w-5" />
                 </div>
                 <div className="text-xs">
-                  <p className="font-bold text-slate-900 dark:text-white">٢. اختر &quot;إضافة إلى الصفحة الرئيسية&quot;</p>
+                  <p className="font-bold text-slate-900 dark:text-white">{lang === "ar" ? "٢. اختر «إضافة إلى الصفحة الرئيسية»" : "2. Choose “Add to Home Screen”"}</p>
                   <p className="text-slate-500 dark:text-slate-400">&quot;Add to Home Screen&quot;</p>
                 </div>
               </div>
@@ -167,7 +169,7 @@ export function PWAInstallPrompt() {
               onClick={() => setShowIOSModal(false)}
               className="mt-6 w-full rounded-2xl bg-slate-900 py-3 text-sm font-bold text-white transition active:scale-95 dark:bg-white dark:text-slate-900"
             >
-              فهمت ذلك
+              {lang === "ar" ? "فهمت ذلك" : "Got it"}
             </button>
           </div>
         </div>

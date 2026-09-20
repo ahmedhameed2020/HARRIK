@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getAuthenticatedSession } from "@/lib/supabase/auth-helpers";
 import { normalizePlateNumber } from "@/lib/plate-normalizer";
+import { parsePagination, computeHasMore } from "@/lib/api/query";
 
 export async function GET(request: NextRequest) {
   try {
@@ -11,20 +12,40 @@ export async function GET(request: NextRequest) {
     }
 
     const supabase = await createClient();
-    const { data, error } = await supabase
+
+    // Server-side filtering and pagination.
+    const { searchParams } = new URL(request.url);
+    const statusFilter = searchParams.get("status") || "ALL";
+    const { limit, offset } = parsePagination(searchParams);
+
+    let query = supabase
       .from("unknown_vehicle_reports")
       .select(`
         *,
         reporter:profiles!unknown_vehicle_reports_reported_by_fkey(name_ar, name_en, mobile, employee_id)
       `)
-      .eq("organization_id", session.organizationId)
-      .order("created_at", { ascending: false });
+      .eq("organization_id", session.organizationId);
+
+    if (statusFilter === "open" || statusFilter === "identified" || statusFilter === "dismissed") {
+      query = query.eq("status", statusFilter);
+    }
+
+    query = query.order("created_at", { ascending: false });
+    if (limit !== null) query = query.range(offset, offset + limit - 1);
+
+    const { data, error } = await query;
 
     if (error) {
       return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true, reports: data || [] });
+    return NextResponse.json({
+      success: true,
+      reports: data || [],
+      hasMore: computeHasMore(data, limit),
+      limit,
+      offset,
+    });
   } catch (err: any) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
   }

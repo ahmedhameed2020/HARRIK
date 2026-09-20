@@ -269,7 +269,7 @@ export function CameraPlateScanner({
                 className={`flex h-9 w-9 items-center justify-center rounded-full transition ${
                   torchOn ? "bg-amber-400 text-slate-900" : "bg-slate-800 text-slate-300"
                 }`}
-                title="إضاءة الفلاش"
+                title={lang === "ar" ? "إضاءة الفلاش" : "Flash light"}
               >
                 <Zap className="h-4 w-4" />
               </button>
@@ -317,7 +317,7 @@ export function CameraPlateScanner({
               {/* Number Window Guide */}
               <div className="flex flex-1 items-center justify-center">
                 <span className="text-xs font-mono font-bold tracking-widest text-emerald-300/80 animate-pulse">
-                  [ضع أرقام اللوحة هنا]
+                  {lang === "ar" ? "[ضع أرقام اللوحة هنا]" : "[place plate digits here]"}
                 </span>
               </div>
             </div>

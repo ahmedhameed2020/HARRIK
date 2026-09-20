@@ -1,121 +1,34 @@
 import { NextRequest, NextResponse } from "next/server";
-import { normalizePlateNumber, validatePlateQuery } from "@/lib/plate-normalizer";
+import { validatePlateQuery } from "@/lib/plate-normalizer";
 import { createClient } from "@/lib/supabase/server";
-import { SearchResultVehicle } from "@/types";
-
-// Qatar School Verified Seed Records for resilient lookup & testing
-const SEED_VEHICLES: SearchResultVehicle[] = [
-  {
-    vehicle_id: "40000000-0000-0000-0000-000000000001",
-    plate_number: "482731",
-    normalized_plate: "482731",
-    make: "Toyota",
-    model: "Land Cruiser",
-    color: "أبيض (White)",
-    year: 2023,
-    is_primary: true,
-    owner_id: "30000000-0000-0000-0000-000000000001",
-    owner_name_ar: "أحمد حسن",
-    owner_name_en: "Ahmed Hassan",
-    owner_employee_id: "142",
-    owner_mobile: "+97455123456",
-    department_name_ar: "قسم اللغة الإنجليزية",
-    department_name_en: "English Department",
-    match_type: "exact",
-  },
-  {
-    vehicle_id: "40000000-0000-0000-0000-000000000002",
-    plate_number: "112731",
-    normalized_plate: "112731",
-    make: "Toyota",
-    model: "Camry",
-    color: "فضي (Silver)",
-    year: 2022,
-    is_primary: true,
-    owner_id: "30000000-0000-0000-0000-000000000003",
-    owner_name_ar: "محمد السليطي",
-    owner_name_en: "Mohammed Al-Sulaiti",
-    owner_employee_id: "103",
-    owner_mobile: "+97455223344",
-    department_name_ar: "قسم اللغة العربية",
-    department_name_en: "Arabic Department",
-    match_type: "partial",
-  },
-  {
-    vehicle_id: "40000000-0000-0000-0000-000000000003",
-    plate_number: "771925",
-    normalized_plate: "771925",
-    make: "Nissan",
-    model: "Patrol",
-    color: "أسود (Black)",
-    year: 2024,
-    is_primary: false,
-    owner_id: "30000000-0000-0000-0000-000000000001",
-    owner_name_ar: "أحمد حسن",
-    owner_name_en: "Ahmed Hassan",
-    owner_employee_id: "142",
-    owner_mobile: "+97455123456",
-    department_name_ar: "قسم اللغة الإنجليزية",
-    department_name_en: "English Department",
-    match_type: "exact",
-  },
-  {
-    vehicle_id: "40000000-0000-0000-0000-000000000004",
-    plate_number: "554820",
-    normalized_plate: "554820",
-    make: "Lexus",
-    model: "LX600",
-    color: "أبيض لؤلؤي (Pearl White)",
-    year: 2024,
-    is_primary: true,
-    owner_id: "30000000-0000-0000-0000-000000000002",
-    owner_name_ar: "خالد الكواري",
-    owner_name_en: "Khalid Al-Kuwari",
-    owner_employee_id: "101",
-    owner_mobile: "+97455987654",
-    department_name_ar: "الأمن والسلامة",
-    department_name_en: "Security & Safety",
-    match_type: "exact",
-  },
-  {
-    vehicle_id: "40000000-0000-0000-0000-000000000005",
-    plate_number: "992731",
-    normalized_plate: "992731",
-    make: "Toyota",
-    model: "Prado",
-    color: "رمادي (Grey)",
-    year: 2021,
-    is_primary: true,
-    owner_id: "30000000-0000-0000-0000-000000000004",
-    owner_name_ar: "عبدالله المري",
-    owner_name_en: "Abdullah Al-Marri",
-    owner_employee_id: "104",
-    owner_mobile: "+97466334455",
-    department_name_ar: "قسم الرياضيات",
-    department_name_en: "Mathematics Department",
-    match_type: "partial",
-  },
-  {
-    vehicle_id: "40000000-0000-0000-0000-000000000009",
-    plate_number: "225419",
-    normalized_plate: "225419",
-    make: "Kia",
-    model: "Telluride",
-    color: "رمادي غامق (Dark Grey)",
-    year: 2023,
-    is_primary: true,
-    owner_id: "30000000-0000-0000-0000-000000000008",
-    owner_name_ar: "طارق منصور",
-    owner_name_en: "Tariq Mansoor",
-    owner_employee_id: "108",
-    owner_mobile: "+97477223344",
-    department_name_ar: "قسم الدراسات الاجتماعية",
-    department_name_en: "Social Studies",
-    match_type: "exact",
-  },
-];
-
 import { getAuthenticatedSession } from "@/lib/supabase/auth-helpers";
+import {
+  getOrgSettings,
+  applyPrivacyMask,
+  type OrgSettings,
+} from "@/lib/org-settings";
+import { SEED_VEHICLES, FIXTURES_ENABLED } from "@/lib/test-fixtures";
+import type { PrivacyMode, SearchResultVehicle } from "@/types";
+
+function contactVisibilityFor(mode: PrivacyMode): "full" | "alert_only" | "anonymous" {
+  if (mode === "mode_a") return "full";
+  if (mode === "mode_b") return "alert_only";
+  return "anonymous";
+}
+
+/** Attaches the effective privacy mode + masks PII before returning to client. */
+function decorate(
+  row: SearchResultVehicle,
+  settings: OrgSettings,
+  matchType?: SearchResultVehicle["match_type"]
+): SearchResultVehicle {
+  return {
+    ...applyPrivacyMask(row, settings.privacy_mode),
+    ...(matchType ? { match_type: matchType } : {}),
+    privacy_mode: settings.privacy_mode,
+    contact_visibility: contactVisibilityFor(settings.privacy_mode),
+  };
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -128,7 +41,11 @@ export async function GET(request: NextRequest) {
     const rawQuery = searchParams.get("q") || "";
     const orgId = session.organizationId; // Derived strictly from verified session!
 
-    const validation = validatePlateQuery(rawQuery, 3);
+    const supabase = await createClient();
+    const settings = await getOrgSettings(supabase, orgId);
+
+    // Enforce the tenant-configured minimum digits (defaults to 3).
+    const validation = validatePlateQuery(rawQuery, settings.min_partial_digits);
     if (!validation.isValid) {
       return NextResponse.json({
         success: false,
@@ -139,52 +56,78 @@ export async function GET(request: NextRequest) {
 
     const normQuery = validation.normalized;
 
-    // Try Supabase RPC first
+    // 1. Authoritative lookup via Supabase RPC.
+    // NOTE: find_vehicle_by_plate(p_query TEXT) derives the organization from the
+    // verified session (current_user_org_id()) — it takes NO p_org_id argument.
+    let rpcFailed = false;
     try {
-      const supabase = await createClient();
       const { data, error } = await supabase.rpc("find_vehicle_by_plate", {
         p_query: normQuery,
       });
 
-      if (!error && Array.isArray(data) && data.length > 0) {
-        return NextResponse.json({
-          success: true,
-          normalizedQuery: normQuery,
-          results: data,
-        });
+      if (error) {
+        rpcFailed = true;
+      } else {
+        const rows = (Array.isArray(data) ? data : []) as SearchResultVehicle[];
+        // Exact match takes priority
+        const exactRows = rows.filter((r) => (r.match_type || "exact") === "exact");
+        const partialRows = rows.filter((r) => r.match_type === "partial");
+
+        const usable = settings.partial_search_enabled
+          ? exactRows.length > 0
+            ? exactRows
+            : normQuery.length >= settings.min_partial_digits
+            ? partialRows
+            : []
+          : exactRows;
+
+        if (usable.length > 0) {
+          return NextResponse.json({
+            success: true,
+            normalizedQuery: normQuery,
+            results: usable.map((r) => decorate(r, settings, r.match_type || "exact")),
+          });
+        }
       }
     } catch {
-      // Supabase connection fallback for development/local mode
+      rpcFailed = true;
     }
 
-    // Local in-memory seed matcher conforming exactly to RPC algorithm
-    // 1. Exact match
-    const exactMatches = SEED_VEHICLES.filter((v) => v.normalized_plate === normQuery);
-    if (exactMatches.length > 0) {
-      return NextResponse.json({
-        success: true,
-        normalizedQuery: normQuery,
-        results: exactMatches.map((v) => ({ ...v, match_type: "exact" })),
-      });
-    }
-
-    // 2. Partial suffix match (if min 3 digits)
-    if (normQuery.length >= 3) {
-      const partialMatches = SEED_VEHICLES.filter((v) =>
-        v.normalized_plate.endsWith(normQuery)
+    // Production never masks a database failure with fake data.
+    if (rpcFailed && !FIXTURES_ENABLED) {
+      return NextResponse.json(
+        { success: false, error: "Search service temporarily unavailable", results: [] },
+        { status: 503 }
       );
-      if (partialMatches.length > 0) {
+    }
+
+    // 2. Local seed matcher (non-production only) mirroring the RPC algorithm
+    if (FIXTURES_ENABLED) {
+      const exactMatches = SEED_VEHICLES.filter((v) => v.normalized_plate === normQuery);
+      if (exactMatches.length > 0) {
         return NextResponse.json({
           success: true,
           normalizedQuery: normQuery,
-          results: partialMatches.map((v) => ({ ...v, match_type: "partial" })),
+          results: exactMatches.map((v) => decorate(v, settings, "exact")),
         });
+      }
+
+      if (settings.partial_search_enabled && normQuery.length >= settings.min_partial_digits) {
+        const partialMatches = SEED_VEHICLES.filter((v) =>
+          v.normalized_plate.endsWith(normQuery)
+        );
+        if (partialMatches.length > 0) {
+          return NextResponse.json({
+            success: true,
+            normalizedQuery: normQuery,
+            results: partialMatches.map((v) => decorate(v, settings, "partial")),
+          });
+        }
       }
     }
 
-    // 3. Check Active Visitor Passes for this plate
+    // 3. Active Visitor Passes for this plate
     try {
-      const supabase = await createClient();
       const { data: visitorPasses } = await supabase
         .from("visitor_passes")
         .select("*")
@@ -194,7 +137,7 @@ export async function GET(request: NextRequest) {
         .or(`normalized_plate.eq.${normQuery},normalized_plate.ilike.%${normQuery}`);
 
       if (visitorPasses && visitorPasses.length > 0) {
-        const mappedVisitors: SearchResultVehicle[] = visitorPasses.map((vp) => ({
+        const mappedVisitors: SearchResultVehicle[] = visitorPasses.map((vp: any) => ({
           vehicle_id: vp.id,
           plate_number: vp.plate_number,
           normalized_plate: vp.normalized_plate,
@@ -202,7 +145,7 @@ export async function GET(request: NextRequest) {
           model: vp.vehicle_model || "مؤقت",
           color: vp.vehicle_color || "غير محدد",
           is_primary: true,
-          owner_id: vp.id,
+          owner_id: vp.host_profile_id || null,
           owner_name_ar: `[زائر مُصرّح] ${vp.visitor_name}`,
           owner_name_en: `[Visitor] ${vp.visitor_name}`,
           owner_employee_id: "VISITOR",
@@ -215,43 +158,27 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({
           success: true,
           normalizedQuery: normQuery,
-          results: mappedVisitors,
+          results: mappedVisitors.map((m) => decorate(m, settings)),
         });
       }
     } catch (err) {
       console.warn("Visitor search error:", err);
     }
 
-    // 4. No match found - Fetch escalation details for unregistered vehicle
-    let escalation = {
-      venueLabel: "المنشأة",
+    // 4. No match — return escalation details for unregistered vehicles
+    const escalation = {
+      venueLabel: settings.branding.venue_label || "المنشأة",
       venueNameAr: "المنشأة",
-      gateSecurityPhone: "+974 4400 0000",
+      gateSecurityPhone: settings.branding.gate_security_phone || "+974 4400 0000",
     };
 
     try {
-      const supabase = await createClient();
-      const [settingsRes, orgRes] = await Promise.all([
-        supabase
-          .from("system_settings")
-          .select("branding")
-          .eq("organization_id", orgId)
-          .maybeSingle(),
-        supabase
-          .from("organizations")
-          .select("name_ar, name_en")
-          .eq("id", orgId)
-          .maybeSingle(),
-      ]);
-
-      if (settingsRes.data?.branding) {
-        const b = settingsRes.data.branding as any;
-        if (b.venue_label) escalation.venueLabel = b.venue_label;
-        if (b.gate_security_phone) escalation.gateSecurityPhone = b.gate_security_phone;
-      }
-      if (orgRes.data?.name_ar) {
-        escalation.venueNameAr = orgRes.data.name_ar;
-      }
+      const { data: orgRow } = await supabase
+        .from("organizations")
+        .select("name_ar, name_en")
+        .eq("id", orgId)
+        .maybeSingle();
+      if (orgRow?.name_ar) escalation.venueNameAr = orgRow.name_ar;
     } catch {
       // Keep sensible fallback defaults
     }

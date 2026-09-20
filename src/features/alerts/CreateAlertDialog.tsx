@@ -1,14 +1,14 @@
 "use client";
 
-import React, { useState } from "react";
-import { Car, Lightbulb, Maximize2, AlertTriangle, PhoneCall, Check, Loader2 } from "lucide-react";
+import React, { useState, useMemo } from "react";
+import { Car, Lightbulb, Maximize2, AlertTriangle, PhoneCall, Check, Loader2, Bell } from "lucide-react";
 import { motion, AnimatePresence, useReducedMotion } from "motion/react";
 import { SearchResultVehicle } from "@/types";
-import { AlertTypeCode } from "@/lib/whatsapp";
 import { translations, Language } from "@/i18n/translations";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { triggerHaptic } from "@/lib/haptics";
 import { TACTILE_TAP, DURATION, EASING } from "@/lib/motion";
+import { useEntityConfig } from "@/contexts/EntityConfigContext";
 
 interface CreateAlertDialogProps {
   isOpen: boolean;
@@ -18,6 +18,17 @@ interface CreateAlertDialogProps {
   onAlertSent?: () => void;
 }
 
+/** Maps a known alert code (or icon hint) to a lucide icon. */
+function iconForCode(code: string, icon?: string | null): React.ReactNode {
+  const key = `${code} ${icon || ""}`.toUpperCase();
+  if (key.includes("LIGHT")) return <Lightbulb className="h-5 w-5" />;
+  if (key.includes("WINDOW")) return <Maximize2 className="h-5 w-5" />;
+  if (key.includes("CHECK") || key.includes("ALERT")) return <AlertTriangle className="h-5 w-5" />;
+  if (key.includes("CONTACT") || key.includes("PHONE")) return <PhoneCall className="h-5 w-5" />;
+  if (key.includes("BLOCK") || key.includes("CAR")) return <Car className="h-5 w-5" />;
+  return <Bell className="h-5 w-5" />;
+}
+
 export function CreateAlertDialog({
   isOpen,
   vehicle,
@@ -25,46 +36,38 @@ export function CreateAlertDialog({
   onClose,
   onAlertSent,
 }: CreateAlertDialogProps) {
-  const [selectedType, setSelectedType] = useState<AlertTypeCode>("BLOCKING");
+  const [selectedType, setSelectedType] = useState<string>("BLOCKING");
   const [customMessage, setCustomMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSent, setIsSent] = useState(false);
   const shouldReduceMotion = useReducedMotion();
+  const { alertTypes } = useEntityConfig();
+
+  // Tenant-configured alert types, falling back to the canonical five.
+  const alertOptions = useMemo<Array<{ code: string; label: string; icon: React.ReactNode }>>(() => {
+    if (alertTypes && alertTypes.length > 0) {
+      return alertTypes.map((at) => ({
+        code: at.code,
+        label: (lang === "ar" ? at.name_ar : at.name_en) || at.name_ar || at.code,
+        icon: iconForCode(at.code, at.icon),
+      }));
+    }
+    return [
+      { code: "BLOCKING", label: translations[lang].alertType_BLOCKING, icon: <Car className="h-5 w-5" /> },
+      { code: "LIGHTS_ON", label: translations[lang].alertType_LIGHTS_ON, icon: <Lightbulb className="h-5 w-5" /> },
+      { code: "WINDOW_OPEN", label: translations[lang].alertType_WINDOW_OPEN, icon: <Maximize2 className="h-5 w-5" /> },
+      { code: "CHECK_VEHICLE", label: translations[lang].alertType_CHECK_VEHICLE, icon: <AlertTriangle className="h-5 w-5" /> },
+      { code: "CONTACT_ME", label: translations[lang].alertType_CONTACT_ME, icon: <PhoneCall className="h-5 w-5" /> },
+    ];
+  }, [alertTypes, lang]);
+
+  // Keep the selected type valid when the available list changes.
+  const effectiveSelected = alertOptions.some((o) => o.code === selectedType)
+    ? selectedType
+    : alertOptions[0]?.code || "BLOCKING";
 
   if (!vehicle) return null;
   const t = translations[lang];
-
-  const alertOptions: Array<{
-    code: AlertTypeCode;
-    label: string;
-    icon: React.ReactNode;
-  }> = [
-    {
-      code: "BLOCKING",
-      label: t.alertType_BLOCKING,
-      icon: <Car className="h-5 w-5" />,
-    },
-    {
-      code: "LIGHTS_ON",
-      label: t.alertType_LIGHTS_ON,
-      icon: <Lightbulb className="h-5 w-5" />,
-    },
-    {
-      code: "WINDOW_OPEN",
-      label: t.alertType_WINDOW_OPEN,
-      icon: <Maximize2 className="h-5 w-5" />,
-    },
-    {
-      code: "CHECK_VEHICLE",
-      label: t.alertType_CHECK_VEHICLE,
-      icon: <AlertTriangle className="h-5 w-5" />,
-    },
-    {
-      code: "CONTACT_ME",
-      label: t.alertType_CONTACT_ME,
-      icon: <PhoneCall className="h-5 w-5" />,
-    },
-  ];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -80,11 +83,11 @@ export function CreateAlertDialog({
         body: JSON.stringify({
           vehicleId: vehicle.vehicle_id,
           ownerId: vehicle.owner_id,
-          alertTypeCode: selectedType,
+          alertTypeCode: effectiveSelected,
           plateNumber: vehicle.plate_number,
           message:
             customMessage.trim() ||
-            alertOptions.find((o) => o.code === selectedType)?.label,
+            alertOptions.find((o) => o.code === effectiveSelected)?.label,
         }),
       });
 
@@ -152,7 +155,7 @@ export function CreateAlertDialog({
           >
             <div className="space-y-2">
               {alertOptions.map((option) => {
-                const isSelected = selectedType === option.code;
+                const isSelected = effectiveSelected === option.code;
                 return (
                   <motion.div
                     key={option.code}

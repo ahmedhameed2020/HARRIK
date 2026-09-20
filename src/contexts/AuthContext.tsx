@@ -4,6 +4,10 @@ import React, { createContext, useContext, useEffect, useState, useCallback } fr
 import { User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
 import { Profile, Role } from "@/types";
+import { markUnlocked } from "@/lib/biometric";
+
+export const REMEMBER_DEVICE_KEY = "harrik_remember_device";
+const TAB_SESSION_KEY = "harrik_tab_session";
 
 interface AuthContextType {
   user: User | null;
@@ -12,7 +16,7 @@ interface AuthContextType {
   isAdmin: boolean;
   isSecurity: boolean;
   isLoading: boolean;
-  signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
+  signIn: (email: string, password: string, remember?: boolean) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
@@ -53,8 +57,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let isMounted = true;
 
+    // ------------------------- Sign-in-once enforcement -------------------------
+    // When the user chooses NOT to remember this device, the session must end
+    // when the browser/app is fully closed. sessionStorage clears at that point,
+    // so on a fresh browser session we sign out first.
+    const enforceEphemeralSession = async () => {
+      try {
+        const remember = localStorage.getItem(REMEMBER_DEVICE_KEY);
+        const tabOpen = sessionStorage.getItem(TAB_SESSION_KEY);
+        if (remember === "false" && !tabOpen) {
+          await supabase.auth.signOut();
+        }
+        sessionStorage.setItem(TAB_SESSION_KEY, "1");
+      } catch {
+        // ignore storage access errors (private mode, etc.)
+      }
+    };
+
     const initializeAuth = async () => {
       try {
+        await enforceEphemeralSession();
         const { data: { session } } = await supabase.auth.getSession();
         if (session?.user && isMounted) {
           setUser(session.user);
@@ -96,7 +118,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, [supabase, fetchProfile]);
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (email: string, password: string, remember: boolean = true) => {
+    try {
+      localStorage.setItem(REMEMBER_DEVICE_KEY, remember ? "true" : "false");
+      sessionStorage.setItem(TAB_SESSION_KEY, "1");
+    } catch {
+      // ignore storage errors
+    }
+
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -108,6 +137,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     if (data.user) {
       setUser(data.user);
+      // A fresh password login unlocks the device for this session (no biometric prompt).
+      markUnlocked();
       await fetchProfile(data.user.id);
     }
 

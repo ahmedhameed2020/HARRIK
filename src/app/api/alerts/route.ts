@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getAuthenticatedSession } from "@/lib/supabase/auth-helpers";
 import { ParkingAlert } from "@/types";
-import { sendWebPushNotification } from "@/lib/push/vapid";
+import { dispatchAlertNotifications } from "@/lib/notifications/alert-dispatch";
+import { escalateStaleAlerts } from "@/lib/notifications/escalate-stale";
+import { parsePagination, computeHasMore } from "@/lib/api/query";
 
 export async function GET(request: NextRequest) {
   try {
@@ -12,7 +14,21 @@ export async function GET(request: NextRequest) {
     }
 
     const supabase = await createClient();
-    const { data, error } = await supabase
+
+    // Timed escalation: alerts pending past the threshold are pushed to the
+    // security team once. Runs lazily on read, so no scheduler is required.
+    try {
+      await escalateStaleAlerts(supabase, { organizationId: session.organizationId });
+    } catch {
+      // Never block the inbox on escalation problems.
+    }
+
+    // Server-side pagination (opt-in). Without a limit, all rows are returned
+    // for backwards compatibility (reports, dashboard aggregates).
+    const { searchParams } = new URL(request.url);
+    const { limit, offset } = parsePagination(searchParams);
+
+    let query = supabase
       .from("parking_alerts")
       .select(`
         *,
@@ -24,11 +40,23 @@ export async function GET(request: NextRequest) {
       .eq("organization_id", session.organizationId)
       .order("created_at", { ascending: false });
 
+    if (limit !== null) {
+      query = query.range(offset, offset + limit - 1);
+    }
+
+    const { data, error } = await query;
+
     if (error) {
       return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true, alerts: data || [] });
+    return NextResponse.json({
+      success: true,
+      alerts: data || [],
+      hasMore: computeHasMore(data, limit),
+      limit,
+      offset,
+    });
   } catch (err: any) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
   }
@@ -91,30 +119,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: insertError.message }, { status: 500 });
     }
 
-    // Asynchronously dispatch background Web Push to the car owner
+    // Dispatch Web Push to the car owner, escalating to security when unreachable
     try {
-      const { data: subs } = await supabase
-        .from("push_subscriptions")
-        .select("endpoint, p256dh, auth")
-        .eq("profile_id", ownerId)
-        .eq("organization_id", session.organizationId);
-
-      if (subs && subs.length > 0) {
-        const reporterName = session.profile.name_ar || session.profile.name_en || "أحد الزملاء";
-        const vehiclePlate = inserted?.vehicle?.plate_number || "";
-        const pushPayload = {
-          title: "🚨 تنبيه تحريك سيارة عاجل",
-          body: `سيارتك (${vehiclePlate}) مطلوبة للتحريك بواسطة: ${reporterName}`,
-          url: "/inbox",
-          tag: `alert-${inserted.id}`,
-        };
-
-        for (const sub of subs) {
-          sendWebPushNotification(sub, pushPayload).catch(() => {});
-        }
-      }
+      const reporterName = session.profile.name_ar || session.profile.name_en || "أحد الزملاء";
+      await dispatchAlertNotifications(supabase, {
+        organizationId: session.organizationId,
+        ownerId,
+        alertId: inserted?.id || null,
+        plateDisplay: inserted?.vehicle?.plate_number || "",
+        reporterName,
+        url: "/inbox",
+      });
     } catch (pushErr) {
-      console.warn("Background web push error:", pushErr);
+      console.warn("Alert notification dispatch error:", pushErr);
     }
 
     return NextResponse.json({

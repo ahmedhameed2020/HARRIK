@@ -69,23 +69,28 @@ export function Navbar({
         </Link>
 
         {/* Center Navigation for Desktop */}
-        <nav className="hidden md:flex items-center gap-1.5 rounded-full bg-slate-100/70 p-1 backdrop-blur dark:bg-slate-900/70 border border-slate-200/50 dark:border-slate-800/50">
+        <nav
+          aria-label={lang === "ar" ? "التنقل الرئيسي" : "Main navigation"}
+          className="hidden md:flex items-center gap-1.5 rounded-full bg-slate-100/70 p-1 backdrop-blur dark:bg-slate-900/70 border border-slate-200/50 dark:border-slate-800/50"
+        >
           <Link
             href="/"
             onClick={() => triggerHaptic("selection")}
+            aria-current={isSearch ? "page" : undefined}
             className={`flex items-center gap-2 rounded-full px-4 py-2 text-xs font-bold transition-all ${
               isSearch
                 ? "bg-white text-qatar shadow-sm dark:bg-slate-800 dark:text-qatar-300"
                 : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
             }`}
           >
-            <Search className="h-4 w-4" />
+            <Search className="h-4 w-4" aria-hidden="true" />
             {t.navSearch}
           </Link>
 
           <Link
             href="/inbox"
             onClick={() => triggerHaptic("selection")}
+            aria-current={isInbox ? "page" : undefined}
             className={`flex items-center gap-2 rounded-full px-4 py-2 text-xs font-bold transition-all ${
               isInbox
                 ? "bg-white text-qatar shadow-sm dark:bg-slate-800 dark:text-qatar-300"
@@ -93,9 +98,16 @@ export function Navbar({
             }`}
           >
             <div className="relative">
-              <Bell className="h-4 w-4" />
+              <Bell className="h-4 w-4" aria-hidden="true" />
               {activeCount > 0 && (
-                <span className="absolute -top-1.5 -right-2 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-black text-white ring-2 ring-white dark:ring-slate-900 animate-pulse">
+                <span
+                  aria-label={
+                    lang === "ar"
+                      ? `${activeCount} تنبيه نشط`
+                      : `${activeCount} active alerts`
+                  }
+                  className="absolute -top-1.5 -right-2 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-black text-white ring-2 ring-white dark:ring-slate-900 animate-pulse"
+                >
                   {activeCount > 9 ? "9+" : activeCount}
                 </span>
               )}
@@ -106,13 +118,14 @@ export function Navbar({
           <Link
             href="/profile"
             onClick={() => triggerHaptic("selection")}
+            aria-current={pathname === "/profile" ? "page" : undefined}
             className={`flex items-center gap-2 rounded-full px-4 py-2 text-xs font-bold transition-all ${
               pathname === "/profile"
                 ? "bg-white text-qatar shadow-sm dark:bg-slate-800 dark:text-qatar-300"
                 : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
             }`}
           >
-            <User className="h-4 w-4" />
+            <User className="h-4 w-4" aria-hidden="true" />
             <span>{lang === "ar" ? "ملفي ومركباتي" : "My Vehicles"}</span>
           </Link>
 
@@ -120,13 +133,14 @@ export function Navbar({
             <Link
               href="/admin"
               onClick={() => triggerHaptic("selection")}
+              aria-current={isAdminPath ? "page" : undefined}
               className={`flex items-center gap-2 rounded-full px-4 py-2 text-xs font-bold transition-all ${
                 isAdminPath
                   ? "bg-white text-qatar shadow-sm dark:bg-slate-800 dark:text-qatar-300"
                   : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
               }`}
             >
-              <Shield className="h-4 w-4" />
+              <Shield className="h-4 w-4" aria-hidden="true" />
               {t.navAdmin}
             </Link>
           )}
@@ -152,16 +166,22 @@ export function Navbar({
                     ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300"
                     : "bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300"
                 }`}>
-                  {role === "admin" ? "مدير" : role === "security" ? "أمن" : "كادر"}
+                  {role === "admin"
+                    ? lang === "ar" ? "مدير" : "Admin"
+                    : role === "security"
+                    ? lang === "ar" ? "أمن" : "Security"
+                    : lang === "ar" ? "كادر" : "Staff"}
                 </span>
               )}
               <button
                 type="button"
                 onClick={handleSignOut}
+                data-icon-button="true"
                 title={lang === "ar" ? "تسجيل الخروج" : "Sign Out"}
+                aria-label={lang === "ar" ? "تسجيل الخروج" : "Sign out"}
                 className="flex h-7 w-7 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-red-600 dark:hover:bg-slate-800 dark:hover:text-red-400"
               >
-                <LogOut className="h-3.5 w-3.5" />
+                <LogOut className="h-3.5 w-3.5" aria-hidden="true" />
               </button>
             </div>
           )}
@@ -169,20 +189,39 @@ export function Navbar({
           {/* Language Switcher */}
           <button
             onClick={handleLangToggle}
+            data-testid="lang-toggle"
+            aria-label={
+              lang === "ar" ? "التبديل إلى الإنجليزية" : "Switch to Arabic"
+            }
+            lang={lang === "ar" ? "en" : "ar"}
             className="flex items-center gap-1.5 rounded-full border border-slate-200/80 bg-white/80 px-3 py-1.5 text-xs font-bold text-slate-700 shadow-sm transition active:scale-90 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900/80 dark:text-slate-200 dark:hover:bg-slate-800"
             title="Switch Language"
           >
-            <Globe className="h-3.5 w-3.5 text-qatar" />
+            <Globe className="h-3.5 w-3.5 text-qatar" aria-hidden="true" />
             <span>{t.switchLang}</span>
           </button>
 
           {/* Theme Toggle */}
           <button
             onClick={handleThemeToggle}
+            data-icon-button="true"
+            data-testid="theme-toggle"
+            aria-label={
+              theme === "light"
+                ? lang === "ar"
+                  ? "تفعيل الوضع الداكن"
+                  : "Switch to dark mode"
+                : lang === "ar"
+                ? "تفعيل الوضع الفاتح"
+                : "Switch to light mode"
+            }
             className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200/80 bg-white/80 text-slate-600 shadow-sm transition active:scale-90 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900/80 dark:text-slate-300 dark:hover:bg-slate-800"
-            aria-label="Toggle theme"
           >
-            {theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4 text-amber-400" />}
+            {theme === "light" ? (
+              <Moon className="h-4 w-4" aria-hidden="true" />
+            ) : (
+              <Sun className="h-4 w-4 text-amber-400" aria-hidden="true" />
+            )}
           </button>
         </div>
       </div>

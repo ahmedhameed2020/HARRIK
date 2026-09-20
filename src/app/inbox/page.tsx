@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { AlertsInbox } from "@/features/alerts/AlertsInbox";
-import { Language } from "@/i18n/translations";
+import { useLocale } from "@/contexts/LocaleContext";
 
 export default function InboxPage() {
-  const [lang] = useState<Language>("ar");
+  const { lang } = useLocale();
 
   return (
     <div className="container mx-auto px-4 py-6">

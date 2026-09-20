@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { DashboardOverview } from "@/features/dashboard/DashboardOverview";
-import { Language } from "@/i18n/translations";
+import { useLocale } from "@/contexts/LocaleContext";
 
 export default function AdminDashboardPage() {
-  const [lang] = useState<Language>("ar");
+  const { lang } = useLocale();
 
   return <DashboardOverview lang={lang} />;
 }

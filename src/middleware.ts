@@ -12,6 +12,11 @@ export async function middleware(request: NextRequest) {
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "placeholder-anon-key";
 
   const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+    cookieOptions: {
+      path: "/",
+      sameSite: "lax",
+      maxAge: 400 * 24 * 60 * 60, // ~400 days — sign in once
+    },
     cookies: {
       getAll() {
         return request.cookies.getAll();
@@ -37,6 +42,13 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith("/api/scan/") ||
     pathname === "/scan" ||
     pathname.startsWith("/scan/") ||
+    pathname === "/forgot-password" ||
+    pathname === "/reset-password" ||
+    pathname === "/register" ||
+    pathname.startsWith("/api/register") ||
+    pathname.startsWith("/api/observability/") ||
+    pathname.startsWith("/api/alerts/escalate") ||
+    pathname.startsWith("/api/reports/email") ||
     pathname.includes(".") ||
     pathname === "/favicon.ico"
   ) {
@@ -142,7 +154,7 @@ export async function middleware(request: NextRequest) {
   // Tenant Page Route Protection (/, /admin, /profile, /inbox, etc.)
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role, is_active")
+    .select("role, is_active, organization:organizations(status)")
     .eq("id", user.id)
     .maybeSingle();
 
@@ -168,6 +180,12 @@ export async function middleware(request: NextRequest) {
     if (profile.role !== "admin" && profile.role !== "super_admin" && profile.role !== "security") {
       return NextResponse.redirect(new URL("/?error=unauthorized", request.url));
     }
+  }
+
+  // Onboarding gate: tenants still being set up are routed to the setup wizard
+  const orgStatus = (profile as any)?.organization?.status;
+  if (orgStatus === "onboarding" && pathname !== "/onboarding") {
+    return NextResponse.redirect(new URL("/onboarding", request.url));
   }
 
   return response;

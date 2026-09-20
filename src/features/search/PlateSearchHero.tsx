@@ -11,6 +11,7 @@ import { PlateKeypad } from "./PlateKeypad";
 import { QatarPlate } from "@/components/ui/QatarPlate";
 import { triggerHaptic } from "@/lib/haptics";
 import { TACTILE_TAP, DURATION, EASING } from "@/lib/motion";
+import { useEntityConfig } from "@/contexts/EntityConfigContext";
 
 const CameraPlateScanner = dynamic(
   () => import("./CameraPlateScanner").then((m) => m.CameraPlateScanner),
@@ -55,6 +56,8 @@ export function PlateSearchHero({ lang }: PlateSearchHeroProps) {
   const t = translations[lang];
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const shouldReduceMotion = useReducedMotion();
+  const { settings } = useEntityConfig();
+  const minDigits = settings.min_partial_digits || 3;
 
   // Perform plate lookup (network lookup begins immediately)
   const handleSearch = async (overrideQuery?: string) => {
@@ -112,7 +115,7 @@ export function PlateSearchHero({ lang }: PlateSearchHeroProps) {
       clearTimeout(debounceTimerRef.current);
     }
 
-    if (clean.length >= 3) {
+    if (clean.length >= minDigits) {
       debounceTimerRef.current = setTimeout(() => {
         handleSearch(clean);
       }, 300);
@@ -123,7 +126,7 @@ export function PlateSearchHero({ lang }: PlateSearchHeroProps) {
         clearTimeout(debounceTimerRef.current);
       }
     };
-  }, [query]);
+  }, [query, minDigits]);
 
   const handleClear = () => {
     triggerHaptic("light");
@@ -222,6 +225,9 @@ export function PlateSearchHero({ lang }: PlateSearchHeroProps) {
                 }
               }}
               placeholder={t.plateInputPlaceholder}
+              aria-label={t.plateInputPlaceholder}
+              autoComplete="off"
+              enterKeyHint="search"
               className={`h-14 flex-1 min-w-0 bg-transparent px-2 text-lg sm:text-xl font-bold tracking-wider text-slate-950 dark:text-white placeholder:text-slate-400 placeholder:font-normal placeholder:text-sm focus:outline-none ${
                 query ? "font-mono text-left" : ""
               }`}
@@ -270,7 +276,7 @@ export function PlateSearchHero({ lang }: PlateSearchHeroProps) {
                 ? "bg-[#8a1538] text-white border-[#8a1538] shadow-sm shadow-[#8a1538]/20"
                 : "bg-white dark:bg-[#131926] border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 shadow-sm hover:border-slate-300 dark:hover:border-slate-700"
             }`}
-            title="لوحة الأرقام الملموسة"
+            title={lang === "ar" ? "لوحة الأرقام الملموسة" : "Numeric keypad"}
           >
             <span>🔢</span>
             <span>{lang === "ar" ? "أرقام اللوحة" : "Numeric Keypad"}</span>
@@ -283,7 +289,7 @@ export function PlateSearchHero({ lang }: PlateSearchHeroProps) {
               setIsCameraOpen(true);
             }}
             className="flex h-9 items-center gap-1.5 rounded-xl px-3.5 text-xs font-bold bg-white dark:bg-[#131926] border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 shadow-sm hover:text-[#8a1538] hover:border-slate-300 dark:hover:border-slate-700 transition-all"
-            title="مسح اللوحة بالكاميرا"
+            title={lang === "ar" ? "مسح اللوحة بالكاميرا" : "Scan plate with camera"}
           >
             <Camera className="h-4 w-4 text-[#8a1538] dark:text-rose-400" />
             <span>{lang === "ar" ? "مسح بالكاميرا" : "Scan Plate"}</span>

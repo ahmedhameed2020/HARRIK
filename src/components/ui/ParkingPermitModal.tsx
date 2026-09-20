@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { triggerHaptic } from "@/lib/haptics";
 import { QatarPlate } from "@/components/ui/QatarPlate";
 import { SPRINGS } from "@/lib/motion";
+import { useLocale } from "@/contexts/LocaleContext";
 
 interface ParkingPermitModalProps {
   isOpen: boolean;
@@ -38,6 +39,8 @@ export function ParkingPermitModal({
 }: ParkingPermitModalProps) {
   const [qrDataUrl, setQrDataUrl] = useState<string>("");
   const permitRef = useRef<HTMLDivElement>(null);
+  const { lang } = useLocale();
+  const L = (ar: string, en: string) => (lang === "ar" ? ar : en);
 
   useEffect(() => {
     if (isOpen && (vehicle?.permit_token || vehicle?.id || vehicle?.plate_number)) {
@@ -92,7 +95,7 @@ export function ParkingPermitModal({
             </div>
             <div>
               <h3 className="text-base font-extrabold text-slate-900 dark:text-white font-arabic">
-                تصريح الموقف وملصق الباركود الذكي
+                {L("تصريح الموقف وملصق الباركود الذكي", "Smart parking permit & barcode sticker")}
               </h3>
               <p className="text-[11px] text-slate-500 dark:text-slate-400">
                 Printable QR Smart Parking Permit
@@ -126,7 +129,7 @@ export function ParkingPermitModal({
                 </span>
               </div>
               <span className="text-[9px] font-bold tracking-widest uppercase bg-white/20 px-2 py-0.5 rounded">
-                تصريح رسمي
+                {L("تصريح رسمي", "Official permit")}
               </span>
             </div>
 
@@ -149,25 +152,25 @@ export function ParkingPermitModal({
                 <div className="h-44 w-44 animate-pulse bg-slate-100 rounded-2xl" />
               )}
               <p className="mt-2 text-[11px] font-black text-slate-600 font-arabic">
-                📱 امسح الباركود بكاميرا هاتفك لتنبيه السائق فوراً
+                {L("📱 امسح الباركود بكاميرا هاتفك لتنبيه السائق فوراً", "📱 Scan the code with your phone camera to alert the driver instantly")}
               </p>
             </div>
 
             {/* Driver and Vehicle Meta */}
             <div className="mt-3 pt-3 border-t border-slate-200 text-xs grid grid-cols-2 gap-2 text-start bg-slate-50 p-2.5 rounded-xl font-arabic">
               <div>
-                <span className="text-[10px] text-slate-500 block">الاسم:</span>
-                <span className="font-bold text-slate-800">{profile.name_ar}</span>
+                <span className="text-[10px] text-slate-500 block">{L("الاسم:", "Name:")}</span>
+                <span className="font-bold text-slate-800">{lang === "ar" ? profile.name_ar : profile.name_en || profile.name_ar}</span>
               </div>
               <div>
-                <span className="text-[10px] text-slate-500 block">المركبة:</span>
+                <span className="text-[10px] text-slate-500 block">{L("المركبة:", "Vehicle:")}</span>
                 <span className="font-bold text-slate-800">
                   {vehicle.make} {vehicle.model} ({vehicle.color})
                 </span>
               </div>
               {profile.department_name && (
                 <div className="col-span-2">
-                  <span className="text-[10px] text-slate-500 block">القسم / الإدارة:</span>
+                  <span className="text-[10px] text-slate-500 block">{L("القسم / الإدارة:", "Unit / department:")}</span>
                   <span className="font-bold text-slate-800">{profile.department_name}</span>
                 </div>
               )}
@@ -175,7 +178,7 @@ export function ParkingPermitModal({
 
             {/* Micro footer */}
             <div className="mt-3 text-[9px] text-slate-600 font-medium">
-              نظام حَرِّك (HARRIK V1.0) • يوضع الملصق داخل الزجاج الأمامي للمركبة
+              {L("نظام حَرِّك (HARRIK V1.0) • يوضع الملصق داخل الزجاج الأمامي للمركبة", "HARRIK V1.0 • Place the sticker inside the vehicle's windshield")}
             </div>
           </div>
         </div>
@@ -189,7 +192,7 @@ export function ParkingPermitModal({
             className="flex items-center justify-center gap-2 rounded-2xl bg-qatar px-4 py-3 text-xs sm:text-sm font-bold text-white shadow-md shadow-qatar/20 transition hover:bg-qatar-800"
           >
             <Printer className="h-4 w-4" />
-            <span>طباعة الملصق</span>
+            <span>{L("طباعة الملصق", "Print sticker")}</span>
           </motion.button>
 
           <motion.button
@@ -199,7 +202,7 @@ export function ParkingPermitModal({
             className="flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-xs sm:text-sm font-bold text-slate-700 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
           >
             <Download className="h-4 w-4" />
-            <span>حفظ رمز QR</span>
+            <span>{L("حفظ رمز QR", "Save QR code")}</span>
           </motion.button>
         </div>
       </motion.div>

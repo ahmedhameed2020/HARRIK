@@ -1,5 +1,5 @@
-// HARRIK Service Worker v1.0
-const CACHE_NAME = "harrik-cache-v4";
+// HARRIK Service Worker v5 — PWA caching + reliable Web Push
+const CACHE_NAME = "harrik-cache-v5";
 const STATIC_ASSETS = [
   "/",
   "/manifest.json",
@@ -10,9 +10,7 @@ const STATIC_ASSETS = [
 // Install Event
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(STATIC_ASSETS);
-    })
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS))
   );
   self.skipWaiting();
 });
@@ -20,25 +18,21 @@ self.addEventListener("install", (event) => {
 // Activate Event
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
+    caches.keys().then((cacheNames) =>
+      Promise.all(
         cacheNames.map((cache) => {
-          if (cache !== CACHE_NAME) {
-            return caches.delete(cache);
-          }
+          if (cache !== CACHE_NAME) return caches.delete(cache);
         })
-      );
-    })
+      )
+    )
   );
   self.clients.claim();
 });
 
-// Fetch Event (Network first, fallback to cache for navigations/assets, ignore API calls)
+// Fetch Event (Network first, fallback to cache; never cache sensitive routes)
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
 
-  // Do not cache API requests, Supabase traffic, auth, or sensitive authenticated routes
-  // (profiles, vehicles, phone numbers, visitors, audit logs, reports, platform control)
   if (
     url.pathname.startsWith("/api/") ||
     url.pathname.includes("/rest/v1/") ||
@@ -53,15 +47,11 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Handle GET requests only
-  if (event.request.method !== "GET") {
-    return;
-  }
+  if (event.request.method !== "GET") return;
 
   event.respondWith(
     fetch(event.request)
       .then((response) => {
-        // Clone response to put in cache
         if (response && response.status === 200 && response.type === "basic") {
           const responseToCache = response.clone();
           caches.open(CACHE_NAME).then((cache) => {
@@ -73,7 +63,6 @@ self.addEventListener("fetch", (event) => {
       .catch(async () => {
         const cached = await caches.match(event.request);
         if (cached) return cached;
-        // If navigating to a page offline, return root shell
         if (event.request.mode === "navigate") {
           return caches.match("/");
         }
@@ -82,33 +71,39 @@ self.addEventListener("fetch", (event) => {
   );
 });
 
-// Notification Click Handler
+// Notification Click — open the deep link carried by the push payload
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
 
+  const targetUrl = (event.notification.data && event.notification.data.url) || "/inbox";
+
   event.waitUntil(
     clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
-      // Focus existing inbox window if open
       for (const client of clientList) {
-        if (client.url.includes("/inbox") && "focus" in client) {
-          return client.focus();
+        try {
+          const clientUrl = new URL(client.url);
+          if (clientUrl.pathname === "/inbox" || clientUrl.pathname === "/") {
+            if ("focus" in client) {
+              if ("navigate" in client) client.navigate(targetUrl).catch(() => {});
+              return client.focus();
+            }
+          }
+        } catch {
+          // ignore malformed client urls
         }
       }
-      // Otherwise open a new window to /inbox
-      if (clients.openWindow) {
-        return clients.openWindow("/inbox");
-      }
+      if (clients.openWindow) return clients.openWindow(targetUrl);
     })
   );
 });
 
-// Push Event Handler (for Web Push)
+// Push Event — always surface a notification, even when the app is closed
 self.addEventListener("push", (event) => {
   let data = {};
   try {
     data = event.data ? event.data.json() : {};
   } catch {
-    data = { title: "تنبيه مواقف حَرِّك", body: event.data?.text() || "تنبيه جديد" };
+    data = { title: "تنبيه مواقف حَرِّك", body: event.data && event.data.text ? event.data.text() : "تنبيه جديد" };
   }
 
   const title = data.title || "تنبيه مواقف حَرِّك";
@@ -116,14 +111,46 @@ self.addEventListener("push", (event) => {
     body: data.body || "لديك تنبيه جديد لتحريك سيارتك في المواقف",
     icon: "/icon-192.png",
     badge: "/icon-192.png",
-    tag: "harrik-parking-alert",
+    tag: data.tag || "harrik-parking-alert",
+    renotify: true,
     dir: "rtl",
     lang: "ar",
     vibrate: [150, 80, 250],
-    data: {
-      url: data.url || "/inbox",
-    },
+    data: { url: data.url || "/inbox" },
   };
 
   event.waitUntil(self.registration.showNotification(title, options));
+});
+
+// Keep the subscription alive if the browser rotates it
+self.addEventListener("pushsubscriptionchange", (event) => {
+  event.waitUntil(
+    (async () => {
+      try {
+        const applicationServerKey = event.oldSubscription
+          ? event.oldSubscription.options.applicationServerKey
+          : undefined;
+
+        const newSubscription = await self.registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey,
+        });
+
+        const subJson = newSubscription.toJSON();
+        await fetch("/api/push/subscribe", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            subscription: {
+              endpoint: newSubscription.endpoint,
+              keys: { p256dh: subJson.keys && subJson.keys.p256dh, auth: subJson.keys && subJson.keys.auth },
+            },
+            userAgent: navigator.userAgent,
+          }),
+        });
+      } catch {
+        // best-effort; the client hook will re-register on next launch
+      }
+    })()
+  );
 });

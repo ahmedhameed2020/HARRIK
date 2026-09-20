@@ -218,7 +218,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                   {new Date().toLocaleTimeString(isRtl ? "ar-QA" : "en-QA", { hour: "2-digit", minute: "2-digit" })}
                 </span>
               </div>
-              <p className="mt-1 text-[10px] text-slate-400 dark:text-zinc-500 truncate">
+              <p className="mt-1 text-[10px] text-slate-500 dark:text-zinc-400 truncate">
                 {profile?.organization?.timezone || "Asia/Qatar"} • {isRtl ? "نظام آمن" : "Secure Node"}
               </p>
             </div>
@@ -437,7 +437,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                       {new Date().toLocaleTimeString(isRtl ? "ar-QA" : "en-QA", { hour: "2-digit", minute: "2-digit" })}
                     </span>
                   </div>
-                  <p className="mt-1 text-[10px] text-slate-400 dark:text-zinc-500 truncate">
+                  <p className="mt-1 text-[10px] text-slate-500 dark:text-zinc-400 truncate">
                     {profile?.organization?.timezone || "Asia/Qatar"} • {isRtl ? "نظام آمن" : "Secure Node"}
                   </p>
                 </div>

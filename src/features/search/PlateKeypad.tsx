@@ -5,6 +5,7 @@ import { Delete, Globe, X, Search } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import { triggerHaptic } from "@/lib/haptics";
 import { TACTILE_KEYPAD_TAP } from "@/lib/motion";
+import { useLocale } from "@/contexts/LocaleContext";
 
 interface PlateKeypadProps {
   onDigitPress: (digit: string) => void;
@@ -25,6 +26,8 @@ export function PlateKeypad({
 }: PlateKeypadProps) {
   const [numeralMode, setNumeralMode] = useState<"arabic" | "western">("western");
   const shouldReduceMotion = useReducedMotion();
+  const { lang } = useLocale();
+  const L = (ar: string, en: string) => (lang === "ar" ? ar : en);
 
   const westernDigits = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
   const arabicDigits = ["١", "٢", "٣", "٤", "٥", "٦", "٧", "٨", "٩", "٠"];
@@ -51,7 +54,7 @@ export function PlateKeypad({
           className="harrik-btn-secondary inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-bold text-slate-700 dark:text-slate-200 shadow-sm"
         >
           <Globe className="h-3.5 w-3.5 text-harrik-maroon-700 dark:text-rose-400" />
-          <span>{numeralMode === "western" ? "أرقام عربية (١٢٣)" : "English (123)"}</span>
+          <span>{numeralMode === "western" ? L("أرقام عربية (١٢٣)", "Arabic digits (١٢٣)") : L("English (123)", "English (123)")}</span>
         </button>
 
         {onClose && (
@@ -97,7 +100,7 @@ export function PlateKeypad({
           }}
           className="flex min-h-[56px] h-14 items-center justify-center rounded-[16px] bg-slate-50 hover:bg-rose-50 dark:bg-[#1a2234] dark:hover:bg-rose-950/30 border border-slate-200/80 dark:border-slate-700/60 text-xs font-bold text-slate-500 hover:text-red-600 dark:text-slate-400 dark:hover:text-red-400 transition-colors"
         >
-          مسح
+          <span>{L("مسح", "Clear")}</span>
         </motion.button>
 
         {/* Digit 0 */}
@@ -137,7 +140,7 @@ export function PlateKeypad({
           className="mt-2.5 w-full flex min-h-[48px] h-12 items-center justify-center gap-2 rounded-[16px] bg-[#8a1538] hover:bg-[#70112e] text-white font-bold text-sm shadow-md transition-colors"
         >
           <Search className="h-4 w-4" />
-          <span>بحث عن المركبة</span>
+          <span>{L("بحث عن المركبة", "Find vehicle")}</span>
         </motion.button>
       )}
     </div>

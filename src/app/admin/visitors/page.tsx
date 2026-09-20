@@ -22,6 +22,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLocale } from "@/contexts/LocaleContext";
 import { triggerHaptic } from "@/lib/haptics";
 import { QatarPlateBadge } from "@/components/ui/QatarPlateBadge";
 
@@ -44,6 +45,8 @@ interface VisitorPass {
 
 export default function AdminVisitorsPage() {
   const { profile } = useAuth();
+  const { lang } = useLocale();
+  const L = (ar: string, en: string) => (lang === "ar" ? ar : en);
   const [passes, setPasses] = useState<VisitorPass[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"active" | "expired" | "all">("active");
@@ -140,17 +143,17 @@ export default function AdminVisitorsPage() {
         setSelectedPass(json.pass);
         await fetchPasses();
       } else {
-        setFormError(json.error || "فشل إصدار التصريح");
+        setFormError(json.error || L("فشل إصدار التصريح", "Failed to issue the pass"));
       }
     } catch {
-      setFormError("تعذر الاتصال بالخادم");
+      setFormError(L("تعذر الاتصال بالخادم", "Could not connect to the server"));
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleRevokePass = async (passId: string) => {
-    if (!confirm("هل أنت متأكد من إلغاء هذا التصريح؟ لن يتمكن الزائر من الدخول")) return;
+    if (!confirm(L("هل أنت متأكد من إلغاء هذا التصريح؟ لن يتمكن الزائر من الدخول", "Are you sure you want to revoke this pass? The visitor will not be able to enter"))) return;
     triggerHaptic("warning");
 
     try {
@@ -186,7 +189,7 @@ export default function AdminVisitorsPage() {
   };
 
   const handleDeletePass = async (passId: string) => {
-    if (!confirm("هل أنت متأكد من رغبتك في حذف هذا السجل نهائياً؟")) return;
+    if (!confirm(L("هل أنت متأكد من رغبتك في حذف هذا السجل نهائياً؟", "Are you sure you want to permanently delete this record?"))) return;
     triggerHaptic("warning");
 
     try {
@@ -207,10 +210,13 @@ export default function AdminVisitorsPage() {
         <div>
           <h1 className="text-2xl font-black text-slate-900 dark:text-white font-arabic flex items-center gap-2.5">
             <ShieldCheck className="h-6 w-6 text-qatar" />
-            <span>تصاريح مواقف الزوار والمراجعين المؤقتة</span>
+            <span>{L("تصاريح مواقف الزوار والمراجعين المؤقتة", "Temporary Visitor & Contractor Parking Passes")}</span>
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-            إصدار تصاريح دخول مؤقتة لسيارات الضيوف والمقاولين لتمكين التواصل الفوري وتفادي إغلاق المسارات
+            {L(
+              "إصدار تصاريح دخول مؤقتة لسيارات الضيوف والمقاولين لتمكين التواصل الفوري وتفادي إغلاق المسارات",
+              "Issue temporary entry passes for guest and contractor vehicles to enable instant contact and avoid lane blocking"
+            )}
           </p>
         </div>
 
@@ -219,7 +225,7 @@ export default function AdminVisitorsPage() {
           className="flex items-center gap-2 rounded-2xl bg-qatar px-4 py-2.5 text-xs sm:text-sm font-bold text-white shadow-md shadow-qatar/25 transition active:scale-95 hover:bg-qatar-800 self-start sm:self-auto"
         >
           <Plus className="h-4 w-4" />
-          <span>إصدار تصريح زائر جديد</span>
+          <span>{L("إصدار تصريح زائر جديد", "Issue new visitor pass")}</span>
         </button>
       </div>
 
@@ -227,29 +233,29 @@ export default function AdminVisitorsPage() {
       <div className="grid grid-cols-3 gap-4">
         <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-[#0c0c0f]">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-600 dark:text-slate-400">التصاريح السارية</span>
+            <span className="text-xs font-bold text-slate-600 dark:text-slate-400">{L("التصاريح السارية", "Active passes")}</span>
             <CheckCircle2 className="h-4 w-4 text-emerald-600" />
           </div>
           <div className="text-2xl font-black text-emerald-600 mt-2 font-arabic">{stats.active}</div>
-          <p className="text-[10px] text-slate-400 mt-0.5">مصرّح لها بالوقوف حالياً</p>
+          <p className="text-[10px] text-slate-400 mt-0.5">{L("مصرّح لها بالوقوف حالياً", "Currently authorized to park")}</p>
         </div>
 
         <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-[#0c0c0f]">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-600 dark:text-slate-400">التصاريح المنتهية</span>
+            <span className="text-xs font-bold text-slate-600 dark:text-slate-400">{L("التصاريح المنتهية", "Expired passes")}</span>
             <Clock className="h-4 w-4 text-amber-500" />
           </div>
           <div className="text-2xl font-black text-slate-700 dark:text-zinc-300 mt-2 font-arabic">{stats.expired}</div>
-          <p className="text-[10px] text-slate-400 mt-0.5">انتهت صلاحية الوقوف</p>
+          <p className="text-[10px] text-slate-400 mt-0.5">{L("انتهت صلاحية الوقوف", "Parking validity ended")}</p>
         </div>
 
         <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-[#0c0c0f]">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-600 dark:text-slate-400">إجمالي السجلات</span>
+            <span className="text-xs font-bold text-slate-600 dark:text-slate-400">{L("إجمالي السجلات", "Total records")}</span>
             <UserCheck className="h-4 w-4 text-qatar" />
           </div>
           <div className="text-2xl font-black text-slate-900 dark:text-white mt-2 font-arabic">{stats.total}</div>
-          <p className="text-[10px] text-slate-400 mt-0.5">كل التصاريح الصادرة</p>
+          <p className="text-[10px] text-slate-400 mt-0.5">{L("كل التصاريح الصادرة", "All issued passes")}</p>
         </div>
       </div>
 
@@ -259,9 +265,9 @@ export default function AdminVisitorsPage() {
         <div className="flex items-center rounded-2xl border border-slate-200 bg-white p-1 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
           {(
             [
-              { id: "active", label: "التصاريح النشطة" },
-              { id: "expired", label: "المنتهية" },
-              { id: "all", label: "كافة التصاريح" },
+              { id: "active", label: L("التصاريح النشطة", "Active") },
+              { id: "expired", label: L("المنتهية", "Expired") },
+              { id: "all", label: L("كافة التصاريح", "All") },
             ] as const
           ).map((tab) => (
             <button
@@ -287,10 +293,10 @@ export default function AdminVisitorsPage() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="بحث باللوحة أو اسم الزائر..."
-            className="w-full rounded-2xl border border-slate-200 bg-white py-2 pl-3 pr-9 text-xs font-bold focus:border-qatar focus:outline-none dark:border-zinc-800 dark:bg-zinc-900 dark:text-white"
+            placeholder={L("بحث باللوحة أو اسم الزائر...", "Search by plate or visitor name...")}
+            className="w-full rounded-2xl border border-slate-200 bg-white py-2 ps-3 pe-9 text-xs font-bold focus:border-qatar focus:outline-none dark:border-zinc-800 dark:bg-zinc-900 dark:text-white"
           />
-          <Search className="absolute right-3 top-2.5 h-4 w-4 text-slate-400" />
+          <Search className="absolute end-3 top-2.5 h-4 w-4 text-slate-400" />
         </div>
       </div>
 
@@ -304,25 +310,28 @@ export default function AdminVisitorsPage() {
           <div className="p-12 text-center">
             <Shield className="mx-auto h-12 w-12 text-slate-300 dark:text-zinc-600" />
             <p className="mt-3 text-sm font-bold text-slate-600 dark:text-zinc-400">
-              لا توجد تصاريح زوار مطابقة للبحث حالياً
+              {L("لا توجد تصاريح زوار مطابقة للبحث حالياً", "No visitor passes match the current search")}
             </p>
             <p className="text-xs text-slate-400 mt-1">
-              انقر على &quot;إصدار تصريح زائر جديد&quot; لمنح سيارة ضيف أو مراجع إذناً مؤقتاً بالوقوف
+              {L(
+                'انقر على "إصدار تصريح زائر جديد" لمنح سيارة ضيف أو مراجع إذناً مؤقتاً بالوقوف',
+                'Click "Issue new visitor pass" to grant a guest or contractor vehicle temporary parking permission'
+              )}
             </p>
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-right text-xs">
+            <table className="w-full text-start text-xs">
               <thead className="bg-slate-50/80 border-b border-slate-200 dark:border-zinc-800 dark:bg-zinc-900/50 text-slate-600 dark:text-zinc-400 font-bold">
                 <tr>
-                  <th className="p-4">رقم اللوحة</th>
-                  <th className="p-4">اسم الزائر</th>
-                  <th className="p-4">الهاتف (واتساب)</th>
-                  <th className="p-4">السيارة والموديل</th>
-                  <th className="p-4">المستضيف / الغرض</th>
-                  <th className="p-4">صلاحية التصريح</th>
-                  <th className="p-4">الحالة</th>
-                  <th className="p-4 text-left">إجراءات</th>
+                  <th className="p-4 text-start">{L("رقم اللوحة", "Plate")}</th>
+                  <th className="p-4 text-start">{L("اسم الزائر", "Visitor name")}</th>
+                  <th className="p-4 text-start">{L("الهاتف (واتساب)", "Phone (WhatsApp)")}</th>
+                  <th className="p-4 text-start">{L("السيارة والموديل", "Vehicle & model")}</th>
+                  <th className="p-4 text-start">{L("المستضيف / الغرض", "Host / purpose")}</th>
+                  <th className="p-4 text-start">{L("صلاحية التصريح", "Pass validity")}</th>
+                  <th className="p-4 text-start">{L("الحالة", "Status")}</th>
+                  <th className="p-4 text-end">{L("إجراءات", "Actions")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200/80 dark:divide-zinc-800">
@@ -350,19 +359,19 @@ export default function AdminVisitorsPage() {
                         {pass.vehicle_make} {pass.vehicle_model} ({pass.vehicle_color})
                       </td>
                       <td className="p-4">
-                        <div className="font-bold text-slate-800 dark:text-zinc-200">{pass.host_name || "عام"}</div>
+                        <div className="font-bold text-slate-800 dark:text-zinc-200">{pass.host_name || L("عام", "General")}</div>
                         <div className="text-[10px] text-slate-400">{pass.purpose}</div>
                       </td>
                       <td className="p-4 font-mono text-slate-700 dark:text-zinc-300">
                         <div>
-                          حتى:{" "}
-                          {new Date(pass.valid_until).toLocaleTimeString("ar-QA", {
+                          {L("حتى:", "Until:")}{" "}
+                          {new Date(pass.valid_until).toLocaleTimeString(lang === "ar" ? "ar-QA" : "en-US", {
                             hour: "2-digit",
                             minute: "2-digit",
                           })}
                         </div>
                         <div className="text-[10px] text-slate-400">
-                          {new Date(pass.valid_until).toLocaleDateString("ar-QA")}
+                          {new Date(pass.valid_until).toLocaleDateString(lang === "ar" ? "ar-QA" : "en-US")}
                         </div>
                       </td>
                       <td className="p-4">
@@ -373,14 +382,14 @@ export default function AdminVisitorsPage() {
                               : "bg-slate-100 text-slate-700 dark:bg-zinc-800 dark:text-zinc-400"
                           }`}
                         >
-                          {!isExpired ? "ساري المفعول" : "منتهي الصلاحية"}
+                          {!isExpired ? L("ساري المفعول", "Valid") : L("منتهي الصلاحية", "Expired")}
                         </span>
                       </td>
-                      <td className="p-4 text-left">
+                      <td className="p-4 text-end">
                         <div className="flex items-center justify-end gap-1.5">
                           <button
                             onClick={() => setSelectedPass(pass)}
-                            title="معاينة وطباعة بطاقة التصريح"
+                            title={L("معاينة وطباعة بطاقة التصريح", "Preview and print the pass")}
                             className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 dark:hover:bg-zinc-800"
                           >
                             <Printer className="h-4 w-4" />
@@ -388,16 +397,16 @@ export default function AdminVisitorsPage() {
                           {!isExpired && (
                             <button
                               onClick={() => handleExtendPass(pass.id)}
-                              title="تمديد 4 ساعات"
+                              title={L("تمديد 4 ساعات", "Extend 4 hours")}
                               className="rounded-lg px-2 py-1 text-[11px] font-bold text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/40"
                             >
-                              +4س
+                              {L("+4س", "+4h")}
                             </button>
                           )}
                           {!isExpired && (
                             <button
                               onClick={() => handleRevokePass(pass.id)}
-                              title="إلغاء التصريح فوراً"
+                              title={L("إلغاء التصريح فوراً", "Revoke pass immediately")}
                               className="rounded-lg p-1.5 text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/40"
                             >
                               <X className="h-4 w-4" />
@@ -405,7 +414,7 @@ export default function AdminVisitorsPage() {
                           )}
                           <button
                             onClick={() => handleDeletePass(pass.id)}
-                            title="حذف"
+                            title={L("حذف", "Delete")}
                             className="rounded-lg p-1.5 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40"
                           >
                             <Trash2 className="h-4 w-4" />
@@ -427,10 +436,13 @@ export default function AdminVisitorsPage() {
           <div className="relative w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl dark:bg-[#0c0c0f] dark:border dark:border-zinc-800">
             <h3 className="text-base font-extrabold text-slate-900 dark:text-white font-arabic mb-1 flex items-center gap-2">
               <ShieldCheck className="h-5 w-5 text-qatar" />
-              <span>إصدار تصريح موقف زائر مؤقت</span>
+              <span>{L("إصدار تصريح موقف زائر مؤقت", "Issue a temporary visitor parking pass")}</span>
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
-              تسجيل سيارة الضيف يضمن التعرف عليها ومراسلة صاحبها فوراً في حال الوقوف الخاطئ
+              {L(
+                "تسجيل سيارة الضيف يضمن التعرف عليها ومراسلة صاحبها فوراً في حال الوقوف الخاطئ",
+                "Registering the guest vehicle ensures it is identified and its driver reached instantly if parked incorrectly"
+              )}
             </p>
 
             {formError && (
@@ -443,13 +455,13 @@ export default function AdminVisitorsPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                    رقم اللوحة القطري *
+                    {L("رقم اللوحة القطري *", "Qatari plate number *")}
                   </label>
                   <input
                     type="text"
                     value={plateNumber}
                     onChange={(e) => setPlateNumber(e.target.value)}
-                    placeholder="مثال: 654321"
+                    placeholder={L("مثال: 654321", "e.g. 654321")}
                     className="w-full rounded-xl border border-slate-200 p-2.5 text-xs font-mono font-bold focus:border-qatar focus:outline-none dark:border-zinc-800 dark:bg-zinc-900 dark:text-white"
                     required
                   />
@@ -457,17 +469,17 @@ export default function AdminVisitorsPage() {
 
                 <div>
                   <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                    صلاحية التصريح *
+                    {L("صلاحية التصريح *", "Pass validity *")}
                   </label>
                   <select
                     value={validHours}
                     onChange={(e) => setValidHours(e.target.value)}
                     className="w-full rounded-xl border border-slate-200 p-2.5 text-xs font-bold focus:border-qatar focus:outline-none dark:border-zinc-800 dark:bg-zinc-900 dark:text-white"
                   >
-                    <option value="4">4 ساعات (زيارة قصيرة)</option>
-                    <option value="8">8 ساعات (دوام كامل)</option>
-                    <option value="24">24 ساعة (يوم كامل)</option>
-                    <option value="48">48 ساعة (يومان)</option>
+                    <option value="4">{L("4 ساعات (زيارة قصيرة)", "4 hours (short visit)")}</option>
+                    <option value="8">{L("8 ساعات (دوام كامل)", "8 hours (full shift)")}</option>
+                    <option value="24">{L("24 ساعة (يوم كامل)", "24 hours (full day)")}</option>
+                    <option value="48">{L("48 ساعة (يومان)", "48 hours (two days)")}</option>
                   </select>
                 </div>
               </div>
@@ -475,13 +487,13 @@ export default function AdminVisitorsPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                    اسم الزائر / السائق *
+                    {L("اسم الزائر / السائق *", "Visitor / driver name *")}
                   </label>
                   <input
                     type="text"
                     value={visitorName}
                     onChange={(e) => setVisitorName(e.target.value)}
-                    placeholder="الاسم الثلاثي"
+                    placeholder={L("الاسم الثلاثي", "Full name")}
                     className="w-full rounded-xl border border-slate-200 p-2.5 text-xs font-bold focus:border-qatar focus:outline-none dark:border-zinc-800 dark:bg-zinc-900 dark:text-white"
                     required
                   />
@@ -489,7 +501,7 @@ export default function AdminVisitorsPage() {
 
                 <div>
                   <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                    رقم الجوال (واتساب) *
+                    {L("رقم الجوال (واتساب) *", "Mobile number (WhatsApp) *")}
                   </label>
                   <input
                     type="tel"
@@ -506,39 +518,39 @@ export default function AdminVisitorsPage() {
               <div className="grid grid-cols-3 gap-2">
                 <div>
                   <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
-                    الشركة المصنعة
+                    {L("الشركة المصنعة", "Make")}
                   </label>
                   <input
                     type="text"
                     value={vehicleMake}
                     onChange={(e) => setVehicleMake(e.target.value)}
-                    placeholder="تويوتا"
+                    placeholder="Toyota"
                     className="w-full rounded-xl border border-slate-200 p-2 text-xs font-bold dark:border-zinc-800 dark:bg-zinc-900 dark:text-white"
                   />
                 </div>
 
                 <div>
                   <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
-                    الموديل
+                    {L("الموديل", "Model")}
                   </label>
                   <input
                     type="text"
                     value={vehicleModel}
                     onChange={(e) => setVehicleModel(e.target.value)}
-                    placeholder="كامري / برادو"
+                    placeholder={L("كامري / برادو", "Camry / Prado")}
                     className="w-full rounded-xl border border-slate-200 p-2 text-xs font-bold dark:border-zinc-800 dark:bg-zinc-900 dark:text-white"
                   />
                 </div>
 
                 <div>
                   <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
-                    اللون
+                    {L("اللون", "Color")}
                   </label>
                   <input
                     type="text"
                     value={vehicleColor}
                     onChange={(e) => setVehicleColor(e.target.value)}
-                    placeholder="أبيض"
+                    placeholder={L("أبيض", "White")}
                     className="w-full rounded-xl border border-slate-200 p-2 text-xs font-bold dark:border-zinc-800 dark:bg-zinc-900 dark:text-white"
                   />
                 </div>
@@ -547,26 +559,26 @@ export default function AdminVisitorsPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                    المستضيف (الموظف / الإدارة)
+                    {L("المستضيف (الموظف / الإدارة)", "Host (staff / admin)")}
                   </label>
                   <input
                     type="text"
                     value={hostName}
                     onChange={(e) => setHostName(e.target.value)}
-                    placeholder="مثال: د. حمد الكواري"
+                    placeholder={L("مثال: د. حمد الكواري", "e.g. Dr. Hamad Al-Kuwari")}
                     className="w-full rounded-xl border border-slate-200 p-2.5 text-xs font-bold dark:border-zinc-800 dark:bg-zinc-900 dark:text-white"
                   />
                 </div>
 
                 <div>
                   <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                    سبب الزيارة
+                    {L("سبب الزيارة", "Purpose of visit")}
                   </label>
                   <input
                     type="text"
                     value={purpose}
                     onChange={(e) => setPurpose(e.target.value)}
-                    placeholder="اجتماع عمل / مقاول صيانة"
+                    placeholder={L("اجتماع عمل / مقاول صيانة", "Business meeting / maintenance contractor")}
                     className="w-full rounded-xl border border-slate-200 p-2.5 text-xs font-bold dark:border-zinc-800 dark:bg-zinc-900 dark:text-white"
                   />
                 </div>
@@ -578,7 +590,7 @@ export default function AdminVisitorsPage() {
                   onClick={() => setIsModalOpen(false)}
                   className="rounded-xl border border-slate-200 px-4 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-50 dark:border-zinc-800 dark:text-zinc-300"
                 >
-                  إلغاء
+                  {L("إلغاء", "Cancel")}
                 </button>
                 <button
                   type="submit"
@@ -586,7 +598,7 @@ export default function AdminVisitorsPage() {
                   className="flex items-center gap-1.5 rounded-xl bg-qatar px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-qatar/25 transition active:scale-95 hover:bg-qatar-800 disabled:opacity-50"
                 >
                   <CheckCircle2 className="h-4 w-4" />
-                  <span>{isSubmitting ? "جارٍ الإصدار..." : "إصدار التصريح الآن"}</span>
+                  <span>{isSubmitting ? L("جارٍ الإصدار...", "Issuing...") : L("إصدار التصريح الآن", "Issue pass now")}</span>
                 </button>
               </div>
             </form>
@@ -610,10 +622,10 @@ export default function AdminVisitorsPage() {
               <div className="flex items-center justify-center gap-2 mb-2">
                 <Building2 className="h-5 w-5 text-qatar" />
                 <span className="text-xs font-black text-slate-900 dark:text-white font-arabic">
-                  {profile?.organization?.name_ar || "برج الفردان التجاري"}
+                  {profile?.organization?.name_ar || profile?.organization?.name_en || "HARRIK"}
                 </span>
               </div>
-              <div className="text-[10px] font-bold text-qatar mb-4">تصريح موقف زائر رسمي (VISITOR PARKING PASS)</div>
+              <div className="text-[10px] font-bold text-qatar mb-4">{L("تصريح موقف زائر رسمي (VISITOR PARKING PASS)", "Official Visitor Parking Pass")}</div>
 
               <div className="flex justify-center mb-3">
                 <QatarPlateBadge plateNumber={selectedPass.plate_number} size="lg" />
@@ -622,9 +634,9 @@ export default function AdminVisitorsPage() {
               <div className="space-y-1.5 text-xs text-slate-700 dark:text-zinc-300">
                 <div className="font-bold text-slate-900 dark:text-white text-sm">{selectedPass.visitor_name}</div>
                 <div className="text-[11px] text-slate-500">{selectedPass.vehicle_make} {selectedPass.vehicle_model} • {selectedPass.vehicle_color}</div>
-                <div className="text-[11px]">المستضيف: <span className="font-bold">{selectedPass.host_name || "عام"}</span></div>
+                <div className="text-[11px]">{L("المستضيف:", "Host:")} <span className="font-bold">{selectedPass.host_name || L("عام", "General")}</span></div>
                 <div className="rounded-lg bg-emerald-50 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 font-bold p-1.5 text-[11px] border border-emerald-200">
-                  صالح حتى: {new Date(selectedPass.valid_until).toLocaleTimeString("ar-QA", { hour: "2-digit", minute: "2-digit" })} ({new Date(selectedPass.valid_until).toLocaleDateString("ar-QA")})
+                  {L("صالح حتى:", "Valid until:")} {new Date(selectedPass.valid_until).toLocaleTimeString(lang === "ar" ? "ar-QA" : "en-US", { hour: "2-digit", minute: "2-digit" })} ({new Date(selectedPass.valid_until).toLocaleDateString(lang === "ar" ? "ar-QA" : "en-US")})
                 </div>
               </div>
             </div>
@@ -635,13 +647,13 @@ export default function AdminVisitorsPage() {
                 className="flex items-center gap-1.5 rounded-xl bg-qatar px-4 py-2 text-xs font-bold text-white shadow-md shadow-qatar/25"
               >
                 <Printer className="h-4 w-4" />
-                <span>طباعة التصريح</span>
+                <span>{L("طباعة التصريح", "Print pass")}</span>
               </button>
               <button
                 onClick={() => setSelectedPass(null)}
                 className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 dark:border-zinc-800 dark:text-zinc-300"
               >
-                إغلاق
+                {L("إغلاق", "Close")}
               </button>
             </div>
           </div>

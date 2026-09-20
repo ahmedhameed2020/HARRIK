@@ -16,6 +16,21 @@ export interface ContactMessageOptions {
   language?: "ar" | "en";
   countryCode?: string;
   venueName?: string;
+  /** Tenant-configured template (overrides the built-in message when present). */
+  customTemplate?: string;
+}
+
+/**
+ * Substitutes {plate} and {venue_name} placeholders in a template string.
+ * Kept local to avoid coupling the WhatsApp builder to entity presets.
+ */
+export function formatTemplate(
+  template: string,
+  variables: { plate: string; venue_name?: string }
+): string {
+  return template
+    .replace(/{plate}/g, variables.plate)
+    .replace(/{venue_name}/g, variables.venue_name || "المنشأة");
 }
 
 const getArabicVenueText = (venue?: string) => {
@@ -85,25 +100,41 @@ export function normalizePhoneNumber(
 }
 
 /**
- * Generates an authoritative WhatsApp deep link with prepared message.
+ * Builds the prepared message body for a given alert type / language,
+ * honouring a tenant-configured custom template when provided.
  */
-export function generateWhatsAppLink(options: ContactMessageOptions): string {
-  const {
-    plateNumber,
-    phone,
-    type = "BLOCKING",
-    language = "ar",
-    countryCode = "974",
-  } = options;
+export function buildWhatsAppMessage(options: ContactMessageOptions): string {
+  const { plateNumber, type = "BLOCKING", language = "ar", customTemplate, venueName } = options;
 
-  const normalizedPhone = normalizePhoneNumber(phone, countryCode);
-  if (!normalizedPhone) return "";
+  if (customTemplate && customTemplate.trim().length > 0) {
+    return formatTemplate(customTemplate, { plate: plateNumber, venue_name: venueName });
+  }
 
   const templateMap = language === "en" ? ENGLISH_TEMPLATES : ARABIC_TEMPLATES;
   const templateFn = templateMap[type] || templateMap.BLOCKING;
-  const message = templateFn(plateNumber, options.venueName);
+  return templateFn(plateNumber, venueName);
+}
 
+/**
+ * Builds a wa.me deep link from a fully-formed message body.
+ */
+export function buildWhatsAppLinkFromMessage(
+  phone: string | null | undefined,
+  message: string,
+  countryCode: string = "974"
+): string {
+  const normalizedPhone = normalizePhoneNumber(phone, countryCode);
+  if (!normalizedPhone) return "";
   return `https://wa.me/${normalizedPhone}?text=${encodeURIComponent(message)}`;
+}
+
+/**
+ * Generates an authoritative WhatsApp deep link with prepared message.
+ */
+export function generateWhatsAppLink(options: ContactMessageOptions): string {
+  const { phone, countryCode = "974" } = options;
+  const message = buildWhatsAppMessage(options);
+  return buildWhatsAppLinkFromMessage(phone, message, countryCode);
 }
 
 /**

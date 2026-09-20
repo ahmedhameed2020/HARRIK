@@ -15,10 +15,17 @@ interface UseRealtimeAlertsOptions {
   onAlertUpdated?: (alert: ParkingAlert) => void;
   onAnyChange?: () => void;
   enableNotifications?: boolean;
+  /**
+   * Skip the count query and the realtime subscription entirely. Used on the
+   * public/auth pages (e.g. `/login`) so an anonymous visitor never issues an
+   * unauthorized `parking_alerts` request — one less console error and one
+   * less pointless round-trip.
+   */
+  enabled?: boolean;
 }
 
 export function useRealtimeAlerts(options: UseRealtimeAlertsOptions = {}) {
-  const { organizationId, enableNotifications = true } = options;
+  const { organizationId, enableNotifications = true, enabled = true } = options;
 
   const [activeCount, setActiveCount] = useState<number>(0);
   const supabaseRef = useRef(createClient());
@@ -53,6 +60,8 @@ export function useRealtimeAlerts(options: UseRealtimeAlertsOptions = {}) {
   };
 
   useEffect(() => {
+    if (!enabled) return;
+
     fetchActiveCount();
 
     const supabase = supabaseRef.current;
@@ -118,7 +127,7 @@ export function useRealtimeAlerts(options: UseRealtimeAlertsOptions = {}) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [organizationId, enableNotifications]);
+  }, [organizationId, enableNotifications, enabled]);
 
   return {
     activeCount,

@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { getAuthenticatedSession } from "@/lib/supabase/auth-helpers";
+import { escalateStaleAlerts } from "@/lib/notifications/escalate-stale";
 import { DashboardOverview } from "@/types";
 
 export async function GET() {
@@ -7,6 +9,16 @@ export async function GET() {
     // Try Supabase RPC first
     try {
       const supabase = await createClient();
+
+      // Timed escalation for unacknowledged alerts (best-effort, bounded).
+      try {
+        const { session } = await getAuthenticatedSession();
+        if (session) {
+          await escalateStaleAlerts(supabase, { organizationId: session.organizationId });
+        }
+      } catch {
+        // Never block the dashboard on escalation problems.
+      }
       const startOfDay = new Date();
       startOfDay.setHours(0, 0, 0, 0);
       const endOfDay = new Date();

@@ -26,9 +26,15 @@ import {
   Sparkles,
   Palette,
   Eye,
+  Plus,
+  Trash2,
+  Check,
+  Loader2,
+  Bell,
 } from "lucide-react";
 import { triggerHaptic } from "@/lib/haptics";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLocale } from "@/contexts/LocaleContext";
 import {
   ENTITY_PRESETS,
   getEntityPreset,
@@ -48,15 +54,18 @@ const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
 };
 
 const COLOR_PRESETS = [
-  { name: "عنابي قطري (رسمي)", hex: "#8A1538" },
-  { name: "أزرق ملكي", hex: "#1e40af" },
-  { name: "زمردي هادئ", hex: "#059669" },
-  { name: "أسود فحمي فاخر", hex: "#18181b" },
-  { name: "ذهبي كهرماني", hex: "#b45309" },
+  { name: "عنابي قطري (رسمي)", nameEn: "Qatar Maroon (official)", hex: "#8A1538" },
+  { name: "أزرق ملكي", nameEn: "Royal blue", hex: "#1e40af" },
+  { name: "زمردي هادئ", nameEn: "Calm emerald", hex: "#059669" },
+  { name: "أسود فحمي فاخر", nameEn: "Premium charcoal", hex: "#18181b" },
+  { name: "ذهبي كهرماني", nameEn: "Amber gold", hex: "#b45309" },
 ];
 
 export default function SettingsPage() {
   const { refreshProfile } = useAuth();
+  const { lang } = useLocale();
+  const L = (ar: string, en: string) => (lang === "ar" ? ar : en);
+  const isEn = lang === "en";
 
   const [activeTab, setActiveTab] = useState<
     "profile" | "privacy" | "alerts" | "operations" | "backup"
@@ -99,6 +108,26 @@ export default function SettingsPage() {
     totalDepartments: 0,
   });
 
+  // ---------------------- Alert types manager (§6) ----------------------
+  interface AlertTypeRow {
+    id: string;
+    code: string;
+    name_ar: string;
+    name_en: string;
+    icon?: string | null;
+    sort_order?: number;
+    is_active: boolean;
+  }
+  const [alertTypes, setAlertTypes] = useState<AlertTypeRow[]>([]);
+  const [isLoadingTypes, setIsLoadingTypes] = useState(false);
+  const [typeBusyId, setTypeBusyId] = useState<string | null>(null);
+  const [typeError, setTypeError] = useState<string | null>(null);
+  const [typeDrafts, setTypeDrafts] = useState<Record<string, { name_ar: string; name_en: string }>>({});
+  const [newTypeCode, setNewTypeCode] = useState("");
+  const [newTypeAr, setNewTypeAr] = useState("");
+  const [newTypeEn, setNewTypeEn] = useState("");
+  const [isAddingType, setIsAddingType] = useState(false);
+
   const fetchSettings = async () => {
     setIsLoading(true);
     try {
@@ -109,14 +138,14 @@ export default function SettingsPage() {
       if (res.status === 401) {
         setStatusMessage({
           type: "error",
-          text: "جلسة التسجيل منتهية أو لم يتم تسجيل الدخول بعد كمدير نظام.",
-          actionLink: { label: "تسجيل الدخول كمدير", href: "/login?redirectTo=/admin/settings" },
+          text: L("جلسة التسجيل منتهية أو لم يتم تسجيل الدخول بعد كمدير نظام.", "Your session has expired or you are not signed in as an admin."),
+          actionLink: { label: L("تسجيل الدخول كمدير", "Sign in as admin"), href: "/login?redirectTo=/admin/settings" },
         });
         return;
       }
 
       if (!res.ok) {
-        throw new Error(`خطأ في الخادم (${res.status})`);
+        throw new Error(L(`خطأ في الخادم (${res.status})`, `Server error (${res.status})`));
       }
 
       const data = await res.json();
@@ -156,14 +185,14 @@ export default function SettingsPage() {
       } else {
         setStatusMessage({
           type: "error",
-          text: data.error || "تعذر استرجاع الإعدادات من الخادم",
+          text: data.error || L("تعذر استرجاع الإعدادات من الخادم", "Could not retrieve settings from the server"),
         });
       }
     } catch (err: any) {
       console.warn("Failed to fetch settings:", err);
       setStatusMessage({
         type: "error",
-        text: "تعذر الاتصال بالخادم حالياً. يرجى التأكد من تشغيل الخادم والاتصال بالشبكة.",
+        text: L("تعذر الاتصال بالخادم حالياً. يرجى التأكد من تشغيل الخادم والاتصال بالشبكة.", "Could not reach the server. Please make sure the server is running and you are online."),
       });
     } finally {
       setIsLoading(false);
@@ -226,8 +255,8 @@ export default function SettingsPage() {
         triggerHaptic("error");
         setStatusMessage({
           type: "error",
-          text: "انتهت صلاحية جلسة تسجيل الدخول. يرجى إعادة تسجيل الدخول كمدير للنظام لمتابعة الحفظ.",
-          actionLink: { label: "تسجيل الدخول كمدير", href: "/login?redirectTo=/admin/settings" },
+          text: L("انتهت صلاحية جلسة تسجيل الدخول. يرجى إعادة تسجيل الدخول كمدير للنظام لمتابعة الحفظ.", "Your session has expired. Please sign in again as admin to continue saving."),
+          actionLink: { label: L("تسجيل الدخول كمدير", "Sign in as admin"), href: "/login?redirectTo=/admin/settings" },
         });
         return;
       }
@@ -238,14 +267,14 @@ export default function SettingsPage() {
         triggerHaptic("success");
         setStatusMessage({
           type: "success",
-          text: "تم حفظ إعدادات وهوية المنشأة وتطبيقها فورياً على كامل النظام!",
+          text: L("تم حفظ إعدادات وهوية المنشأة وتطبيقها فورياً على كامل النظام!", "Organization settings and branding were saved and applied immediately!"),
         });
         await refreshProfile();
       } else {
         triggerHaptic("error");
         setStatusMessage({
           type: "error",
-          text: json.error || "فشل حفظ الإعدادات",
+          text: json.error || L("فشل حفظ الإعدادات", "Failed to save settings"),
         });
       }
     } catch (err: any) {
@@ -254,11 +283,159 @@ export default function SettingsPage() {
       setStatusMessage({
         type: "error",
         text: isFetchError
-          ? "تعذر الاتصال بالخادم لإتمام الحفظ. يرجى التحقق من اتصال الشبكة وإعادة المحاولة."
-          : (err.message || "حدث خطأ غير متوقع أثناء الحفظ"),
+          ? L("تعذر الاتصال بالخادم لإتمام الحفظ. يرجى التحقق من اتصال الشبكة وإعادة المحاولة.", "Could not reach the server to save. Please check your connection and try again.")
+          : (err.message || L("حدث خطأ غير متوقع أثناء الحفظ", "An unexpected error occurred while saving")),
       });
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  // ---------------------- Alert types manager (§6) ----------------------
+  const fetchAlertTypes = async () => {
+    setIsLoadingTypes(true);
+    try {
+      const res = await fetch("/api/admin/alert-types");
+      const json = await res.json();
+      if (json.success && Array.isArray(json.alertTypes)) {
+        setAlertTypes(json.alertTypes);
+        const drafts: Record<string, { name_ar: string; name_en: string }> = {};
+        for (const t of json.alertTypes) {
+          drafts[t.id] = { name_ar: t.name_ar || "", name_en: t.name_en || "" };
+        }
+        setTypeDrafts(drafts);
+      }
+    } catch {
+      // silent — the tab still renders the rest of the settings
+    } finally {
+      setIsLoadingTypes(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAlertTypes();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleAddAlertType = async () => {
+    setTypeError(null);
+    if (!newTypeCode.trim() || (!newTypeAr.trim() && !newTypeEn.trim())) {
+      setTypeError(L("يرجى إدخال الرمز والاسم على الأقل", "Please provide a code and at least one name"));
+      return;
+    }
+    setIsAddingType(true);
+    triggerHaptic("medium");
+    try {
+      const res = await fetch("/api/admin/alert-types", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          code: newTypeCode,
+          name_ar: newTypeAr,
+          name_en: newTypeEn,
+          sort_order: (alertTypes.at(-1)?.sort_order ?? 0) + 1,
+        }),
+      });
+      const json = await res.json();
+      if (res.ok && json.success) {
+        triggerHaptic("success");
+        setNewTypeCode("");
+        setNewTypeAr("");
+        setNewTypeEn("");
+        await fetchAlertTypes();
+      } else {
+        triggerHaptic("error");
+        setTypeError(json.error || L("تعذّر إضافة النوع", "Could not add the type"));
+      }
+    } catch {
+      setTypeError(L("خطأ في الاتصال", "Connection error"));
+    } finally {
+      setIsAddingType(false);
+    }
+  };
+
+  const handleSaveAlertType = async (id: string) => {
+    const draft = typeDrafts[id];
+    if (!draft) return;
+    setTypeBusyId(id);
+    setTypeError(null);
+    triggerHaptic("light");
+    try {
+      const res = await fetch("/api/admin/alert-types", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, name_ar: draft.name_ar, name_en: draft.name_en }),
+      });
+      const json = await res.json();
+      if (res.ok && json.success) {
+        triggerHaptic("success");
+        await fetchAlertTypes();
+      } else {
+        triggerHaptic("error");
+        setTypeError(json.error || L("تعذّر حفظ التعديلات", "Could not save changes"));
+      }
+    } catch {
+      setTypeError(L("خطأ في الاتصال", "Connection error"));
+    } finally {
+      setTypeBusyId(null);
+    }
+  };
+
+  const handleToggleAlertType = async (row: AlertTypeRow) => {
+    setTypeBusyId(row.id);
+    setTypeError(null);
+    triggerHaptic("selection");
+    try {
+      const res = await fetch("/api/admin/alert-types", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: row.id, is_active: !row.is_active }),
+      });
+      const json = await res.json();
+      if (res.ok && json.success) {
+        setAlertTypes((prev) =>
+          prev.map((t) => (t.id === row.id ? { ...t, is_active: !t.is_active } : t))
+        );
+      } else {
+        setTypeError(json.error || L("تعذّر تحديث الحالة", "Could not update the status"));
+      }
+    } catch {
+      setTypeError(L("خطأ في الاتصال", "Connection error"));
+    } finally {
+      setTypeBusyId(null);
+    }
+  };
+
+  const handleDeleteAlertType = async (id: string) => {
+    if (
+      !confirm(
+        L(
+          "سيتم حذف نوع التنبيه نهائياً. هل أنت متأكد؟",
+          "This alert type will be permanently deleted. Continue?"
+        )
+      )
+    )
+      return;
+
+    setTypeBusyId(id);
+    setTypeError(null);
+    triggerHaptic("warning");
+    try {
+      const res = await fetch(`/api/admin/alert-types?id=${encodeURIComponent(id)}`, {
+        method: "DELETE",
+      });
+      const json = await res.json();
+      if (res.ok && json.success) {
+        triggerHaptic("success");
+        setAlertTypes((prev) => prev.filter((t) => t.id !== id));
+      } else {
+        triggerHaptic("error");
+        setTypeError(json.error || L("تعذّر حذف النوع", "Could not delete the type"));
+      }
+    } catch {
+      setTypeError(L("خطأ في الاتصال", "Connection error"));
+    } finally {
+      setTypeBusyId(null);
     }
   };
 
@@ -294,7 +471,7 @@ export default function SettingsPage() {
       <div className="flex min-h-[400px] flex-col items-center justify-center gap-3">
         <RefreshCw className="h-8 w-8 animate-spin text-qatar" />
         <p className="text-sm font-bold text-slate-500 font-arabic">
-          جارٍ استرجاع هوية وإعدادات المنشأة...
+          {L("جارٍ استرجاع هوية وإعدادات المنشأة...", "Loading organization identity and settings...")}
         </p>
       </div>
     );
@@ -311,10 +488,10 @@ export default function SettingsPage() {
             </div>
             <div>
               <h1 className="text-2xl sm:text-3xl font-black text-slate-950 dark:text-white font-arabic">
-                إعدادات وهوية المنشأة (Organization & System Settings)
+                {L("إعدادات وهوية المنشأة (Organization & System Settings)", "Organization & System Settings")}
               </h1>
               <p className="text-xs sm:text-sm text-slate-500 dark:text-zinc-400">
-                تخصيص الكيان (مدرسة، برج، مجمع سكني، هيئة حكومية، مستشفى...)، سياسات الخصوصية، وقواعد المواقف
+                {L("تخصيص الكيان (مدرسة، برج، مجمع سكني، هيئة حكومية، مستشفى...)، سياسات الخصوصية، وقواعد المواقف", "Configure the entity (school, tower, residential compound, government, hospital...), privacy policies and parking rules")}
               </p>
             </div>
           </div>
@@ -332,7 +509,7 @@ export default function SettingsPage() {
             ) : (
               <Save className="h-4 w-4" />
             )}
-            <span>{isSaving ? "جارٍ الحفظ..." : "حفظ التغييرات"}</span>
+            <span>{isSaving ? L("جارٍ الحفظ...", "Saving...") : L("حفظ التغييرات", "Save changes")}</span>
           </button>
         </div>
       </div>
@@ -340,6 +517,8 @@ export default function SettingsPage() {
       {/* Alert Status Banner */}
       {statusMessage && (
         <div
+          role="status"
+          aria-live="polite"
           className={`flex flex-wrap items-center justify-between gap-3 rounded-2xl p-4 text-xs font-bold shadow-sm animate-in fade-in ${
             statusMessage.type === "success"
               ? "bg-emerald-50 text-emerald-800 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900"
@@ -368,11 +547,11 @@ export default function SettingsPage() {
       {/* Settings Navigation Tabs */}
       <div className="flex gap-2 border-b border-slate-200/80 pb-3 overflow-x-auto no-scrollbar dark:border-zinc-800">
         {[
-          { id: "profile", label: "هوية الكيان والمنشأة", icon: Building2 },
-          { id: "privacy", label: "الخصوصية والبحث", icon: Shield },
-          { id: "alerts", label: "البلاغات ورسائل واتساب", icon: MessageSquare },
-          { id: "operations", label: "ساعات العمل وبوابة الأمن", icon: Clock },
-          { id: "backup", label: "النسخ الاحتياطي والحوكمة", icon: Sliders },
+          { id: "profile", label: L("هوية الكيان والمنشأة", "Entity & organization"), icon: Building2 },
+          { id: "privacy", label: L("الخصوصية والبحث", "Privacy & search"), icon: Shield },
+          { id: "alerts", label: L("البلاغات ورسائل واتساب", "Alerts & WhatsApp"), icon: MessageSquare },
+          { id: "operations", label: L("ساعات العمل وبوابة الأمن", "Operating hours & gate"), icon: Clock },
+          { id: "backup", label: L("النسخ الاحتياطي والحوكمة", "Backup & governance"), icon: Sliders },
         ].map((tab) => {
           const active = activeTab === tab.id;
           const Icon = tab.icon;
@@ -409,14 +588,14 @@ export default function SettingsPage() {
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <h3 className="text-base font-black text-slate-950 dark:text-white font-arabic">
-                    نوع وتصنيف المنشأة (Entity Type)
+                    {L("نوع وتصنيف المنشأة (Entity Type)", "Entity type & classification")}
                   </h3>
                   <p className="text-xs text-slate-500 dark:text-zinc-400">
-                    اختر نوع الكيان لتهيئة مصطلحات النظام وقوالب الرسائل تلقائياً
+                    {L("اختر نوع الكيان لتهيئة مصطلحات النظام وقوالب الرسائل تلقائياً", "Choose the entity type to auto-configure system terminology and message templates")}
                   </p>
                 </div>
                 <span className="rounded-full bg-qatar/10 px-3 py-1 text-xs font-bold text-qatar">
-                  مخصص لكافة المنشآت
+                  {L("مخصص لكافة المنشآت", "Available for all facility types")}
                 </span>
               </div>
 
@@ -466,7 +645,7 @@ export default function SettingsPage() {
                         <div className="flex items-center gap-2">
                           <Sparkles className="h-4 w-4 text-qatar animate-pulse" />
                           <span className="text-xs font-black text-slate-900 dark:text-white font-arabic">
-                            التهيئة الذكية للمنشأة: {currentPreset.labelAr}
+                            {L("التهيئة الذكية للمنشأة:", "Smart configuration:")} {isEn ? currentPreset.labelEn : currentPreset.labelAr}
                           </span>
                         </div>
                         <p className="text-xs font-semibold text-slate-600 dark:text-zinc-300 font-arabic">
@@ -474,16 +653,16 @@ export default function SettingsPage() {
                         </p>
                         <div className="flex flex-wrap items-center gap-2 pt-1 text-[11px] text-slate-600 dark:text-zinc-400">
                           <span className="rounded-lg bg-white/90 dark:bg-zinc-800/90 px-2.5 py-1 border border-slate-200 dark:border-zinc-700 shadow-xs">
-                            الأفراد: <strong className="text-slate-900 dark:text-white">{currentPreset.memberLabelAr}</strong>
+                            {L("الأفراد:", "Members:")} <strong className="text-slate-900 dark:text-white">{isEn ? currentPreset.memberLabelEn : currentPreset.memberLabelAr}</strong>
                           </span>
                           <span className="rounded-lg bg-white/90 dark:bg-zinc-800/90 px-2.5 py-1 border border-slate-200 dark:border-zinc-700 shadow-xs">
-                            المعرّف: <strong className="text-slate-900 dark:text-white">{currentPreset.identifierLabelAr}</strong>
+                            {L("المعرّف:", "Identifier:")} <strong className="text-slate-900 dark:text-white">{isEn ? currentPreset.identifierLabelEn : currentPreset.identifierLabelAr}</strong>
                           </span>
                           <span className="rounded-lg bg-white/90 dark:bg-zinc-800/90 px-2.5 py-1 border border-slate-200 dark:border-zinc-700 shadow-xs">
-                            الوحدة: <strong className="text-slate-900 dark:text-white">{currentPreset.unitLabelAr}</strong>
+                            {L("الوحدة:", "Unit:")} <strong className="text-slate-900 dark:text-white">{isEn ? currentPreset.unitLabelEn : currentPreset.unitLabelAr}</strong>
                           </span>
                           <span className="rounded-lg bg-white/90 dark:bg-zinc-800/90 px-2.5 py-1 border border-slate-200 dark:border-zinc-700 shadow-xs">
-                            الأمن: <strong className="text-slate-900 dark:text-white">{currentPreset.securityLabelAr}</strong>
+                            {L("الأمن:", "Security:")} <strong className="text-slate-900 dark:text-white">{isEn ? currentPreset.securityLabelEn : currentPreset.securityLabelAr}</strong>
                           </span>
                         </div>
                       </div>
@@ -496,10 +675,10 @@ export default function SettingsPage() {
                           setWhatsappTemplate(currentPreset.defaultWhatsappTemplate);
                         }}
                         className="glass-btn-primary shrink-0 inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold shadow-md active:scale-95"
-                        title="تطبيق التسميات والقالب الافتراضي لهذا النوع"
+                        title={L("تطبيق التسميات والقالب الافتراضي لهذا النوع", "Apply labels and the default template for this type")}
                       >
                         <Sparkles className="h-3.5 w-3.5" />
-                        <span>تطبيق الإعداد والمسميات المقترحة</span>
+                        <span>{L("تطبيق الإعداد والمسميات المقترحة", "Apply suggested configuration & labels")}</span>
                       </button>
                     </div>
                   </div>
@@ -512,27 +691,27 @@ export default function SettingsPage() {
               <div className="lg:col-span-2 space-y-6">
                 <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-[#0c0c0f] space-y-4">
                   <h3 className="text-base font-black text-slate-950 dark:text-white font-arabic">
-                    البيانات الرسمية للمنشأة
+                    {L("البيانات الرسمية للمنشأة", "Official organization details")}
                   </h3>
 
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div>
                       <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1.5 font-arabic">
-                        اسم المنشأة الرسمي بالعربية <span className="text-red-500">*</span>
+                        {L("اسم المنشأة الرسمي بالعربية", "Official organization name (Arabic)")} <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="text"
                         required
                         value={nameAr}
                         onChange={(e) => setNameAr(e.target.value)}
-                        placeholder="مثال: برج الفردان التجاري، مجمع اللؤلؤة، مدرسة قطر..."
+                        placeholder={L("مثال: برج الفردان التجاري، مجمع اللؤلؤة، مدرسة قطر...", "e.g. Al Fardan Tower, The Pearl Compound, Qatar School...")}
                         className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-bold text-slate-900 focus:border-qatar focus:outline-none focus:ring-2 focus:ring-qatar/20 dark:border-zinc-800 dark:bg-zinc-900 dark:text-white font-arabic"
                       />
                     </div>
 
                     <div>
                       <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1.5 font-sans">
-                        اسم المنشأة الرسمي بالإنجليزية (English Name)
+                        {L("اسم المنشأة الرسمي بالإنجليزية (English Name)", "Official organization name (English)")}
                       </label>
                       <input
                         type="text"
@@ -545,65 +724,65 @@ export default function SettingsPage() {
 
                     <div>
                       <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1.5 font-arabic">
-                        المسمى المختصر للمكان في الواجهات والرسائل
+                        {L("المسمى المختصر للمكان في الواجهات والرسائل", "Short venue label used in UI and messages")}
                       </label>
                       <input
                         type="text"
                         value={venueLabel}
                         onChange={(e) => setVenueLabel(e.target.value)}
-                        placeholder="مثال: البرج، المجمع، المدرسة، الوزارة، المستشفى..."
+                        placeholder={L("مثال: البرج، المجمع، المدرسة، الوزارة، المستشفى...", "e.g. Tower, Compound, School, Ministry, Hospital...")}
                         className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-bold text-slate-900 focus:border-qatar focus:outline-none focus:ring-2 focus:ring-qatar/20 dark:border-zinc-800 dark:bg-zinc-900 dark:text-white font-arabic"
                       />
                       <span className="text-[10px] text-slate-400 mt-1 block">
-                        يظهر في النصوص التلقائية: &quot;في مواقف {venueLabel}&quot;
+                        {L("يظهر في النصوص التلقائية:", "Appears in automatic texts:")} {isEn ? `"in ${venueLabel} parking"` : `"في مواقف ${venueLabel}"`}
                       </span>
                     </div>
 
                     <div>
                       <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1.5 font-arabic">
-                        الدولة والرمز الوطني
+                        {L("الدولة والرمز الوطني", "Country & calling code")}
                       </label>
                       <select
                         value={countryCode}
                         onChange={(e) => setCountryCode(e.target.value)}
                         className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-bold text-slate-900 focus:border-qatar focus:outline-none focus:ring-2 focus:ring-qatar/20 dark:border-zinc-800 dark:bg-zinc-900 dark:text-white"
                       >
-                        <option value="QA">دولة قطر 🇶🇦 (+974)</option>
-                        <option value="SA">المملكة العربية السعودية 🇸🇦 (+966)</option>
-                        <option value="AE">الإمارات العربية المتحدة 🇦🇪 (+971)</option>
-                        <option value="KW">دولة الكويت 🇰🇼 (+965)</option>
-                        <option value="OM">سلطنة عمان 🇴🇲 (+968)</option>
-                        <option value="BH">مملكة البحرين 🇧🇭 (+973)</option>
+                        <option value="QA">{L("دولة قطر 🇶🇦 (+974)", "Qatar 🇶🇦 (+974)")}</option>
+                        <option value="SA">{L("المملكة العربية السعودية 🇸🇦 (+966)", "Saudi Arabia 🇸🇦 (+966)")}</option>
+                        <option value="AE">{L("الإمارات العربية المتحدة 🇦🇪 (+971)", "United Arab Emirates 🇦🇪 (+971)")}</option>
+                        <option value="KW">{L("دولة الكويت 🇰🇼 (+965)", "Kuwait 🇰🇼 (+965)")}</option>
+                        <option value="OM">{L("سلطنة عمان 🇴🇲 (+968)", "Oman 🇴🇲 (+968)")}</option>
+                        <option value="BH">{L("مملكة البحرين 🇧🇭 (+973)", "Bahrain 🇧🇭 (+973)")}</option>
                       </select>
                     </div>
 
                     <div>
                       <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1.5 font-arabic">
-                        المنطقة الزمنية (Timezone)
+                        {L("المنطقة الزمنية (Timezone)", "Timezone")}
                       </label>
                       <select
                         value={timezone}
                         onChange={(e) => setTimezone(e.target.value)}
                         className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-mono text-slate-900 focus:border-qatar focus:outline-none focus:ring-2 focus:ring-qatar/20 dark:border-zinc-800 dark:bg-zinc-900 dark:text-white"
                       >
-                        <option value="Asia/Qatar">Asia/Qatar (توقيت الدوحة GMT+3)</option>
-                        <option value="Asia/Riyadh">Asia/Riyadh (توقيت الرياض GMT+3)</option>
-                        <option value="Asia/Dubai">Asia/Dubai (توقيت دبي GMT+4)</option>
-                        <option value="Asia/Kuwait">Asia/Kuwait (توقيت الكويت GMT+3)</option>
+                        <option value="Asia/Qatar">Asia/Qatar {L("(توقيت الدوحة GMT+3)", "(Doha time GMT+3)")}</option>
+                        <option value="Asia/Riyadh">Asia/Riyadh {L("(توقيت الرياض GMT+3)", "(Riyadh time GMT+3)")}</option>
+                        <option value="Asia/Dubai">Asia/Dubai {L("(توقيت دبي GMT+4)", "(Dubai time GMT+4)")}</option>
+                        <option value="Asia/Kuwait">Asia/Kuwait {L("(توقيت الكويت GMT+3)", "(Kuwait time GMT+3)")}</option>
                       </select>
                     </div>
 
                     <div>
                       <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1.5 font-arabic">
-                        اللغة الافتراضية للنظام
+                        {L("اللغة الافتراضية للنظام", "Default system language")}
                       </label>
                       <select
                         value={defaultLanguage}
                         onChange={(e) => setDefaultLanguage(e.target.value as any)}
                         className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-bold text-slate-900 focus:border-qatar focus:outline-none focus:ring-2 focus:ring-qatar/20 dark:border-zinc-800 dark:bg-zinc-900 dark:text-white"
                       >
-                        <option value="ar">العربية (Arabic - الافتراضية)</option>
-                        <option value="en">English (الإنجليزية)</option>
+                        <option value="ar">{L("العربية (Arabic - الافتراضية)", "Arabic (default)")}</option>
+                        <option value="en">{L("English (الإنجليزية)", "English")}</option>
                       </select>
                     </div>
                   </div>
@@ -612,7 +791,7 @@ export default function SettingsPage() {
                 {/* Primary Brand Color Selection */}
                 <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-[#0c0c0f]">
                   <h3 className="text-base font-black text-slate-950 dark:text-white font-arabic mb-3">
-                    اللون الرئيسي لشعار وهوية المنشأة
+                    {L("اللون الرئيسي لشعار وهوية المنشأة", "Primary brand color")}
                   </h3>
                   <div className="flex flex-wrap items-center gap-3">
                     {COLOR_PRESETS.map((color) => (
@@ -633,7 +812,7 @@ export default function SettingsPage() {
                           className="h-3.5 w-3.5 rounded-full shadow-xs"
                           style={{ backgroundColor: color.hex }}
                         />
-                        <span className="font-arabic text-slate-800 dark:text-zinc-200">{color.name}</span>
+                        <span className="font-arabic text-slate-800 dark:text-zinc-200">{isEn ? color.nameEn : color.name}</span>
                       </button>
                     ))}
                   </div>
@@ -645,7 +824,7 @@ export default function SettingsPage() {
                 <div className="sticky top-20 rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xl dark:border-zinc-800 dark:bg-[#0c0c0f]">
                   <div className="flex items-center gap-2 text-xs font-bold text-qatar mb-4">
                     <Eye className="h-4 w-4" />
-                    <span>معاينة حية لهوية المنشأة للمستخدمين</span>
+                    <span>{L("معاينة حية لهوية المنشأة للمستخدمين", "Live preview of the organization branding")}</span>
                   </div>
 
                   <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4 dark:border-zinc-800 dark:bg-zinc-900/60">
@@ -658,7 +837,7 @@ export default function SettingsPage() {
                       </div>
                       <div>
                         <span className="block text-xs font-black text-slate-900 dark:text-white font-arabic">
-                          {nameAr || "اسم المنشأة"}
+                          {nameAr || L("اسم المنشأة", "Organization name")}
                         </span>
                         <span className="text-[10px] text-slate-400 font-sans">
                           {nameEn || "Organization Name"}
@@ -667,14 +846,14 @@ export default function SettingsPage() {
                     </div>
 
                     <div className="mt-3">
-                      <span className="text-[10px] text-slate-400">عينة رسالة التنبيه الواردة للمالك:</span>
+                      <span className="text-[10px] text-slate-400">{L("عينة رسالة التنبيه الواردة للمالك:", "Sample alert message received by the owner:")}</span>
                       <div className="mt-1.5 rounded-xl bg-white p-3 text-xs text-slate-700 shadow-xs border border-slate-200 dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-200">
-                        &quot;مرحباً، سيارتك متوقفة أمام سيارتي في مواقف <strong>{venueLabel || "المكان"}</strong>. يرجى التكرم بتحريكها.&quot;
+                        {L("مرحباً، سيارتك متوقفة أمام سيارتي في مواقف", "Hello, your vehicle is parked in front of mine in")} <strong>{venueLabel || L("المكان", "the venue")}</strong>{L(". يرجى التكرم بتحريكها.", " parking. Please kindly move it.")}
                       </div>
                     </div>
 
                     <div className="mt-4 flex items-center justify-between text-[11px] text-slate-500 border-t pt-3 border-slate-200 dark:border-zinc-800">
-                      <span>الرمز الهاتفي:</span>
+                      <span>{L("الرمز الهاتفي:", "Calling code:")}</span>
                       <span className="font-mono font-bold text-slate-900 dark:text-white">
                         {countryCallingCode} ({countryCode})
                       </span>
@@ -695,29 +874,29 @@ export default function SettingsPage() {
               <div className="flex items-center gap-2">
                 <Shield className="h-5 w-5 text-qatar" />
                 <h3 className="text-base font-black text-slate-950 dark:text-white font-arabic">
-                  مستويات خصوصية بيانات أصحاب السيارات (Privacy Policies)
+                  {L("مستويات خصوصية بيانات أصحاب السيارات (Privacy Policies)", "Vehicle owner data privacy levels")}
                 </h3>
               </div>
               <p className="text-xs text-slate-500 dark:text-zinc-400">
-                حدد مستوى الشفافية والتواصل المناسب لطبيعة منشأتك (الموظفين، السكان، المراجعين)
+                {L("حدد مستوى الشفافية والتواصل المناسب لطبيعة منشأتك (الموظفين، السكان، المراجعين)", "Select the transparency and contact level that fits your facility (staff, residents, visitors)")}
               </p>
 
               <div className="space-y-3 pt-2">
                 {[
                   {
                     id: "mode_a",
-                    title: "الوضع (A): الشفافية الكاملة (موصى به للمدارس والمقرات المغلقة)",
-                    desc: "إظهار اسم المالك والقسم ورقم الهاتف مع أزرار الاتصال والواتساب السريعة لتيسير الحل المباشر بين الزملاء.",
+                    title: L("الوضع (A): الشفافية الكاملة (موصى به للمدارس والمقرات المغلقة)", "Mode (A): Full transparency (recommended for schools and closed premises)"),
+                    desc: L("إظهار اسم المالك والقسم ورقم الهاتف مع أزرار الاتصال والواتساب السريعة لتيسير الحل المباشر بين الزملاء.", "Show owner name, department and phone with quick call and WhatsApp buttons for direct resolution between colleagues."),
                   },
                   {
                     id: "mode_b",
-                    title: "الوضع (B): حماية الخصوصية (موصى به للأبراج والمجمعات التجارية)",
-                    desc: "إظهار الاسم وأزرار الاتصال/الواتساب المشفرة فقط مع إخفاء رقم الهاتف النصي لمنع نسخه أو حفظه.",
+                    title: L("الوضع (B): حماية الخصوصية (موصى به للأبراج والمجمعات التجارية)", "Mode (B): Privacy protection (recommended for towers and commercial complexes)"),
+                    desc: L("إظهار الاسم وأزرار الاتصال/الواتساب المشفرة فقط مع إخفاء رقم الهاتف النصي لمنع نسخه أو حفظه.", "Show the name and secure call/WhatsApp buttons only, hiding the plain phone number to prevent copying or saving."),
                   },
                   {
                     id: "mode_c",
-                    title: "الوضع (C): التنبيه الداخلي فقط (للمنشآت العسكرية أو عالية الحساسية)",
-                    desc: "إخفاء بيانات المالك وأرقام الهواتف بالكامل، والاعتماد فقط على إرسال تنبيه إلكتروني داخلي يصله على شاشته.",
+                    title: L("الوضع (C): التنبيه الداخلي فقط (للمنشآت العسكرية أو عالية الحساسية)", "Mode (C): In-app alert only (for military or highly sensitive facilities)"),
+                    desc: L("إخفاء بيانات المالك وأرقام الهواتف بالكامل، والاعتماد فقط على إرسال تنبيه إلكتروني داخلي يصله على شاشته.", "Hide owner details and phone numbers entirely, relying only on an internal electronic alert delivered to their screen."),
                   },
                 ].map((mode) => (
                   <label
@@ -754,7 +933,7 @@ export default function SettingsPage() {
               <div className="flex items-center gap-2">
                 <Search className="h-5 w-5 text-qatar" />
                 <h3 className="text-base font-black text-slate-950 dark:text-white font-arabic">
-                  قواعد وآليات البحث باللوحة (Search Engine Rules)
+                  {L("قواعد وآليات البحث باللوحة (Search Engine Rules)", "Plate search engine rules")}
                 </h3>
               </div>
 
@@ -762,10 +941,10 @@ export default function SettingsPage() {
                 <div className="rounded-xl border border-slate-200 p-4 dark:border-zinc-800 dark:bg-zinc-900/40 flex items-center justify-between">
                   <div>
                     <span className="text-xs font-bold text-slate-900 dark:text-white font-arabic">
-                      البحث الجزئي برقم اللوحة (Partial Search)
+                      {L("البحث الجزئي برقم اللوحة (Partial Search)", "Partial plate search")}
                     </span>
                     <p className="text-[11px] text-slate-500 dark:text-zinc-400 mt-0.5">
-                      السماح بالبحث عبر آخر خانات من اللوحة لتسهيل العثور السريع
+                      {L("السماح بالبحث عبر آخر خانات من اللوحة لتسهيل العثور السريع", "Allow searching by the plate's trailing digits for faster lookup")}
                     </p>
                   </div>
                   <input
@@ -779,10 +958,10 @@ export default function SettingsPage() {
                 <div className="rounded-xl border border-slate-200 p-4 dark:border-zinc-800 dark:bg-zinc-900/40 flex items-center justify-between">
                   <div>
                     <span className="text-xs font-bold text-slate-900 dark:text-white font-arabic">
-                      الحد الأدنى للأرقام لبدء البحث التلقائي
+                      {L("الحد الأدنى للأرقام لبدء البحث التلقائي", "Minimum digits to start automatic search")}
                     </span>
                     <p className="text-[11px] text-slate-500 dark:text-zinc-400 mt-0.5">
-                      الافتراضي الموصى به: 3 أرقام لمنع التشابه العالي
+                      {L("الافتراضي الموصى به: 3 أرقام لمنع التشابه العالي", "Recommended default: 3 digits to avoid excessive matches")}
                     </p>
                   </div>
                   <select
@@ -790,10 +969,10 @@ export default function SettingsPage() {
                     onChange={(e) => setMinDigits(Number(e.target.value))}
                     className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold font-mono dark:border-zinc-700 dark:bg-zinc-800"
                   >
-                    <option value={2}>2 أرقام</option>
-                    <option value={3}>3 أرقام (موصى به)</option>
-                    <option value={4}>4 أرقام</option>
-                    <option value={5}>5 أرقام</option>
+                    <option value={2}>{L("2 أرقام", "2 digits")}</option>
+                    <option value={3}>{L("3 أرقام (موصى به)", "3 digits (recommended)")}</option>
+                    <option value={4}>{L("4 أرقام", "4 digits")}</option>
+                    <option value={5}>{L("5 أرقام", "5 digits")}</option>
                   </select>
                 </div>
               </div>
@@ -806,43 +985,226 @@ export default function SettingsPage() {
         {/* =================================================================== */}
         {activeTab === "alerts" && (
           <div className="space-y-6">
+            {/* Alert types manager (§6) */}
+            <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-[#0c0c0f] space-y-4">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <Bell className="h-5 w-5 text-qatar" />
+                  <h3 className="text-base font-black text-slate-950 dark:text-white font-arabic">
+                    {L("أنواع تنبيهات المواقف", "Parking alert types")}
+                  </h3>
+                  <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[10px] font-black text-slate-600 dark:bg-zinc-800 dark:text-zinc-300">
+                    {alertTypes.length}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={fetchAlertTypes}
+                  disabled={isLoadingTypes}
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-[11px] font-bold text-slate-600 hover:bg-slate-50 disabled:opacity-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300"
+                >
+                  <RefreshCw className={`h-3.5 w-3.5 ${isLoadingTypes ? "animate-spin text-qatar" : ""}`} />
+                  <span>{L("تحديث", "Refresh")}</span>
+                </button>
+              </div>
+
+              <p className="text-xs text-slate-500 dark:text-zinc-400">
+                {L(
+                  "الأنواع المفعّلة تظهر للكادر عند إرسال تنبيه موقف. يمكنك إضافة أنواع خاصة بمنشأتك أو تعطيل غير المستخدم.",
+                  "Active types appear to staff when sending a parking alert. Add facility-specific types or disable unused ones."
+                )}
+              </p>
+
+              {typeError && (
+                <div className="flex items-center gap-2 rounded-2xl border border-red-200 bg-red-50 p-3 text-xs font-bold text-red-700 dark:border-red-900 dark:bg-red-950/40 dark:text-red-300">
+                  <AlertTriangle className="h-4 w-4 flex-shrink-0" />
+                  <span>{typeError}</span>
+                </div>
+              )}
+
+              {isLoadingTypes && alertTypes.length === 0 ? (
+                <div className="flex justify-center py-6">
+                  <Loader2 className="h-5 w-5 animate-spin text-qatar" />
+                </div>
+              ) : (
+                <div className="space-y-2.5">
+                  {alertTypes.map((row) => (
+                    <div
+                      key={row.id}
+                      className={`rounded-2xl border p-3 transition ${
+                        row.is_active
+                          ? "border-slate-200 bg-white dark:border-zinc-800 dark:bg-zinc-900/60"
+                          : "border-slate-200 bg-slate-50 opacity-75 dark:border-zinc-800 dark:bg-zinc-900/30"
+                      }`}
+                    >
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="rounded-lg bg-qatar/10 px-2 py-1 font-mono text-[10px] font-black text-qatar">
+                          {row.code}
+                        </span>
+
+                        <input
+                          type="text"
+                          value={typeDrafts[row.id]?.name_ar ?? row.name_ar}
+                          onChange={(e) =>
+                            setTypeDrafts((prev) => ({
+                              ...prev,
+                              [row.id]: {
+                                name_ar: e.target.value,
+                                name_en: prev[row.id]?.name_en ?? row.name_en,
+                              },
+                            }))
+                          }
+                          placeholder={L("الاسم بالعربية", "Name (Arabic)")}
+                          className="min-w-[150px] flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-900 focus:border-qatar focus:outline-none dark:border-zinc-800 dark:bg-zinc-900 dark:text-white"
+                        />
+                        <input
+                          type="text"
+                          value={typeDrafts[row.id]?.name_en ?? row.name_en}
+                          onChange={(e) =>
+                            setTypeDrafts((prev) => ({
+                              ...prev,
+                              [row.id]: {
+                                name_ar: prev[row.id]?.name_ar ?? row.name_ar,
+                                name_en: e.target.value,
+                              },
+                            }))
+                          }
+                          placeholder="Name (English)"
+                          dir="ltr"
+                          className="min-w-[150px] flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-900 focus:border-qatar focus:outline-none dark:border-zinc-800 dark:bg-zinc-900 dark:text-white"
+                        />
+
+                        <button
+                          type="button"
+                          onClick={() => handleSaveAlertType(row.id)}
+                          disabled={typeBusyId === row.id}
+                          title={L("حفظ", "Save")}
+                          className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-qatar text-white shadow-sm transition hover:bg-qatar-800 disabled:opacity-50"
+                        >
+                          {typeBusyId === row.id ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          ) : (
+                            <Check className="h-3.5 w-3.5" />
+                          )}
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => handleToggleAlertType(row)}
+                          disabled={typeBusyId === row.id}
+                          className={`rounded-xl border px-3 py-2 text-[11px] font-bold transition disabled:opacity-50 ${
+                            row.is_active
+                              ? "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-300"
+                              : "border-slate-200 bg-slate-100 text-slate-500 dark:border-zinc-800 dark:bg-zinc-800 dark:text-zinc-400"
+                          }`}
+                        >
+                          {row.is_active ? L("مفعّل", "Active") : L("معطّل", "Disabled")}
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteAlertType(row.id)}
+                          disabled={typeBusyId === row.id}
+                          title={L("حذف", "Delete")}
+                          className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-rose-200 bg-rose-50 text-rose-600 transition hover:bg-rose-100 disabled:opacity-50 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-300"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+
+                  {alertTypes.length === 0 && !isLoadingTypes && (
+                    <p className="rounded-2xl bg-slate-50 p-4 text-center text-xs font-bold text-slate-500 dark:bg-zinc-900/60 dark:text-zinc-400">
+                      {L(
+                        "لا توجد أنواع مخصّصة — سيستخدم النظام الأنواع الخمسة الافتراضية.",
+                        "No custom types yet — the system falls back to the five defaults."
+                      )}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {/* Add new type */}
+              <div className="rounded-2xl border border-dashed border-slate-300 p-3 dark:border-zinc-700">
+                <div className="flex flex-wrap items-center gap-2">
+                  <input
+                    type="text"
+                    value={newTypeCode}
+                    onChange={(e) => setNewTypeCode(e.target.value.toUpperCase())}
+                    placeholder="CODE"
+                    dir="ltr"
+                    className="w-32 rounded-xl border border-slate-200 bg-white px-3 py-2 font-mono text-xs font-bold text-slate-900 focus:border-qatar focus:outline-none dark:border-zinc-800 dark:bg-zinc-900 dark:text-white"
+                  />
+                  <input
+                    type="text"
+                    value={newTypeAr}
+                    onChange={(e) => setNewTypeAr(e.target.value)}
+                    placeholder={L("الاسم بالعربية", "Name (Arabic)")}
+                    className="min-w-[140px] flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-900 focus:border-qatar focus:outline-none dark:border-zinc-800 dark:bg-zinc-900 dark:text-white"
+                  />
+                  <input
+                    type="text"
+                    value={newTypeEn}
+                    onChange={(e) => setNewTypeEn(e.target.value)}
+                    placeholder="Name (English)"
+                    dir="ltr"
+                    className="min-w-[140px] flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-900 focus:border-qatar focus:outline-none dark:border-zinc-800 dark:bg-zinc-900 dark:text-white"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddAlertType}
+                    disabled={isAddingType}
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-qatar px-4 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-qatar-800 disabled:opacity-50"
+                  >
+                    {isAddingType ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <Plus className="h-3.5 w-3.5" />
+                    )}
+                    <span>{L("إضافة نوع", "Add type")}</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
             <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-[#0c0c0f] space-y-4">
               <div className="flex items-center gap-2">
                 <MessageSquare className="h-5 w-5 text-emerald-600" />
                 <h3 className="text-base font-black text-slate-950 dark:text-white font-arabic">
-                  تخصيص رسائل واتساب الرسمية (WhatsApp Integration)
+                  {L("تخصيص رسائل واتساب الرسمية (WhatsApp Integration)", "Official WhatsApp messages")}
                 </h3>
               </div>
               <p className="text-xs text-slate-500 dark:text-zinc-400">
-                صياغة النص المعتمد الذي يرسله النظام عند النقر على زر واتساب للتواصل مع صاحب السيارة
+                {L("صياغة النص المعتمد الذي يرسله النظام عند النقر على زر واتساب للتواصل مع صاحب السيارة", "Compose the approved text the system sends when the WhatsApp button is tapped")}
               </p>
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1.5 font-arabic">
-                  نص الرسالة المعتمد (WhatsApp Template)
+                  {L("نص الرسالة المعتمد (WhatsApp Template)", "Approved message text (WhatsApp Template)")}
                 </label>
                 <textarea
                   rows={4}
                   value={whatsappTemplate}
                   onChange={(e) => setWhatsappTemplate(e.target.value)}
                   className="w-full rounded-2xl border border-slate-200 bg-white p-4 text-xs font-bold text-slate-900 focus:border-qatar focus:outline-none focus:ring-2 focus:ring-qatar/20 dark:border-zinc-800 dark:bg-zinc-900 dark:text-white font-arabic"
-                  placeholder="أدخل نص الرسالة مع إمكانية استخدام المتغيرات..."
+                  placeholder={L("أدخل نص الرسالة مع إمكانية استخدام المتغيرات...", "Enter the message text with optional variables...")}
                 />
                 <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] text-slate-500">
-                  <span className="font-bold">المتغيرات المتاحة للإدراج:</span>
+                  <span className="font-bold">{L("المتغيرات المتاحة للإدراج:", "Available variables:")}</span>
                   <button
                     type="button"
                     onClick={() => setWhatsappTemplate((prev) => prev + " {plate} ")}
                     className="rounded-lg bg-slate-100 px-2 py-1 font-mono font-bold hover:bg-slate-200 dark:bg-zinc-800 text-qatar"
                   >
-                    {"{plate}"} رقم اللوحة
+                    {"{plate}"} {L("رقم اللوحة", "plate number")}
                   </button>
                   <button
                     type="button"
                     onClick={() => setWhatsappTemplate((prev) => prev + " {venue_name} ")}
                     className="rounded-lg bg-slate-100 px-2 py-1 font-mono font-bold hover:bg-slate-200 dark:bg-zinc-800 text-blue-600"
                   >
-                    {"{venue_name}"} اسم المنشأة
+                    {"{venue_name}"} {L("اسم المنشأة", "venue name")}
                   </button>
                 </div>
               </div>
@@ -859,17 +1221,17 @@ export default function SettingsPage() {
               <div className="flex items-center gap-2">
                 <Clock className="h-5 w-5 text-qatar" />
                 <h3 className="text-base font-black text-slate-950 dark:text-white font-arabic">
-                  ساعات العمل وأوقات الذروة لمواقف المنشأة
+                  {L("ساعات العمل وأوقات الذروة لمواقف المنشأة", "Operating hours & peak times")}
                 </h3>
               </div>
               <p className="text-xs text-slate-500 dark:text-zinc-400">
-                تساعد هذه المواعيد في ضبط تحليلات الذروة ورسوم Recharts البيانية
+                {L("تساعد هذه المواعيد في ضبط تحليلات الذروة ورسوم Recharts البيانية", "These times help tune peak analytics and Recharts visualisations")}
               </p>
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 pt-2">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1.5 font-arabic">
-                    بداية الدوام / فتح البوابات
+                    {L("بداية الدوام / فتح البوابات", "Shift start / gates open")}
                   </label>
                   <input
                     type="time"
@@ -881,7 +1243,7 @@ export default function SettingsPage() {
 
                 <div>
                   <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1.5 font-arabic">
-                    ساعة الذروة المتوقعة
+                    {L("ساعة الذروة المتوقعة", "Expected peak hour")}
                   </label>
                   <input
                     type="time"
@@ -893,7 +1255,7 @@ export default function SettingsPage() {
 
                 <div>
                   <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1.5 font-arabic">
-                    نهاية الدوام / إغلاق البوابات
+                    {L("نهاية الدوام / إغلاق البوابات", "Shift end / gates close")}
                   </label>
                   <input
                     type="time"
@@ -906,7 +1268,7 @@ export default function SettingsPage() {
 
               <div className="pt-4">
                 <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1.5 font-arabic">
-                  هاتف مكتب أمن المواقف / الاستقبال السريع (Gate Security Phone)
+                  {L("هاتف مكتب أمن المواقف / الاستقبال السريع (Gate Security Phone)", "Gate security / rapid reception phone")}
                 </label>
                 <div className="flex items-center gap-2">
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 dark:bg-zinc-800 text-slate-500">
@@ -921,7 +1283,7 @@ export default function SettingsPage() {
                   />
                 </div>
                 <span className="text-[10px] text-slate-400 mt-1 block">
-                  يظهر في أسفل بطاقات السيارات كجهة طوارئ بديلة في حال عدم استجابة المالك
+                  {L("يظهر في أسفل بطاقات السيارات كجهة طوارئ بديلة في حال عدم استجابة المالك", "Shown at the bottom of vehicle cards as a fallback contact when the owner does not respond")}
                 </span>
               </div>
             </div>
@@ -937,10 +1299,10 @@ export default function SettingsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-base font-black text-slate-950 dark:text-white font-arabic">
-                    إحصائيات وسلامة بيانات المنشأة
+                    {L("إحصائيات وسلامة بيانات المنشأة", "Organization data statistics & health")}
                   </h3>
                   <p className="text-xs text-slate-500 dark:text-zinc-400">
-                    نظرة شاملة على السجلات النشطة في قاعدة بيانات Supabase
+                    {L("نظرة شاملة على السجلات النشطة في قاعدة بيانات Supabase", "An overview of active records in the Supabase database")}
                   </p>
                 </div>
                 <button
@@ -949,7 +1311,7 @@ export default function SettingsPage() {
                   className="flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-slate-800 dark:bg-white dark:text-slate-900"
                 >
                   <Download className="h-3.5 w-3.5" />
-                  <span>تصدير نسخة احتياطية (JSON)</span>
+                  <span>{L("تصدير نسخة احتياطية (JSON)", "Export backup (JSON)")}</span>
                 </button>
               </div>
 
@@ -959,7 +1321,7 @@ export default function SettingsPage() {
                     {stats.totalStaff}
                   </span>
                   <span className="block text-xs text-slate-500 font-arabic mt-1">
-                    موظف / مستخدم مسجل
+                    {L("موظف / مستخدم مسجل", "Registered staff / users")}
                   </span>
                 </div>
 
@@ -968,7 +1330,7 @@ export default function SettingsPage() {
                     {stats.totalVehicles}
                   </span>
                   <span className="block text-xs text-slate-500 font-arabic mt-1">
-                    مركبة مسجلة بالدليل
+                    {L("مركبة مسجلة بالدليل", "Vehicles in the directory")}
                   </span>
                 </div>
 
@@ -977,7 +1339,7 @@ export default function SettingsPage() {
                     {stats.totalDepartments}
                   </span>
                   <span className="block text-xs text-slate-500 font-arabic mt-1">
-                    أقسام / إدارات معتمدة
+                    {L("أقسام / إدارات معتمدة", "Approved units / departments")}
                   </span>
                 </div>
               </div>
@@ -990,7 +1352,7 @@ export default function SettingsPage() {
           <div className="flex items-center gap-2">
             <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse" />
             <span className="text-xs font-bold text-slate-700 dark:text-zinc-300 font-arabic">
-              التغييرات تُحفظ في قاعدة بيانات Supabase وتُسجل في سجل التدقيق الأمني
+              {L("التغييرات تُحفظ في قاعدة بيانات Supabase وتُسجل في سجل التدقيق الأمني", "Changes are saved to the Supabase database and recorded in the security audit log")}
             </span>
           </div>
 
@@ -1004,7 +1366,7 @@ export default function SettingsPage() {
             ) : (
               <Save className="h-4 w-4" />
             )}
-            <span>{isSaving ? "جارٍ الحفظ..." : "حفظ الإعدادات"}</span>
+            <span>{isSaving ? L("جارٍ الحفظ...", "Saving...") : L("حفظ الإعدادات", "Save settings")}</span>
           </button>
         </div>
       </form>

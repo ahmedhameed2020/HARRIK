@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getAuthenticatedSession } from "@/lib/supabase/auth-helpers";
 import { normalizePlateNumber } from "@/lib/plate-normalizer";
+import { parsePagination, sanitizeTerm, computeHasMore } from "@/lib/api/query";
 
 export async function GET(request: NextRequest) {
   try {
@@ -15,7 +16,37 @@ export async function GET(request: NextRequest) {
     }
 
     const supabase = await createClient();
-    const { data: vehicles, error } = await supabase
+
+    // Server-side search, filtering and pagination.
+    const { searchParams } = new URL(request.url);
+    const term = sanitizeTerm(searchParams.get("q"));
+    const statusFilter = searchParams.get("status") || "ALL";
+    const { limit, offset } = parsePagination(searchParams);
+
+    // PostgREST cannot OR across a two-level embedded resource, so owner-name
+    // matches are pre-resolved to vehicle ids in two steps.
+    let ownerVehicleIds: string[] = [];
+    if (term) {
+      const { data: owners } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("organization_id", session.organizationId)
+        .or(`name_ar.ilike.%${term}%,name_en.ilike.%${term}%,employee_id.ilike.%${term}%`)
+        .limit(200);
+
+      const ownerIds = (owners || []).map((p: any) => p.id);
+      if (ownerIds.length > 0) {
+        const { data: sv } = await supabase
+          .from("staff_vehicles")
+          .select("vehicle_id")
+          .eq("organization_id", session.organizationId)
+          .in("staff_id", ownerIds)
+          .limit(500);
+        ownerVehicleIds = (sv || []).map((r: any) => r.vehicle_id);
+      }
+    }
+
+    let query = supabase
       .from("vehicles")
       .select(`
         *,
@@ -25,8 +56,29 @@ export async function GET(request: NextRequest) {
           staff:profiles(id, employee_id, name_ar, name_en, mobile, department:departments(name_ar, name_en))
         )
       `)
-      .eq("organization_id", session.organizationId)
-      .order("created_at", { ascending: false });
+      .eq("organization_id", session.organizationId);
+
+    if (statusFilter === "ACTIVE") query = query.eq("is_active", true);
+    if (statusFilter === "INACTIVE") query = query.eq("is_active", false);
+
+    if (term) {
+      const norm = normalizePlateNumber(term) || term;
+      const branches = [
+        `plate_number.ilike.%${term}%`,
+        `normalized_plate.ilike.%${norm}%`,
+        `make.ilike.%${term}%`,
+        `model.ilike.%${term}%`,
+      ];
+      if (ownerVehicleIds.length > 0) {
+        branches.push(`id.in.(${ownerVehicleIds.join(",")})`);
+      }
+      query = query.or(branches.join(","));
+    }
+
+    query = query.order("created_at", { ascending: false });
+    if (limit !== null) query = query.range(offset, offset + limit - 1);
+
+    const { data: vehicles, error } = await query;
 
     if (error) {
       return NextResponse.json({ success: false, error: error.message }, { status: 500 });
@@ -48,12 +100,19 @@ export async function GET(request: NextRequest) {
         owner_name_ar: staffRel?.staff?.name_ar || null,
         owner_name_en: staffRel?.staff?.name_en || null,
         owner_dept: staffRel?.staff?.department?.name_ar || null,
+        owner_dept_en: staffRel?.staff?.department?.name_en || null,
         owner_mobile: staffRel?.staff?.mobile || null,
         is_primary: staffRel?.is_primary ?? true,
       };
     });
 
-    return NextResponse.json({ success: true, vehicles: formatted });
+    return NextResponse.json({
+      success: true,
+      vehicles: formatted,
+      hasMore: computeHasMore(vehicles, limit),
+      limit,
+      offset,
+    });
   } catch (err: any) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
   }

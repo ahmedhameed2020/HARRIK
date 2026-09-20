@@ -1,46 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { KNOWN_PERMIT_TOKENS, FIXTURES_ENABLED } from "@/lib/test-fixtures";
+import { clientIp, enforceRateLimit } from "@/lib/security/rate-limit";
 
 // Standard UUID format validator
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-// Verified mock tokens for resilient testing & seed verification
-const KNOWN_TOKENS: Record<string, any> = {
-  "11111111-1111-4111-8111-111111111111": {
-    is_valid: true,
-    status_reason: "active",
-    entity_type: "staff",
-    vehicle_id: "40000000-0000-0000-0000-000000000001",
-    organization_id: "00000000-0000-0000-0000-000000000001",
-    make: "Toyota",
-    model: "Land Cruiser",
-    color: "أبيض",
-    venue_name: "المنشأة المركزية",
-  },
-  "22222222-2222-4222-8222-222222222222": {
-    is_valid: true,
-    status_reason: "active",
-    entity_type: "visitor",
-    vehicle_id: "50000000-0000-0000-0000-000000000001",
-    organization_id: "00000000-0000-0000-0000-000000000001",
-    make: "Lexus",
-    model: "ES350",
-    color: "فضي",
-    venue_name: "المنشأة المركزية",
-  },
-  "33333333-3333-4333-8333-333333333333": {
-    is_valid: false,
-    status_reason: "revoked",
-    entity_type: "staff",
-    error: "تصريح الموقف ملغى من قبل إدارة المنشأة",
-  },
-  "44444444-4444-4444-8444-444444444444": {
-    is_valid: false,
-    status_reason: "expired",
-    entity_type: "visitor",
-    error: "انتهت صلاحية تصريح موقف الزائر",
-  },
-};
+// Permit verification is public: throttle enumeration attempts per IP.
+const VERIFY_WINDOW_SECONDS = 60;
+const VERIFY_MAX_PER_WINDOW = 30;
 
 export async function GET(request: NextRequest) {
   try {
@@ -61,9 +29,38 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Check mock tokens first for test determinism
-    if (KNOWN_TOKENS[token]) {
-      const known = KNOWN_TOKENS[token];
+    // Abuse protection: durable per-IP throttle (skipped when IP is unknown,
+    // e.g. in unit tests, so that behaviour stays deterministic).
+    const ip = clientIp(request);
+    if (ip !== "unknown" && !(FIXTURES_ENABLED && KNOWN_PERMIT_TOKENS[token])) {
+      try {
+        const supabaseForLimit = await createClient();
+        const limited = await enforceRateLimit(
+          supabaseForLimit,
+          "scan:verify:ip",
+          ip,
+          VERIFY_WINDOW_SECONDS,
+          VERIFY_MAX_PER_WINDOW
+        );
+        if (!limited.allowed) {
+          return NextResponse.json(
+            {
+              success: false,
+              valid: false,
+              error: "عدد كبير من المحاولات. يرجى المحاولة بعد قليل.",
+              retryAfter: VERIFY_WINDOW_SECONDS,
+            },
+            { status: 429 }
+          );
+        }
+      } catch {
+        // Fail-open: never block permit verification because throttling failed.
+      }
+    }
+
+    // Check mock tokens first for test determinism (non-production only)
+    if (FIXTURES_ENABLED && KNOWN_PERMIT_TOKENS[token]) {
+      const known = KNOWN_PERMIT_TOKENS[token];
       if (!known.is_valid) {
         return NextResponse.json(
           {

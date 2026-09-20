@@ -4,14 +4,12 @@ import React, { useState, useRef } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
-  UploadCloud,
   FileSpreadsheet,
   CheckCircle2,
   AlertTriangle,
   XCircle,
   Download,
   FileUp,
-  RefreshCw,
   Sparkles,
   Search,
   Check,
@@ -25,9 +23,15 @@ import {
   ExcelImportRow,
 } from "@/lib/excel-utils";
 import { useEntityConfig } from "@/contexts/EntityConfigContext";
+import { useLocale } from "@/contexts/LocaleContext";
 
 export default function BulkImportPage() {
   const { config } = useEntityConfig();
+  const { lang } = useLocale();
+  const L = (ar: string, en: string) => (lang === "ar" ? ar : en);
+  const memberLabel = lang === "ar" ? config.memberLabel : config.memberLabelEn;
+  const unitPlural = lang === "ar" ? config.unitLabelPlural : config.unitLabelPluralEn;
+
   const [inputText, setInputText] = useState("");
   const [parsedRows, setParsedRows] = useState<ExcelImportRow[]>([]);
   const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
@@ -47,13 +51,11 @@ export default function BulkImportPage() {
 153,سعد الهاجري,Saad Al-Hajri,قسم التربية الإسلامية,+974 5544 5566,123987,GMC,Yukon,كحلي,2021
 154,فهد الكواري,Fahad Al-Kuwari,قسم اللغة العربية,+974 6655 6677,987321,Ford,Expedition,أبيض لؤلؤي,2023`;
 
-  // Download official template
   const handleDownloadTemplate = () => {
     triggerHaptic("medium");
     downloadImportTemplate();
   };
 
-  // Handle file selection (Excel or CSV)
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -66,7 +68,7 @@ export default function BulkImportPage() {
     try {
       const rows = await parseExcelFile(file);
       if (rows.length === 0) {
-        setErrorMessage("الملف المرفوع فارغ أو لا يحتوي على بيانات صالحة");
+        setErrorMessage(L("الملف المرفوع فارغ أو لا يحتوي على بيانات صالحة", "The uploaded file is empty or has no valid rows"));
         triggerHaptic("error");
         return;
       }
@@ -74,14 +76,13 @@ export default function BulkImportPage() {
       await sendValidationRequest(rows);
       triggerHaptic("success");
     } catch (err: any) {
-      setErrorMessage("فشل في قراءة ملف الإكسل: " + (err.message || "تنسيق غير مدعوم"));
+      setErrorMessage(L("فشل في قراءة ملف الإكسل: ", "Failed to read the Excel file: ") + (err.message || L("تنسيق غير مدعوم", "unsupported format")));
       triggerHaptic("error");
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Drag & drop handlers
   const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     const file = e.dataTransfer.files?.[0];
@@ -98,14 +99,13 @@ export default function BulkImportPage() {
       await sendValidationRequest(rows);
       triggerHaptic("success");
     } catch (err: any) {
-      setErrorMessage("فشل في قراءة الملف: " + (err.message || "تنسيق غير مدعوم"));
+      setErrorMessage(L("فشل في قراءة الملف: ", "Failed to read the file: ") + (err.message || L("تنسيق غير مدعوم", "unsupported format")));
       triggerHaptic("error");
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Parse text area CSV
   const handleParseText = async () => {
     const raw = inputText.trim() || sampleCsvData;
     setIsLoading(true);
@@ -114,7 +114,7 @@ export default function BulkImportPage() {
     try {
       const lines = raw.split("\n").map((l) => l.trim()).filter(Boolean);
       if (lines.length <= 1) {
-        setErrorMessage("يرجى إدخال سطر ترويسة وسطر بيانات واحد على الأقل");
+        setErrorMessage(L("يرجى إدخال سطر ترويسة وسطر بيانات واحد على الأقل", "Please provide a header row and at least one data row"));
         return;
       }
 
@@ -130,14 +130,13 @@ export default function BulkImportPage() {
 
       setParsedRows(rows);
       await sendValidationRequest(rows);
-    } catch (err: any) {
-      setErrorMessage("حدث خطأ أثناء معالجة البيانات النصية");
+    } catch {
+      setErrorMessage(L("حدث خطأ أثناء معالجة البيانات النصية", "An error occurred while parsing the text data"));
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Validation API call
   const sendValidationRequest = async (rows: any[]) => {
     setIsLoading(true);
     try {
@@ -149,20 +148,19 @@ export default function BulkImportPage() {
 
       const data = await res.json();
       if (!res.ok || !data.success) {
-        setErrorMessage(data.error || "فشل التحقق من البيانات");
+        setErrorMessage(data.error || L("فشل التحقق من البيانات", "Data validation failed"));
         triggerHaptic("error");
       } else {
         setValidationResult(data);
       }
     } catch {
-      setErrorMessage("تعذر الاتصال بخدمة التحقق");
+      setErrorMessage(L("تعذر الاتصال بخدمة التحقق", "Could not reach the validation service"));
       triggerHaptic("error");
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Commit and write to Supabase
   const handleCommit = async () => {
     if (!parsedRows.length || !validationResult) return;
     setIsLoading(true);
@@ -182,18 +180,17 @@ export default function BulkImportPage() {
         setIsSuccess(true);
         triggerHaptic("success");
       } else {
-        setErrorMessage(data.error || "فشل استيراد البيانات إلى قاعدة البيانات");
+        setErrorMessage(data.error || L("فشل استيراد البيانات إلى قاعدة البيانات", "Failed to import data into the database"));
         triggerHaptic("error");
       }
-    } catch (err: any) {
-      setErrorMessage("حدث خطأ أثناء الاتصال بقاعدة البيانات");
+    } catch {
+      setErrorMessage(L("حدث خطأ أثناء الاتصال بقاعدة البيانات", "An error occurred while connecting to the database"));
       triggerHaptic("error");
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Filter preview rows
   const filteredValidRows = (validationResult?.validRows || []).filter((r: any) => {
     if (!previewFilter) return true;
     const term = previewFilter.toLowerCase();
@@ -208,7 +205,6 @@ export default function BulkImportPage() {
 
   return (
     <div className="relative min-h-screen">
-      {/* Ambient Qatar Maroon Glow Blobs behind glass */}
       <div className="ambient-glow-qatar top-10 start-10 opacity-70" />
       <div className="ambient-glow-qatar bottom-20 end-10 opacity-50" />
 
@@ -220,27 +216,29 @@ export default function BulkImportPage() {
               href="/admin"
               className="inline-flex items-center gap-1.5 text-xs font-bold text-qatar hover:underline mb-2 transition active:scale-95"
             >
-              <ArrowLeft className="h-3.5 w-3.5" />
-              <span>العودة للوحة الإدارة</span>
+              <ArrowLeft className="h-3.5 w-3.5 rtl:rotate-180" />
+              <span>{L("العودة للوحة الإدارة", "Back to dashboard")}</span>
             </Link>
             <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white font-arabic flex items-center gap-2.5">
-              <span>استيراد وتصدير بيانات {config.memberLabel} والسيارات</span>
+              <span>{L(`استيراد وتصدير بيانات ${memberLabel} والسيارات`, `Import & Export ${memberLabel} and Vehicles`)}</span>
               <span className="rounded-full bg-qatar-50 px-2.5 py-0.5 text-xs font-bold text-qatar dark:bg-qatar-950 dark:text-qatar-300">
                 Excel Suite
               </span>
             </h1>
             <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-              استيراد دفعات {config.memberLabel} وسياراتهم من ملفات Excel (.xlsx) و CSV مع التحقق الفوري ومنع التكرار
+              {L(
+                `استيراد دفعات ${memberLabel} وسياراتهم من ملفات Excel (.xlsx) و CSV مع التحقق الفوري ومنع التكرار`,
+                `Bulk-import ${memberLabel} and their vehicles from Excel (.xlsx) and CSV files with live validation and duplicate prevention`
+              )}
             </p>
           </div>
 
-          {/* Download Official Template Button */}
           <button
             onClick={handleDownloadTemplate}
             className="glass-btn-secondary inline-flex items-center gap-2 rounded-2xl px-4 py-3 text-xs font-bold text-slate-800 dark:text-slate-100 shadow-sm"
           >
             <Download className="h-4 w-4 text-qatar" />
-            <span>تحميل نموذج Excel المعتمد (.xlsx)</span>
+            <span>{L("تحميل نموذج Excel المعتمد (.xlsx)", "Download official Excel template (.xlsx)")}</span>
           </button>
         </div>
 
@@ -252,7 +250,6 @@ export default function BulkImportPage() {
         )}
 
         {isSuccess ? (
-          /* Success Card */
           <div className="glass-panel rounded-3xl p-8 sm:p-12 text-center space-y-5">
             <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl bg-emerald-100 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400 shadow-lg shadow-emerald-500/20 ring-4 ring-emerald-500/10 animate-in zoom-in-75 duration-300">
               <CheckCircle2 className="h-10 w-10" />
@@ -260,10 +257,13 @@ export default function BulkImportPage() {
 
             <div>
               <h2 className="text-2xl font-black text-slate-900 dark:text-white font-arabic">
-                تم استيراد وحفظ {successCount} سجل ومركبة بنجاح!
+                {L(`تم استيراد وحفظ ${successCount} سجل ومركبة بنجاح!`, `Successfully imported ${successCount} records and vehicles!`)}
               </h2>
               <p className="mt-2 text-xs sm:text-sm text-slate-500 max-w-md mx-auto">
-                تمت مزامنة كافة بيانات {config.memberLabel}، {config.unitLabelPlural}، والأرقام الوطنية للوحات وتوثيق العملية في سجل التدقيق المعتمد.
+                {L(
+                  `تمت مزامنة كافة بيانات ${memberLabel}، ${unitPlural}، والأرقام الوطنية للوحات وتوثيق العملية في سجل التدقيق المعتمد.`,
+                  `All ${memberLabel}, ${unitPlural} and plate numbers were synced and the action was recorded in the audit log.`
+                )}
               </p>
             </div>
 
@@ -272,7 +272,7 @@ export default function BulkImportPage() {
                 href="/admin/vehicles"
                 className="glass-btn-primary rounded-2xl px-6 py-3 text-xs font-bold shadow-lg"
               >
-                عرض دليل السيارات المحدّث
+                {L("عرض دليل السيارات المحدّث", "View the updated vehicle directory")}
               </Link>
 
               <button
@@ -285,12 +285,11 @@ export default function BulkImportPage() {
                 }}
                 className="glass-btn-secondary rounded-2xl px-5 py-3 text-xs font-bold text-slate-700 dark:text-slate-200"
               >
-                استيراد ملف إكسل آخر
+                {L("استيراد ملف إكسل آخر", "Import another Excel file")}
               </button>
             </div>
           </div>
         ) : (
-          /* Main Import & Validation Section */
           <div className="space-y-6">
             {/* Drag & Drop Glass Zone */}
             <div
@@ -312,10 +311,13 @@ export default function BulkImportPage() {
 
               <div>
                 <h3 className="text-base font-black text-slate-900 dark:text-white font-arabic">
-                  اسحب وأفلت ملف Excel (.xlsx) أو انقر للاختيار
+                  {L("اسحب وأفلت ملف Excel (.xlsx) أو انقر للاختيار", "Drag & drop an Excel (.xlsx) file or click to choose")}
                 </h3>
                 <p className="mt-1 text-xs text-slate-500">
-                  يدعم ملفات Microsoft Excel (.xlsx, .xls) وقوائم CSV مع المعاينة والتحقق المباشر
+                  {L(
+                    "يدعم ملفات Microsoft Excel (.xlsx, .xls) وقوائم CSV مع المعاينة والتحقق المباشر",
+                    "Supports Microsoft Excel (.xlsx, .xls) and CSV lists with live preview and validation"
+                  )}
                 </p>
               </div>
 
@@ -327,7 +329,7 @@ export default function BulkImportPage() {
                   className="glass-btn-primary rounded-2xl px-5 py-2.5 text-xs font-bold"
                 >
                   <FileUp className="inline-block h-4 w-4 me-1.5" />
-                  <span>{isLoading ? "جارٍ فحص الملف..." : "اختيار ملف من جهازك"}</span>
+                  <span>{isLoading ? L("جارٍ فحص الملف...", "Scanning file...") : L("اختيار ملف من جهازك", "Choose a file from your device")}</span>
                 </button>
 
                 <button
@@ -339,14 +341,14 @@ export default function BulkImportPage() {
                   className="glass-btn-secondary rounded-2xl px-4 py-2.5 text-xs font-bold text-slate-700 dark:text-slate-200"
                 >
                   <Sparkles className="inline-block h-3.5 w-3.5 text-amber-500 me-1" />
-                  <span>تجربة فورية ببيانات معتمدة</span>
+                  <span>{L("تجربة فورية ببيانات معتمدة", "Instant try with sample data")}</span>
                 </button>
               </div>
 
               {uploadedFileName && (
                 <div className="mt-2 inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700 border border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-800">
                   <Check className="h-3.5 w-3.5" />
-                  <span>الملف المختار: {uploadedFileName}</span>
+                  <span>{L("الملف المختار:", "Selected file:")} {uploadedFileName}</span>
                 </div>
               )}
             </div>
@@ -354,41 +356,38 @@ export default function BulkImportPage() {
             {/* Validation Results & Preview Table */}
             {validationResult && (
               <div className="glass-panel rounded-3xl p-6 shadow-sm space-y-5">
-                {/* Status Bar */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/80 pb-4 dark:border-slate-800">
                   <div>
                     <h3 className="text-base font-black text-slate-900 dark:text-white font-arabic">
-                      نتائج فحص وتدقيق الملف ({validationResult.totalRows} صفوف)
+                      {L(`نتائج فحص وتدقيق الملف (${validationResult.totalRows} صفوف)`, `File validation results (${validationResult.totalRows} rows)`)}
                     </h3>
                     <p className="text-xs text-slate-500 mt-0.5">
-                      تم فحص سلامة الأرقام الوظيفية واللوحات القطرية ومنع التكرار
+                      {L("تم فحص سلامة الأرقام الوظيفية واللوحات القطرية ومنع التكرار", "Employee IDs and Qatari plates were validated and duplicates prevented")}
                     </p>
                   </div>
 
-                  {/* Summary Badges */}
                   <div className="flex items-center gap-2">
                     <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700 border border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-800">
                       <CheckCircle2 className="h-3.5 w-3.5" />
-                      جاهز: {validationResult.readyCount}
+                      {L("جاهز:", "Ready:")} {validationResult.readyCount}
                     </span>
 
                     {validationResult.warningCount > 0 && (
                       <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-700 border border-amber-200 dark:bg-amber-950/50 dark:text-amber-300 dark:border-amber-800">
                         <AlertTriangle className="h-3.5 w-3.5" />
-                        تنبيهات: {validationResult.warningCount}
+                        {L("تنبيهات:", "Warnings:")} {validationResult.warningCount}
                       </span>
                     )}
 
                     {validationResult.errorCount > 0 && (
                       <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-50 px-3 py-1 text-xs font-bold text-rose-700 border border-rose-200 dark:bg-rose-950/50 dark:text-rose-300 dark:border-rose-800">
                         <XCircle className="h-3.5 w-3.5" />
-                        أخطاء: {validationResult.errorCount}
+                        {L("أخطاء:", "Errors:")} {validationResult.errorCount}
                       </span>
                     )}
                   </div>
                 </div>
 
-                {/* Filter & Search inside Preview */}
                 <div className="flex items-center gap-2">
                   <div className="relative flex-1">
                     <Search className="absolute start-3 top-2.5 h-3.5 w-3.5 text-slate-400" />
@@ -396,7 +395,7 @@ export default function BulkImportPage() {
                       type="text"
                       value={previewFilter}
                       onChange={(e) => setPreviewFilter(e.target.value)}
-                      placeholder="تصفية المعاينة باسم الموظف أو رقم اللوحة..."
+                      placeholder={L("تصفية المعاينة باسم الموظف أو رقم اللوحة...", "Filter the preview by member name or plate number...")}
                       className="w-full rounded-xl border border-slate-200/80 bg-white/70 ps-9 pe-3 py-2 text-xs font-medium focus:border-qatar focus:outline-none dark:border-slate-800 dark:bg-slate-900/70"
                     />
                   </div>
@@ -405,42 +404,35 @@ export default function BulkImportPage() {
                     type="button"
                     onClick={() => exportVehiclesToExcel(validationResult.validRows, "HARRIK_Validated_Preview.xlsx")}
                     className="glass-btn-secondary rounded-xl px-3 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 inline-flex items-center gap-1.5"
-                    title="تصدير هذه المعاينة لملف إكسل"
+                    title={L("تصدير هذه المعاينة لملف إكسل", "Export this preview to Excel")}
                   >
                     <Download className="h-3.5 w-3.5 text-qatar" />
-                    <span className="hidden sm:inline">تصدير المعاينة</span>
+                    <span className="hidden sm:inline">{L("تصدير المعاينة", "Export preview")}</span>
                   </button>
                 </div>
 
-                {/* Table View */}
                 <div className="overflow-hidden rounded-2xl border border-slate-200/80 dark:border-slate-800">
                   <div className="overflow-x-auto max-h-[380px]">
-                    <table className="w-full text-right text-xs">
+                    <table className="w-full text-start text-xs">
                       <thead className="sticky top-0 bg-slate-100/90 dark:bg-slate-800/90 backdrop-blur font-bold text-slate-600 dark:text-slate-300">
                         <tr>
-                          <th className="px-3 py-2.5">الرقم الوظيفي</th>
-                          <th className="px-3 py-2.5">الموظف</th>
-                          <th className="px-3 py-2.5">القسم</th>
-                          <th className="px-3 py-2.5">الجوال</th>
-                          <th className="px-3 py-2.5">رقم اللوحة</th>
-                          <th className="px-3 py-2.5">اللوحة المعيارية</th>
-                          <th className="px-3 py-2.5">السيارة</th>
-                          <th className="px-3 py-2.5">الحالة</th>
+                          <th className="px-3 py-2.5 text-start">{L("الرقم الوظيفي", "Employee ID")}</th>
+                          <th className="px-3 py-2.5 text-start">{L("الموظف", "Member")}</th>
+                          <th className="px-3 py-2.5 text-start">{L("القسم", "Department")}</th>
+                          <th className="px-3 py-2.5 text-start">{L("الجوال", "Mobile")}</th>
+                          <th className="px-3 py-2.5 text-start">{L("رقم اللوحة", "Plate")}</th>
+                          <th className="px-3 py-2.5 text-start">{L("اللوحة المعيارية", "Normalized")}</th>
+                          <th className="px-3 py-2.5 text-start">{L("السيارة", "Vehicle")}</th>
+                          <th className="px-3 py-2.5 text-start">{L("الحالة", "Status")}</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100 dark:divide-slate-800 bg-white/40 dark:bg-slate-900/40">
                         {filteredValidRows.map((r: any, idx: number) => (
                           <tr key={idx} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/60 transition">
                             <td className="px-3 py-2 font-mono font-bold text-slate-500">#{r.employee_id}</td>
-                            <td className="px-3 py-2 font-bold text-slate-900 dark:text-white font-arabic">
-                              {r.name_ar}
-                            </td>
-                            <td className="px-3 py-2 text-slate-600 dark:text-slate-400 font-arabic">
-                              {r.department}
-                            </td>
-                            <td className="px-3 py-2 font-mono numeric-plate text-slate-600 dark:text-slate-400">
-                              {r.mobile}
-                            </td>
+                            <td className="px-3 py-2 font-bold text-slate-900 dark:text-white font-arabic">{r.name_ar}</td>
+                            <td className="px-3 py-2 text-slate-600 dark:text-slate-400 font-arabic">{r.department}</td>
+                            <td className="px-3 py-2 font-mono numeric-plate text-slate-600 dark:text-slate-400">{r.mobile}</td>
                             <td className="px-3 py-2 font-mono font-black text-qatar">{r.plate_number}</td>
                             <td className="px-3 py-2 font-mono text-slate-400">{r.normalized_plate}</td>
                             <td className="px-3 py-2 font-medium">
@@ -449,7 +441,7 @@ export default function BulkImportPage() {
                             <td className="px-3 py-2">
                               <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
                                 <ShieldCheck className="h-3 w-3" />
-                                معتمد
+                                {L("معتمد", "Verified")}
                               </span>
                             </td>
                           </tr>
@@ -459,12 +451,11 @@ export default function BulkImportPage() {
                   </div>
                 </div>
 
-                {/* Final Action Bar */}
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
                   <span className="text-xs text-slate-500">
                     {validationResult.errorCount === 0
-                      ? "كافة الأسطر تم التحقق منها وجاهزة للحفظ المباشر."
-                      : "يرجى تصحيح الأخطاء المشار إليها قبل تأكيد الحفظ."}
+                      ? L("كافة الأسطر تم التحقق منها وجاهزة للحفظ المباشر.", "All rows are validated and ready to save.")
+                      : L("يرجى تصحيح الأخطاء المشار إليها قبل تأكيد الحفظ.", "Please fix the highlighted errors before confirming.")}
                   </span>
 
                   <button
@@ -472,7 +463,7 @@ export default function BulkImportPage() {
                     disabled={isLoading || validationResult.errorCount > 0}
                     className="glass-btn-primary w-full sm:w-auto rounded-2xl px-6 py-3.5 text-xs font-bold disabled:opacity-50"
                   >
-                    {isLoading ? "جارٍ الحفظ في Supabase..." : "تأكيد واستيراد البيانات إلى النظام"}
+                    {isLoading ? L("جارٍ الحفظ في Supabase...", "Saving to Supabase...") : L("تأكيد واستيراد البيانات إلى النظام", "Confirm & import data into the system")}
                   </button>
                 </div>
               </div>

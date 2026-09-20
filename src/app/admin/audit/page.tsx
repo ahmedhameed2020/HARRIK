@@ -2,11 +2,14 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { ArrowLeft, ShieldAlert, Filter, RefreshCw, Calendar, User, FileText, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, ShieldAlert, Filter, RefreshCw, CheckCircle2, FileText } from "lucide-react";
 import { AuditLog } from "@/types";
 import { triggerHaptic } from "@/lib/haptics";
+import { useLocale } from "@/contexts/LocaleContext";
 
 export default function AdminAuditPage() {
+  const { lang } = useLocale();
+  const L = (ar: string, en: string) => (lang === "ar" ? ar : en);
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [actionFilter, setActionFilter] = useState("ALL");
@@ -34,26 +37,29 @@ export default function AdminAuditPage() {
 
   useEffect(() => {
     fetchLogs();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [actionFilter, entityFilter]);
+
+  const badgeClass = "rounded-full px-2.5 py-1 text-xs font-bold";
 
   const getActionBadge = (action: string) => {
     switch (action) {
       case "create_staff":
-        return <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">إضافة موظف</span>;
+        return <span className={`${badgeClass} bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300`}>{L("إضافة موظف", "Add staff")}</span>;
       case "update_staff":
-        return <span className="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-700 dark:bg-blue-950 dark:text-blue-300">تعديل موظف</span>;
+        return <span className={`${badgeClass} bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300`}>{L("تعديل موظف", "Edit staff")}</span>;
       case "toggle_staff_status":
-        return <span className="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-700 dark:bg-amber-950 dark:text-amber-300">تغيير حالة موظف</span>;
+        return <span className={`${badgeClass} bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300`}>{L("تغيير حالة موظف", "Toggle staff status")}</span>;
       case "create_vehicle":
-        return <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">إضافة سيارة</span>;
+        return <span className={`${badgeClass} bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300`}>{L("إضافة سيارة", "Add vehicle")}</span>;
       case "update_vehicle":
-        return <span className="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-700 dark:bg-blue-950 dark:text-blue-300">تعديل سيارة</span>;
+        return <span className={`${badgeClass} bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300`}>{L("تعديل سيارة", "Edit vehicle")}</span>;
       case "reassign_vehicle":
-        return <span className="rounded-full bg-purple-50 px-2.5 py-1 text-xs font-bold text-purple-700 dark:bg-purple-950 dark:text-purple-300">إعادة تعيين المالك</span>;
+        return <span className={`${badgeClass} bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-300`}>{L("إعادة تعيين المالك", "Reassign owner")}</span>;
       case "create_department":
-        return <span className="rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-bold text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">إضافة قسم</span>;
+        return <span className={`${badgeClass} bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300`}>{L("إضافة قسم", "Add department")}</span>;
       default:
-        return <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-700 dark:bg-slate-800 dark:text-slate-300">{action}</span>;
+        return <span className={`${badgeClass} bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300`}>{action}</span>;
     }
   };
 
@@ -66,17 +72,20 @@ export default function AdminAuditPage() {
             href="/admin"
             className="inline-flex items-center gap-1.5 text-xs font-bold text-qatar hover:underline mb-2 transition active:scale-95"
           >
-            <ArrowLeft className="h-3.5 w-3.5" />
-            <span>العودة للوحة الإدارة</span>
+            <ArrowLeft className="h-3.5 w-3.5 rtl:rotate-180" />
+            <span>{L("العودة للوحة الإدارة", "Back to dashboard")}</span>
           </Link>
           <div className="flex items-center gap-2">
             <ShieldAlert className="h-6 w-6 text-qatar" />
             <h1 className="text-2xl font-black text-slate-900 dark:text-white font-arabic">
-              سجل التدقيق والأمان والامتثال
+              {L("سجل التدقيق والأمان والامتثال", "Security & Compliance Audit Log")}
             </h1>
           </div>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-            سجل توثيقي للعمليات الإدارية الحساسة لحماية الخصوصية ومطابقة المعايير الأمنية
+            {L(
+              "سجل توثيقي للعمليات الإدارية الحساسة لحماية الخصوصية ومطابقة المعايير الأمنية",
+              "A verifiable record of sensitive administrative operations for privacy and compliance"
+            )}
           </p>
         </div>
 
@@ -86,7 +95,7 @@ export default function AdminAuditPage() {
           className="inline-flex items-center gap-2 rounded-2xl border border-slate-200/80 bg-white/80 px-4 py-2.5 text-xs font-bold text-slate-700 shadow-sm backdrop-blur transition active:scale-95 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900/80 dark:text-slate-200"
         >
           <RefreshCw className={`h-4 w-4 text-qatar ${isLoading ? "animate-spin" : ""}`} />
-          <span>تحديث السجل</span>
+          <span>{L("تحديث السجل", "Refresh log")}</span>
         </button>
       </div>
 
@@ -94,15 +103,15 @@ export default function AdminAuditPage() {
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-xs font-bold text-slate-400 flex items-center gap-1 ms-1">
           <Filter className="h-3.5 w-3.5" />
-          <span>تصفية:</span>
+          <span>{L("تصفية:", "Filter:")}</span>
         </span>
 
         {[
-          { id: "ALL", label: "كافة العمليات" },
-          { id: "create_staff", label: "إضافة موظف" },
-          { id: "update_staff", label: "تعديل موظف" },
-          { id: "create_vehicle", label: "إضافة سيارة" },
-          { id: "reassign_vehicle", label: "إعادة تعيين مالك" },
+          { id: "ALL", label: L("كافة العمليات", "All actions") },
+          { id: "create_staff", label: L("إضافة موظف", "Add staff") },
+          { id: "update_staff", label: L("تعديل موظف", "Edit staff") },
+          { id: "create_vehicle", label: L("إضافة سيارة", "Add vehicle") },
+          { id: "reassign_vehicle", label: L("إعادة تعيين مالك", "Reassign owner") },
         ].map((tab) => (
           <button
             key={tab.id}
@@ -126,16 +135,16 @@ export default function AdminAuditPage() {
         {isLoading ? (
           <div className="py-16 text-center text-slate-400">
             <RefreshCw className="h-6 w-6 animate-spin mx-auto text-qatar" />
-            <p className="mt-2 text-xs font-bold">جاري تحميل سجل التدقيق...</p>
+            <p className="mt-2 text-xs font-bold">{L("جاري تحميل سجل التدقيق...", "Loading audit log...")}</p>
           </div>
         ) : logs.length === 0 ? (
           <div className="py-16 text-center text-slate-400">
             <CheckCircle2 className="h-8 w-8 mx-auto text-emerald-500 opacity-60" />
             <p className="mt-2 text-sm font-bold text-slate-700 dark:text-slate-300">
-              لا توجد عمليات مسجلة تطابق التصفية
+              {L("لا توجد عمليات مسجلة تطابق التصفية", "No recorded actions match the filter")}
             </p>
             <p className="text-xs text-slate-400 mt-0.5">
-              كل العمليات الإدارية الحساسة تسجل هنا تلقائياً
+              {L("كل العمليات الإدارية الحساسة تسجل هنا تلقائياً", "All sensitive administrative actions are logged here automatically")}
             </p>
           </div>
         ) : (
@@ -153,24 +162,24 @@ export default function AdminAuditPage() {
                     <div className="flex items-center gap-2 flex-wrap">
                       {getActionBadge(log.action)}
                       <span className="text-xs font-bold text-slate-900 dark:text-white">
-                        بواسطة: {log.actor?.name_ar || log.actor?.name_en || "مدير النظام"}
+                        {L("بواسطة:", "By:")} {log.actor?.name_ar || log.actor?.name_en || L("مدير النظام", "System admin")}
                       </span>
                       {log.actor?.employee_id && (
                         <span className="text-[10px] text-slate-400 font-mono">
-                          (رقم: {log.actor.employee_id})
+                          ({L("رقم", "ID")}: {log.actor.employee_id})
                         </span>
                       )}
                     </div>
                     {(log.change_summary || log.new_values) && (() => {
-                      const details = log.change_summary || log.new_values;
+                      const details: any = log.change_summary || log.new_values;
                       return (
                         <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                          {log.action === "create_vehicle" && `تمت إضافة اللوحة: ${details?.plate_number || details?.normalized_plate}`}
-                          {log.action === "reassign_vehicle" && `تم إعادة تعيين ملكية السيارة`}
-                          {log.action === "create_staff" && `تمت إضافة الموظف: ${details?.name_ar || ""} ${details?.employee_id ? `(رقم: ${details.employee_id})` : ""}`}
-                          {log.action === "update_staff" && `تم تعديل بيانات الموظف بنجاح`}
-                          {log.action === "toggle_staff_status" && `تم تعديل حالة تفعيل الحساب`}
-                          {log.action === "create_department" && `تمت إضافة قسم: ${details?.name_ar}`}
+                          {log.action === "create_vehicle" && L(`تمت إضافة اللوحة: ${details?.plate_number || details?.normalized_plate}`, `Plate added: ${details?.plate_number || details?.normalized_plate}`)}
+                          {log.action === "reassign_vehicle" && L("تم إعادة تعيين ملكية السيارة", "Vehicle ownership reassigned")}
+                          {log.action === "create_staff" && L(`تمت إضافة الموظف: ${details?.name_ar || ""} ${details?.employee_id ? `(رقم: ${details.employee_id})` : ""}`, `Staff added: ${details?.name_en || details?.name_ar || ""} ${details?.employee_id ? `(ID: ${details.employee_id})` : ""}`)}
+                          {log.action === "update_staff" && L("تم تعديل بيانات الموظف بنجاح", "Staff record updated successfully")}
+                          {log.action === "toggle_staff_status" && L("تم تعديل حالة تفعيل الحساب", "Account activation status changed")}
+                          {log.action === "create_department" && L(`تمت إضافة قسم: ${details?.name_ar}`, `Department added: ${details?.name_en || details?.name_ar}`)}
                         </p>
                       );
                     })()}
@@ -178,7 +187,7 @@ export default function AdminAuditPage() {
                 </div>
 
                 <div className="text-start sm:text-end text-[11px] text-slate-400 font-mono">
-                  {new Date(log.created_at).toLocaleString("ar-QA", {
+                  {new Date(log.created_at).toLocaleString(lang === "ar" ? "ar-QA" : "en-US", {
                     month: "short",
                     day: "numeric",
                     hour: "2-digit",

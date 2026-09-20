@@ -11,6 +11,7 @@ export interface ImportRow {
   name_ar?: string;
   department?: string;
   mobile?: string;
+  email?: string;
   plate_number: string;
   vehicle_make?: string;
   vehicle_model?: string;
@@ -28,6 +29,16 @@ export interface ValidationWarning {
   row: number;
   field: string;
   message: string;
+}
+
+/** Generates a strong, non-guessable password (never a shared default). */
+function generateStrongPassword(): string {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%";
+  const bytes = new Uint8Array(20);
+  crypto.getRandomValues(bytes);
+  let out = "";
+  for (let i = 0; i < bytes.length; i++) out += chars[bytes[i] % chars.length];
+  return out;
 }
 
 export async function POST(request: NextRequest) {
@@ -238,13 +249,14 @@ export async function POST(request: NextRequest) {
           })
           .eq("id", staffId);
       } else {
-        // Create auth user and profile
+        // Create auth user and profile (random secret — never a shared default)
         const sanitizedEmp = item.employee_id.toLowerCase().replace(/[^a-z0-9]/g, "");
-        const staffEmail = `staff_${sanitizedEmp}@school.edu.qa`;
+        const staffEmail = item.email || `staff_${sanitizedEmp}@harrik.local`;
+        const randomPassword = generateStrongPassword();
 
         const { data: authData, error: authErr } = await adminClient.auth.admin.createUser({
           email: staffEmail,
-          password: "Password123!",
+          password: randomPassword,
           email_confirm: true,
           user_metadata: {
             name_ar: item.name_ar,
