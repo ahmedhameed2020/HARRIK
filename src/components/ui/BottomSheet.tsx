@@ -74,22 +74,22 @@ export function BottomSheet({
             initial={shouldReduceMotion ? undefined : "hidden"}
             animate={shouldReduceMotion ? undefined : "visible"}
             exit={shouldReduceMotion ? undefined : "exit"}
-            className="relative z-10 w-full sm:max-w-lg rounded-t-[28px] sm:rounded-[24px] border-t sm:border border-slate-200/90 bg-white dark:bg-surface-card dark:border-slate-800 p-5 sm:p-6 shadow-2xl max-h-[92vh] overflow-y-auto pb-[max(1.5rem,env(safe-area-inset-bottom))]"
+            className="surface-glass relative z-10 w-full max-h-[92vh] overflow-y-auto rounded-t-surface border-t border-slate-200/90 p-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] shadow-float sm:max-w-lg sm:rounded-surface sm:border sm:p-6 dark:border-slate-800"
           >
             {/* Grab Handle */}
-            <div className="mx-auto -mt-1 mb-4 h-1.5 w-12 rounded-full bg-slate-300 dark:bg-slate-700 sm:hidden" />
+            <div className="mx-auto -mt-1 mb-4 h-1.5 w-12 rounded-pill bg-slate-300/80 dark:bg-slate-700 sm:hidden" />
 
             {/* Header */}
             {(title || showCloseButton) && (
-              <div className="mb-4 flex items-start justify-between gap-4">
+              <div className="mb-5 flex items-start justify-between gap-4">
                 <div>
                   {title && (
-                    <h3 className="text-xl font-black tracking-tight text-slate-950 dark:text-white font-arabic">
+                    <h3 className="heading-section font-arabic">
                       {title}
                     </h3>
                   )}
                   {subtitle && (
-                    <p className="mt-0.5 text-xs font-semibold text-slate-500 dark:text-slate-400">
+                    <p className="mt-1 text-caption font-semibold text-slate-500 dark:text-slate-400">
                       {subtitle}
                     </p>
                   )}
@@ -102,10 +102,10 @@ export function BottomSheet({
                       triggerHaptic("light");
                       onClose();
                     }}
-                    className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition hover:bg-slate-200 active:scale-95 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700"
+                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-slate-100/80 text-slate-500 transition-all duration-200 hover:bg-slate-200 hover:text-slate-700 active:scale-95 dark:bg-slate-800/70 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200"
                     aria-label="Close"
                   >
-                    <X className="h-4 w-4" />
+                    <X className="h-4 w-4" aria-hidden="true" />
                   </button>
                 )}
               </div>

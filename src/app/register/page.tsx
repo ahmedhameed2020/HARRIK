@@ -360,7 +360,7 @@ export default function RegisterPage() {
 }
 
 const inputClass =
-  "w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:border-qatar focus:outline-none focus:ring-2 focus:ring-qatar/20 dark:border-slate-800 dark:bg-slate-900 dark:text-white";
+  "field";
 
 function Field({
   label,

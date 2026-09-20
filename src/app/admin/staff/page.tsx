@@ -396,17 +396,24 @@ export default function StaffDirectoryPage() {
         {isLoading ? (
           <TableSkeleton rows={6} cols={5} />
         ) : filteredStaff.length === 0 ? (
-          <div className="py-20 text-center text-slate-400">
-            <AlertCircle className="h-8 w-8 mx-auto text-slate-300 dark:text-slate-600" />
-            <p className="mt-2 text-sm font-bold text-slate-700 dark:text-slate-300">
+          <div className="surface-card flex flex-col items-center justify-center px-6 py-20 text-center">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500">
+              <AlertCircle className="h-6 w-6" aria-hidden="true" />
+            </div>
+            <p className="mt-4 text-body font-bold text-slate-800 dark:text-slate-200">
               {staffList.length === 0 ? emptyState : L(`لا يوجد ${memberSingle} يطابق معايير البحث`, `No ${memberSingle} matches the search criteria`)}
+            </p>
+            <p className="mt-1 max-w-sm text-caption text-slate-500 dark:text-slate-400">
+              {staffList.length === 0
+                ? L("ابدأ بإضافة فرد مصرح له أو استورد قائمة Excel.", "Add a member or import an Excel sheet to get started.")
+                : L("جرّب تعديل كلمة البحث أو الفلاتر.", "Try adjusting the search term or filters.")}
             </p>
           </div>
         ) : (
-          <div className="glass-panel overflow-hidden rounded-3xl shadow-sm">
+          <div className="surface-card overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-start text-xs text-slate-600 dark:text-slate-300">
-                <thead className="border-b border-slate-100 bg-slate-100/70 text-[11px] font-bold text-slate-600 dark:border-slate-800 dark:bg-slate-800/60 dark:text-slate-300">
+                <thead className="border-b border-slate-200 bg-slate-50/70 text-[11px] font-bold text-slate-500 dark:border-slate-800 dark:bg-slate-900/40 dark:text-slate-400">
                   <tr>
                     <th className="px-5 py-3.5 text-start">{identifierLabel}</th>
                     <th className="px-5 py-3.5 text-start">{L("الاسم", "Name")}</th>
@@ -418,9 +425,9 @@ export default function StaffDirectoryPage() {
                     <th className="px-5 py-3.5 text-center">{L("الإجراءات", "Actions")}</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800 bg-white/40 dark:bg-slate-900/40">
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                   {filteredStaff.map((staff) => (
-                    <tr key={staff.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/60 transition">
+                    <tr key={staff.id} className="transition-colors hover:bg-slate-50/70 dark:hover:bg-slate-800/40">
                       <td className="px-5 py-4 font-mono font-bold text-slate-600 dark:text-slate-400">
                         #{staff.employee_id}
                       </td>

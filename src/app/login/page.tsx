@@ -287,7 +287,7 @@ function LoginForm() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="name@organization.com"
-                className="w-full rounded-2xl border border-slate-200 bg-white ps-10 pe-4 py-3.5 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:border-qatar focus:outline-none focus:ring-2 focus:ring-qatar/20 dark:border-slate-800 dark:bg-slate-900 dark:text-white"
+                className="field ps-10 pe-4"
               />
             </div>
           </div>
@@ -307,7 +307,7 @@ function LoginForm() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full rounded-2xl border border-slate-200 bg-white ps-10 pe-12 py-3.5 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:border-qatar focus:outline-none focus:ring-2 focus:ring-qatar/20 dark:border-slate-800 dark:bg-slate-900 dark:text-white"
+                className="field ps-10 pe-12"
               />
               <button
                 type="button"
