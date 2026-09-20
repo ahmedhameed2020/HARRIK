@@ -77,21 +77,23 @@ export function Navbar({
             href="/"
             onClick={() => triggerHaptic("selection")}
             aria-current={isSearch ? "page" : undefined}
-            className={`flex items-center gap-2 rounded-pill px-4 py-2 text-xs font-bold transition-all duration-200 ${
+            aria-label={t.navSearch}
+            className={`flex shrink-0 items-center gap-2 whitespace-nowrap rounded-pill px-3.5 py-2 text-xs font-bold transition-all duration-200 lg:px-4 ${
               isSearch
                 ? "bg-white text-qatar shadow-soft dark:bg-slate-800 dark:text-qatar-300"
                 : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
             }`}
           >
             <Search className="h-4 w-4" aria-hidden="true" />
-            {t.navSearch}
+            <span className="hidden lg:inline">{t.navSearch}</span>
           </Link>
 
           <Link
             href="/inbox"
             onClick={() => triggerHaptic("selection")}
             aria-current={isInbox ? "page" : undefined}
-            className={`flex items-center gap-2 rounded-pill px-4 py-2 text-xs font-bold transition-all duration-200 ${
+            aria-label={t.navInbox}
+            className={`flex shrink-0 items-center gap-2 whitespace-nowrap rounded-pill px-3.5 py-2 text-xs font-bold transition-all duration-200 lg:px-4 ${
               isInbox
                 ? "bg-white text-qatar shadow-soft dark:bg-slate-800 dark:text-qatar-300"
                 : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
@@ -112,21 +114,22 @@ export function Navbar({
                 </span>
               )}
             </div>
-            {t.navInbox}
+            <span className="hidden lg:inline">{t.navInbox}</span>
           </Link>
 
           <Link
             href="/profile"
             onClick={() => triggerHaptic("selection")}
             aria-current={pathname === "/profile" ? "page" : undefined}
-            className={`flex items-center gap-2 rounded-pill px-4 py-2 text-xs font-bold transition-all duration-200 ${
+            aria-label={lang === "ar" ? "ملفي ومركباتي" : "My Vehicles"}
+            className={`flex shrink-0 items-center gap-2 whitespace-nowrap rounded-pill px-3.5 py-2 text-xs font-bold transition-all duration-200 lg:px-4 ${
               pathname === "/profile"
                 ? "bg-white text-qatar shadow-soft dark:bg-slate-800 dark:text-qatar-300"
                 : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
             }`}
           >
             <User className="h-4 w-4" aria-hidden="true" />
-            <span>{lang === "ar" ? "ملفي ومركباتي" : "My Vehicles"}</span>
+            <span className="hidden lg:inline">{lang === "ar" ? "ملفي ومركباتي" : "My Vehicles"}</span>
           </Link>
 
           {canAccessAdmin && (
@@ -134,14 +137,15 @@ export function Navbar({
               href="/admin"
               onClick={() => triggerHaptic("selection")}
               aria-current={isAdminPath ? "page" : undefined}
-              className={`flex items-center gap-2 rounded-pill px-4 py-2 text-xs font-bold transition-all duration-200 ${
+            aria-label={t.navAdmin}
+              className={`flex shrink-0 items-center gap-2 whitespace-nowrap rounded-pill px-3.5 py-2 text-xs font-bold transition-all duration-200 lg:px-4 ${
                 isAdminPath
                   ? "bg-white text-qatar shadow-soft dark:bg-slate-800 dark:text-qatar-300"
                   : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
               }`}
             >
               <Shield className="h-4 w-4" aria-hidden="true" />
-              {t.navAdmin}
+              <span className="hidden lg:inline">{t.navAdmin}</span>
             </Link>
           )}
         </nav>

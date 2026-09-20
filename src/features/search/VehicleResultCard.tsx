@@ -81,10 +81,10 @@ export function VehicleResultCard({
       initial={shouldReduceMotion ? undefined : "hidden"}
       animate={shouldReduceMotion ? undefined : "visible"}
       exit={shouldReduceMotion ? undefined : "exit"}
-      className="overflow-hidden rounded-[24px] bg-white dark:bg-surface-card border border-slate-200/90 dark:border-slate-800 shadow-xl transition-colors"
+      className="surface-card overflow-hidden rounded-[24px] shadow-card transition-colors"
     >
       {/* 1. Header Banner — Plate & Primary Vehicle Identity */}
-      <div className="border-b border-slate-200/80 dark:border-slate-800/80 bg-slate-50/70 dark:bg-surface-raised/50 p-4 sm:p-5">
+      <div className="border-b border-line bg-surface-sunken/60 p-4 sm:p-5">
         <div className="flex flex-col gap-3">
           {/* Top Row: Plate + Primary Badge */}
           <div className="flex items-center justify-between gap-3">
@@ -100,7 +100,7 @@ export function VehicleResultCard({
 
           {/* Vehicle Make, Model & Color */}
           <div>
-            <h3 className="text-xl sm:text-2xl font-black text-slate-950 dark:text-white font-arabic">
+            <h3 className="text-h1 font-extrabold font-arabic">
               {vehicle.make} {vehicle.model}
             </h3>
             <p className="text-xs sm:text-sm font-semibold text-slate-500 dark:text-slate-400 mt-0.5">
@@ -112,10 +112,10 @@ export function VehicleResultCard({
 
       {/* 2. Owner Information Section (Respecting Privacy Mode) */}
       <div className="p-4 sm:p-5">
-        <div className="rounded-[18px] bg-slate-50/80 dark:bg-surface-raised/60 p-3.5 sm:p-4 border border-slate-200/70 dark:border-slate-800">
+        <div className="rounded-card border border-line bg-surface-sunken/50 p-3.5 sm:p-4">
           <div className="flex items-center gap-3.5">
             {/* Avatar with Initials */}
-            <div className="flex h-11 w-11 sm:h-12 sm:w-12 flex-shrink-0 items-center justify-center rounded-[14px] bg-[#8a1538] text-white font-bold font-arabic shadow-sm">
+            <div className="flex h-11 w-11 sm:h-12 sm:w-12 flex-shrink-0 items-center justify-center rounded-control bg-qatar text-white font-bold font-arabic shadow-soft">
               <span className="text-sm">
                 {ownerName ? getInitials(ownerName) : visibility === "anonymous" ? <Lock className="h-5 w-5" /> : <User className="h-5 w-5" />}
               </span>
@@ -123,7 +123,7 @@ export function VehicleResultCard({
 
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between gap-2">
-                <h4 className="text-base sm:text-lg font-black text-slate-950 dark:text-white font-arabic truncate">
+                <h4 className="heading-card truncate font-arabic">
                   {ownerLabel}
                 </h4>
                 {vehicle.owner_employee_id && (
@@ -151,7 +151,7 @@ export function VehicleResultCard({
 
         {/* Privacy notice */}
         {privacyNote && (
-          <div className="mt-3 flex items-center gap-2 rounded-[14px] border border-amber-200/80 bg-amber-50/70 px-3 py-2 text-[11px] font-semibold text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/20 dark:text-amber-300">
+          <div className="mt-3 flex items-center gap-2 rounded-control border border-amber-200/80 bg-amber-50/70 px-3 py-2 text-micro font-semibold text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/20 dark:text-amber-300">
             <Lock className="h-3.5 w-3.5 flex-shrink-0" />
             <span>{privacyNote}</span>
           </div>
@@ -170,7 +170,7 @@ export function VehicleResultCard({
                 href={telUrl || "#"}
                 whileTap={shouldReduceMotion ? undefined : TACTILE_TAP}
                 onClick={() => triggerHaptic("medium")}
-                className={`flex min-h-[56px] h-14 items-center justify-center gap-2.5 rounded-[16px] px-4 py-3 text-sm font-bold text-emerald-950 dark:text-emerald-100 bg-emerald-50 hover:bg-emerald-100/80 dark:bg-emerald-950/40 dark:hover:bg-emerald-950/60 border border-emerald-300/80 dark:border-emerald-800/80 shadow-sm transition-colors ${
+                className={`flex min-h-[56px] h-14 items-center justify-center gap-2.5 rounded-control px-4 py-3 text-sm font-bold text-emerald-950 dark:text-emerald-100 bg-emerald-50 hover:bg-emerald-100/80 dark:bg-emerald-950/40 dark:hover:bg-emerald-950/60 border border-emerald-300/80 dark:border-emerald-800/80 shadow-sm transition-colors ${
                   !telUrl ? "opacity-50 pointer-events-none" : ""
                 }`}
               >
@@ -188,7 +188,7 @@ export function VehicleResultCard({
                   rel="noopener noreferrer"
                   whileTap={shouldReduceMotion ? undefined : TACTILE_TAP}
                   onClick={() => triggerHaptic("medium")}
-                  className={`flex min-h-[56px] h-14 items-center justify-center gap-2.5 rounded-[16px] px-4 py-3 text-sm font-bold text-white bg-[#25d366] hover:bg-[#20ba59] shadow-md shadow-emerald-600/20 transition-colors ${
+                  className={`flex min-h-[56px] h-14 items-center justify-center gap-2.5 rounded-control px-4 py-3 text-sm font-bold text-white bg-[#25d366] hover:bg-[#20ba59] shadow-md shadow-emerald-600/20 transition-colors ${
                     !whatsappUrl ? "opacity-50 pointer-events-none" : ""
                   }`}
                 >
@@ -207,7 +207,7 @@ export function VehicleResultCard({
               triggerHaptic("medium");
               onOpenAlertModal(vehicle);
             }}
-            className="flex min-h-[56px] h-14 items-center justify-center gap-2.5 rounded-[16px] px-4 py-3 text-sm font-bold text-white bg-[#8a1538] hover:bg-[#70112e] shadow-md shadow-rose-950/20 transition-colors"
+            className="flex min-h-[56px] h-14 items-center justify-center gap-2.5 rounded-control px-4 py-3 text-sm font-bold text-white bg-qatar hover:bg-qatar-800 shadow-md shadow-rose-950/20 transition-colors"
           >
             <AlertTriangle className="h-5 w-5 text-amber-300" />
             <span>{t.sendAlertAction}</span>
