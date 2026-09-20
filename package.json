@@ -10,7 +10,19 @@
     "start": "next start",
     "lint": "next lint",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:report": "playwright show-report",
+    "test:a11y": "playwright test tests/e2e/a11y.spec.ts",
+    "test:lighthouse": "node scripts/lighthouse.mjs",
+    "test:lighthouse:local": "node scripts/lighthouse-local.mjs",
+    "dev:local": "node scripts/dev-local.mjs",
+    "test:e2e:local": "node scripts/e2e-local.mjs",
+    "test:a11y:local": "node scripts/e2e-local.mjs tests/e2e/a11y.spec.ts",
+    "db:local:up": "supabase migration up",
+    "db:verify": "node scripts/db-verify.mjs",
+    "db:verify:local": "node scripts/db-verify.mjs .env.local.localdev"
   },
   "dependencies": {
     "@supabase/ssr": "^0.5.2",
@@ -31,8 +43,10 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
     "@eslint/eslintrc": "^3",
     "@opennextjs/cloudflare": "^1.20.6",
+    "@playwright/test": "^1.63.0",
     "@testing-library/react": "^16.2.0",
     "@types/node": "^22.13.5",
     "@types/qrcode": "^1.5.6",
@@ -40,9 +54,11 @@
     "@types/react-dom": "^19.0.4",
     "@types/web-push": "^3.6.4",
     "autoprefixer": "^10.4.20",
+    "chrome-launcher": "^1.2.1",
     "eslint": "^9.21.0",
     "eslint-config-next": "15.2.0",
     "jsdom": "^26.0.0",
+    "lighthouse": "^13.5.0",
     "postcss": "^8.5.3",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.7.3",

@@ -1,0 +1,190 @@
+# حَرِّك | HARRIK — Implementation Status (Roadmap §1–§15)
+
+> Status of the work delivered against `docs/PROMPT_ROADMAP.md`.
+
+## Verification
+- `npx tsc --noEmit` → clean
+- `npx next lint` → 0 errors
+- `npx vitest run` → **116/116 tests passing**
+- `npx next build` → success (21 pages + 29 API route handlers = **50 routes**)
+- `pnpm test:a11y:local` → **16/16 axe specs passing** (`mobile-ar` + `desktop-en`)
+- `pnpm db:verify:local` → **10/10 schema probes** · `pnpm db:verify` (remote project) → **10/10** (migration 08 applied via the SQL Editor)
+- `pnpm test:lighthouse:local --prod` → `/login` (production build): **accessibility 100 · best practices 100 · performance 76 · SEO 63** (SEO is intentionally capped: `robots.txt` blocks crawling)
+
+---
+
+## Delivered
+
+### §2 — Persistent session / sign-in once ✅
+- Long-lived (~400 day) secure cookies configured in `lib/supabase/client.ts`, `server.ts`, `middleware.ts`.
+- `AuthContext`: ephemeral-session enforcement when "remember this device" is off; `markUnlocked()` on password login.
+- Login page: "تذكّر هذا الجهاز (دخول مرة واحدة)" checkbox (default on).
+
+### §3 — Biometric unlock ✅
+- `lib/biometric.ts` (WebAuthn `create`/`get` with platform authenticator).
+- `components/auth/BiometricLock.tsx` full-screen unlock gate wired into `AppShell`.
+- `/profile`: enable / disable / test fingerprint controls.
+
+### §4 — Reliable push + in-app center ✅
+- `public/sw.js` v5: deep-link `notificationclick`, `renotify`, `pushsubscriptionchange` re-registration.
+- In-app notification center = inbox with server-side pagination ("تحميل المزيد").
+
+### §5 — Fallback channel + escalation ✅
+- `lib/notifications/alert-dispatch.ts`: push to owner → escalate to security/admin when unreachable → optional SMS per member preference.
+- `lib/notifications/channels.ts`: Twilio/Unifonic SMS, Resend/SendGrid email (safe no-op when unconfigured).
+- Used by both `/api/alerts` and `/api/scan/alert`.
+
+### §6 — Settings actually enforced ✅
+- `lib/org-settings.ts` + member-readable `GET /api/settings`.
+- `/api/search` applies privacy masking (server-side), partial-search toggle and min-digits.
+- `VehicleResultCard` adapts actions to privacy mode; uses tenant WhatsApp template.
+- `CreateAlertDialog` loads tenant `parking_alert_types` (fallback to the five defaults).
+- `EntityConfigContext` now reads `/api/settings` (works for all roles, not just admins).
+
+### §7 — Logic & security gaps ✅
+- Test fixtures moved to `lib/test-fixtures.ts`, gated by `FIXTURES_ENABLED`; search fails explicitly in production instead of returning fake data.
+- **Fixed (critical):** `/api/search` called `find_vehicle_by_plate` with a non-existent `p_org_id` argument → PostgREST `404 PGRST202`, so the RPC always failed and the endpoint silently served seed data. Once fixtures were disabled in production this became a hard `503` on every search. The route now calls `find_vehicle_by_plate(p_query)` only; the function derives the organization from the verified session. Verified against the live database and covered by regression test 21.
+- Durable alert throttle via `claim_alert_slot` RPC (with in-process fast path).
+- Visitor alerts target `visitor_pass_id` (new column) instead of misusing `vehicle_id`.
+- Server-side pagination on `/api/alerts`.
+
+### §8 — Auth lifecycle ✅
+- `/forgot-password` + `/reset-password` (with strength meter).
+- Staff creation/import: strong random passwords + email invitations (`inviteUserByEmail`) and one-time setup links — **no shared default password**.
+
+### §9 — Professional onboarding ✅
+- `/register`: 4-step wizard → `POST /api/register` provisions org (`status='onboarding'`), admin profile, default settings + alert types.
+- `/onboarding`: resumable setup wizard (branding/privacy, team, activation) → `GET/PATCH /api/onboarding`.
+- Login routes onboarding admins to `/onboarding`; middleware enforces the onboarding gate.
+
+### §10 — Localization ✅ (complete for UI surfaces)
+- **Root cause fixed:** language/theme state is no longer per-page. New `src/contexts/LocaleContext.tsx` provides a single `lang`/`theme`/`dir` source of truth, persisted to `localStorage`, and `AppShell` wraps the app with it.
+- **Every user-facing screen is bilingual (AR/EN):** plate search + vehicle card, keypad, camera scanner, public `/scan`, login, forgot/reset password, `/register`, `/onboarding`, error / 404 / offline banner, biometric lock, alerts inbox, dashboard, executive reports, **all admin screens** (`staff`, `vehicles`, `visitors`, `import`, `alerts`, `unknown`, `audit`, `settings`), and `profile` (including push + biometric sections), PWA install prompt, and parking-permit modal.
+- The shared platform dictionary in `src/i18n/translations.ts` gained ~180 keys; page-scoped copy uses an inline `L(ar, en)` helper driven by `useLocale()`, so no component hard-codes a single-language string.
+- **Intentionally Arabic in both modes:** the Qatar plate artwork (`قطر / QATAR`), sample CSV data, and seeded demo fallback names.
+- **Not localized (by design):** static Next.js `metadata` (title/description) in `app/layout.tsx`.
+
+### §11 — UX polish ✅
+- `app/error.tsx` + `app/global-error.tsx` (bilingual error boundaries), `app/not-found.tsx` (bilingual 404), `components/ui/OfflineBanner.tsx`.
+
+### §7b — Abuse protection, pagination, timely escalation & device management ✅
+Delivered in migration `20260918000001_rate_limit_and_timed_escalation.sql` plus app code.
+
+- **Durable rate limiting (§7.4):** new `rate_limit_buckets` table + `claim_rate_limit_slot()` RPC (SECURITY DEFINER, granted to `anon`/`authenticated`, direct table access revoked). Shared helpers in `lib/security/rate-limit.ts` (`clientIp`, `enforceRateLimit`, `verifyTurnstile`) — all **fail open** so emergencies are never blocked.
+- **Registration hardening:** `/api/register` now uses the durable IP limiter (2 per 5 min) instead of an in-memory `Map`, plus optional Turnstile (`TURNSTILE_SECRET_KEY`). Bot challenge widget (`components/ui/TurnstileWidget.tsx`) is wired into `/register` and `/scan` and only renders when `NEXT_PUBLIC_TURNSTILE_SITE_KEY` is set.
+- **Scan abuse protection:** `/api/scan/verify` (30/min/IP) and `/api/scan/alert` (10 per 5 min/IP) are throttled; the alert endpoint also verifies Turnstile when configured.
+- **Server-side pagination + search (§7.5):** `/api/unknown`, `/api/admin/staff`, `/api/admin/vehicles` (and `/api/alerts`) accept `limit`/`offset` and return `hasMore`. Staff supports server-side `q` / `status` / `departmentId`; vehicles supports `q` (plate, make, model **and owner name** via two-step id resolution) and `status`. Admin pages debounce the search box and offer "load more".
+- **Timed escalation (§5.1):** `parking_alerts.escalated_at` + `lib/notifications/escalate-stale.ts`. Alerts still `pending` after 90 s are pushed once to security/admin. Runs lazily on `GET /api/alerts` and `GET /api/dashboard`, and on demand via `POST /api/alerts/escalate` (cron secret header or an admin session).
+- **Device & session management (§2.6):** `GET/DELETE /api/profile/devices` + `POST {action:"signout_others"}` (GoTrue admin `signOut(jwt,"others")`), surfaced as a new section in `/profile`.
+- **Unknown → registered vehicle (§7.6):** `POST /api/unknown/promote` creates the vehicle, optionally links a staff owner (first vehicle becomes primary, with rollback on link failure), closes the report and writes an audit entry. `admin/unknown` now opens a promote dialog instead of only flipping the status.
+
+### §11c — Observability, skeletons, alert types & scheduled reports ✅
+- **Central error logging (§11.8):** `lib/observability/error-sink.ts` + `lib/observability/scrub.ts` + `lib/observability/client.ts`. Server errors are captured for every request through `src/instrumentation.ts` (`onRequestError`) — no route changes needed. Browser errors come from `app/global-error.tsx`, `app/error.tsx` and a window `error` / `unhandledrejection` listener (`components/system/ErrorReporter.tsx`) posted to the public, rate-limited `POST /api/observability/report`. Sinks: `SENTRY_DSN` (store API) or `ERROR_WEBHOOK_URL`; console-only when unset. **All free text is PII-scrubbed** (e-mails, phones, 4+ digit runs/plates, tokens) before it leaves the process.
+- **Per-page skeletons (§11.2):** shared primitives in `components/ui/Skeleton.tsx` and 13 route-level `loading.tsx` files covering the root, inbox, profile and every admin route (dashboard, staff, vehicles, visitors, alerts, unknown, audit, import, reports, settings).
+- **Alert-type management (§6):** `GET/POST/PATCH/DELETE /api/admin/alert-types` (admin-only, code validated, duplicate-guarded, audited, refuses to delete a type still referenced by alerts) plus a full manager UI in the settings → Alerts tab (inline rename, activate/deactivate, delete, add).
+- **Scheduled e-mail report (§5.3):** `POST /api/reports/email` (cron secret **or** an authenticated admin) sends an aggregate HTML report built by `lib/reports/summary.ts`. The payload contains **counts and durations only** — no owner names, phones or plates. Recipients come from `to[]` or `REPORT_EMAIL_TO`; the admin UI has an "Email report" button.
+
+### §10b / §13 — Pre-paint locale, accessibility & browser E2E ✅
+- **No-flash locale & theme (finishes §10):** the active language/theme are mirrored into cookies (`harrik_lang`, `harrik_theme`) by `lib/locale.ts` + `LocaleContext`, and a tiny inline script in `app/layout.tsx` applies `lang` / `dir` / `.dark` **before first paint**. Result: no RTL→LTR flash, no light→dark flicker, and SSR markup matches the client (`suppressHydrationWarning` on `<html>`). Metadata is bilingual; the root layout stays static (no `cookies()` read) so all routes keep static optimisation.
+- **Accessibility (§11.7):** global `:focus-visible` outline, a bilingual **skip link** ("تخطَّ إلى المحتوى الرئيسي") as the first focusable element, `#main-content` landmark with `tabIndex={-1}`, `aria-label` + `aria-current="page"` on both navigations, Arabic/English `aria-label`s on every icon-only control (sign out, language, theme, refresh), `role="status" aria-live="polite"` on status banners, `aria-hidden` on decorative icons, `data-icon-button` 44px touch targets, and a `prefers-reduced-motion` override.
+- **Browser E2E harness (§13):** `playwright.config.ts` + `tests/e2e/public.spec.ts` (8 specs) and `tests/e2e/authenticated.spec.ts` (6 specs), run on two projects — `mobile-ar` (Pixel 7, ar-QA) and `desktop-en` (Chrome, en-US). Vitest excludes `tests/e2e`.
+
+```bash
+pnpm build                      # or let the config fall back to `next dev`
+pnpm exec playwright install chromium
+pnpm test:e2e                   # public suite always runs
+# authenticated journey (skips automatically without these):
+E2E_EMAIL=... E2E_PASSWORD=... pnpm test:e2e
+# against an already-running deployment:
+E2E_BASE_URL=https://… pnpm test:e2e
+```
+
+**Verified result:** `28 passed` against the local Supabase stack (`mobile-ar` + `desktop-en`), covering login, wrong-credentials error, language-switch persistence across reloads, theme persistence, auth-gated redirects, `/scan` malformed-token handling, and — signed in — the main landmark, skip link, plate search, inbox, admin dashboard, profile (push/biometric/devices) and language persistence across navigation.
+
+### §11.6 / §11.7 — Automated axe + Lighthouse audits, and one-command local tooling ✅
+- **axe audit:** `tests/e2e/a11y.spec.ts` (`@axe-core/playwright`) walks WCAG 2.1 A/AA over `/login`, `/forgot-password`, the `/register` wizard, an invalid `/scan` token, and — authenticated — `/`, `/inbox`, `/profile`, `/admin`; it fails on any `serious`/`critical` violation and prints the offending selectors. `pnpm test:a11y` (any running server) or `pnpm test:a11y:local` (starts the local stack itself): **16/16 green**.
+- **Lighthouse audit:** `scripts/lighthouse.mjs` launches the Chromium Playwright already downloaded (no second browser) and enforces `accessibility ≥ 90`, `best-practices ≥ 90`; `performance` and `seo` are reported as informational, with every threshold overridable through `LH_MIN_*`. `pnpm test:lighthouse:local` runs it against the local stack in one command and reuses a dev server that is already up; add `--prod` (or `LH_PROD=1`) to audit a `next build` + `next start` build instead of `next dev` — that mode enforces `performance ≥ 70` as well. Measured on `/login`: **dev build** accessibility 100 · best practices 100 · performance 43 · SEO 54; **production build** accessibility 100 · best practices 100 · **performance 76** (LCP 3.3 s, TBT 530 ms, CLS 0) · SEO 63. Reports land in `lighthouse-report.{html,json}` (git-ignored).
+- **Migration verifier:** `scripts/db-verify.mjs` checks the deployed schema over the REST API (needs only the URL + service-role key, so it works when the Supabase CLI cannot authenticate) and exits non-zero while anything is missing. Local stack **10/10** · remote project **10/10**.
+- **Accessibility fixes found by the audits:** mobile bottom-nav contrast (2.54:1 → ≥ 7:1), pinch-zoom restored (WCAG 1.4.4), a real `<main>` landmark on `/login`, and Recharts' pie layer removed from the tab order inside its `aria-hidden` container.
+- **Console noise removed:** unauthenticated `/login` no longer issues a settings fetch or a `parking_alerts` query (both now wait for a session) and no longer 404s on the app icon — Lighthouse best-practices on `/login` went 96 → 100.
+
+#### One-command local stack
+
+| Command | What it does |
+| --- | --- |
+| `pnpm dev:local` | `next dev` on :3000 (override with `PORT`) against the local Supabase stack |
+| `pnpm db:local:up` | `supabase migration up` — applies pending migrations to the local stack |
+| `pnpm db:verify:local` / `pnpm db:verify` | ✓/✗ checklist of every migration object, local / remote |
+| `pnpm test:e2e:local [spec] [--project=…]` | starts the local-env dev server on :3101, runs Playwright, tears it down |
+| `pnpm test:a11y:local` | same, but only `tests/e2e/a11y.spec.ts` |
+| `pnpm test:lighthouse:local [url]` | Lighthouse against the local stack (reuses a server already on :3101); add `--prod` for a real `next build` + `next start` audit |
+| `pnpm test:lighthouse https://…/login` | Lighthouse against a real deployment (enforces performance ≥ 70 too) |
+
+All of them read `.env.local.localdev` and inject it as **process** environment,
+which overrides the `.env.local` file Next.js loads — the remote credentials in
+`.env.local` are never touched or overwritten. Run one dev server at a time:
+two Next dev processes sharing `.next` corrupt each other's webpack cache.
+
+
+
+---
+
+## Remaining / follow-ups
+
+- **Both migrations are applied and verified on both stacks** — local 10/10, remote 10/10 (`pnpm db:verify` / `pnpm db:verify:local`). The durable rate limiter, timed escalation and the unknown-report → vehicle link are therefore live; no code path depends on the "degrades safely" fallbacks any more.
+- **Turnstile / e-mail / SMS / error-sink require configuration** — each is a no-op until its environment variables are set (see the table below).
+- **`ALLOW_SELF_SERVE_ONBOARDING` is unset**, so `/register` is currently open to anyone who reaches the URL. Set it to `false` (or enable Turnstile) before public exposure.
+- **Lighthouse numbers are measured on a production build** (`pnpm test:lighthouse:local --prod`): accessibility 100 · best practices 100 · performance 76 · SEO 63 on `/login`. Remaining performance headroom is LCP 3.3 s / TBT 530 ms (dev-mode runs are informational only), and the SEO score is capped on purpose by `robots.txt`. Only `/login` has been audited so far — repeat the command with a path (`pnpm test:lighthouse:local --prod http://127.0.0.1:3101/admin`) for the other surfaces.
+- **The authenticated E2E suite needs credentials that exist in the deployment under test** — the committed integration tests run against the *local* Supabase stack (Vitest does not load `.env.local`), while a production build inlines `.env.local` (remote project). Use `pnpm test:e2e:local`, or point `E2E_BASE_URL` at a deployment whose seeded users you know.
+
+
+---
+
+## Required environment variables (all optional; safe no-ops when absent)
+
+| Variable | Purpose |
+| --- | --- |
+| `SMS_PROVIDER` (`twilio` \| `unifonic`) | Enable SMS fallback |
+| `TWILIO_ACCOUNT_SID` / `TWILIO_AUTH_TOKEN` / `TWILIO_FROM_NUMBER` | Twilio SMS |
+| `UNIFONIC_APP_SID` / `UNIFONIC_SENDER_ID` | Unifonic SMS |
+| `EMAIL_PROVIDER` (`resend` \| `sendgrid`) | Transactional email |
+| `RESEND_API_KEY` / `SENDGRID_API_KEY` / `EMAIL_FROM` | Email provider |
+| `ALLOW_SELF_SERVE_ONBOARDING` (`false` to disable) | Gate public registration |
+| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` + `TURNSTILE_SECRET_KEY` | Enable Cloudflare Turnstile bot protection (set both) |
+| `SENTRY_DSN` or `ERROR_WEBHOOK_URL` | Central error reporting sink (console-only when unset) |
+| `CRON_SECRET` | Shared secret for `POST /api/alerts/escalate` and `POST /api/reports/email` |
+| `REPORT_EMAIL_TO` | Default recipients for the scheduled e-mail report |
+| `ENABLE_TEST_FIXTURES` (`true` to force) | Non-production seed/permit fixtures |
+
+## Database migrations to apply
+```
+supabase/migrations/20260917000001_visitor_alerts_throttle_and_prefs.sql   # local ✅ · remote ✅
+supabase/migrations/20260918000001_rate_limit_and_timed_escalation.sql     # local ✅ · remote ✅
+```
+Both migrations are applied on **both** stacks (`pnpm db:verify` → 10/10, `pnpm db:verify:local` → 10/10).
+Migration 08 reached the remote project through the **SQL Editor** route described in
+`docs/MIGRATION_08_REMOTE.md`, because `supabase db push` needs an Owner/Admin login.
+If the project is later linked to the CLI, record the applied version so the history
+matches the database: `supabase migration repair --status applied 20260918000001 --db-url …`
+(re-running it would be harmless anyway — every statement is idempotent).
+
+Check the current state of any project with `pnpm db:verify` / `pnpm db:verify:local`
+(no CLI login needed — it only uses the service-role key already in the env file).
+
+### Verifying migration 08 after applying
+```sql
+select 'claim_rate_limit_slot' as item,
+       case when exists (select 1 from pg_proc where proname='claim_rate_limit_slot')
+            then 'OK' else 'MISSING' end as status
+union all select 'rate_limit_buckets',
+       case when exists (select 1 from information_schema.tables where table_name='rate_limit_buckets')
+            then 'OK' else 'MISSING' end
+union all select 'parking_alerts.escalated_at',
+       case when exists (select 1 from information_schema.columns
+                         where table_name='parking_alerts' and column_name='escalated_at')
+            then 'OK' else 'MISSING' end
+union all select 'unknown_vehicle_reports.matched_vehicle_id',
+       case when exists (select 1 from information_schema.columns
+                         where table_name='unknown_vehicle_reports' and column_name='matched_vehicle_id')
+            then 'OK' else 'MISSING' end;
+```

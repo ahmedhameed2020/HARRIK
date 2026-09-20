@@ -266,4 +266,40 @@ describe("HARRIK V1.0 - Attack-Surface & Security Audit Test Suite", () => {
     expect(migration05Sql).toContain("REVOKE ALL ON FUNCTION public.verify_permit_token(UUID) FROM PUBLIC");
     expect(migration05Sql).toContain("GRANT EXECUTE ON FUNCTION public.verify_permit_token(UUID) TO anon, authenticated");
   });
+
+  // Scenario 21: RPC call signatures must match the deployed database functions.
+  // Regression guard: a mismatched argument name makes PostgREST return 404
+  // (PGRST202) and the whole search endpoint fail.
+  it("21. calls find_vehicle_by_plate with only p_query (organization derived from session)", () => {
+    const searchRouteCode = fs.readFileSync(
+      path.join(process.cwd(), "src/app/api/search/route.ts"),
+      "utf8"
+    );
+
+    // Deployed signature: find_vehicle_by_plate(p_query TEXT)
+    const call = searchRouteCode.match(/rpc\("find_vehicle_by_plate",\s*\{([^}]*)\}/);
+    expect(call).not.toBeNull();
+    expect(call![1]).toContain("p_query");
+    expect(call![1]).not.toContain("p_org_id");
+
+    // Deployed migration must not expose a 2-argument overload
+    const migration03Sql = fs.readFileSync(
+      path.join(process.cwd(), "supabase/migrations/20260916000003_cloud_security_hardening.sql"),
+      "utf8"
+    );
+    expect(migration03Sql).toContain(
+      "REVOKE ALL ON FUNCTION public.find_vehicle_by_plate(TEXT) FROM PUBLIC, anon"
+    );
+
+    // Dashboard keeps its documented 3-argument signature
+    const dashRouteCode = fs.readFileSync(
+      path.join(process.cwd(), "src/app/api/dashboard/route.ts"),
+      "utf8"
+    );
+    const dashCall = dashRouteCode.match(/rpc\("get_dashboard_overview",\s*\{([^}]*)\}/);
+    expect(dashCall).not.toBeNull();
+    expect(dashCall![1]).toContain("p_range_start");
+    expect(dashCall![1]).toContain("p_range_end");
+    expect(dashCall![1]).toContain("p_timezone");
+  });
 });
