@@ -129,6 +129,18 @@ two Next dev processes sharing `.next` corrupt each other's webpack cache.
 
 ---
 
+#### Deploying to Cloudflare
+
+```bash
+pnpm build:cf     # opennextjs-cloudflare build   (Windows is supported but warned about)
+pnpm deploy:cf    # opennextjs-cloudflare deploy  -> Worker `harrik`
+```
+
+- Live at <https://harrik.ahmedhameed2020.workers.dev> (last deploy: 10.2 MB upload / 2.0 MB gzip, 13 ms startup).
+- Worker secrets that must exist for the server features to work: `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `VAPID_PRIVATE_KEY`. Public values (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_APP_TIMEZONE`, `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_SUBJECT`) come from `wrangler.jsonc`.
+- **Required patch:** `patches/@opennextjs__cloudflare@1.20.6.patch` aliases `sharp` to OpenNext's `empty.js` shim. Without it the build dies in “Bundling the OpenNext server…” with `No loader is configured for ".node" files`, because Next's optional `sharp` dependency is a native binary that esbuild cannot inline for Workers. `pnpm.patchedDependencies` applies the patch automatically on install — do not delete `patches/`.
+- Image optimization stays off (`images.unoptimized: true`); if it is ever needed, use a Cloudflare Images loader rather than re-enabling `sharp`.
+
 ## Remaining / follow-ups
 
 - **Both migrations are applied and verified on both stacks** — local 10/10, remote 10/10 (`pnpm db:verify` / `pnpm db:verify:local`). The durable rate limiter, timed escalation and the unknown-report → vehicle link are therefore live; no code path depends on the "degrades safely" fallbacks any more.

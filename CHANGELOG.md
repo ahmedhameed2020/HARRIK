@@ -93,6 +93,14 @@ All notable changes to the **حَرِّك | HARRIK** project will be documented 
 - **Decorative donut chart (axe `aria-hidden-focus`):** Recharts keeps a `tabindex="0"` on its pie layer even with `accessibilityLayer={false}`; `<Pie rootTabIndex={-1}>` removes it from the tab order inside the `aria-hidden` wrapper.
 - **Silent requests on public pages:** the realtime-alerts hook and the tenant-settings fetch now wait for a session, and the declared app icon points at a file that exists — `/login` no longer logs `401`/`404` console errors. Lighthouse best-practices on `/login`: 96 → 100.
 
+### Fixed (Cloudflare build)
+- **`opennextjs-cloudflare build` failed on the native `sharp` binary:** `sharp` is an optional Next.js dependency of the image optimizer, and the adapter bundles Next's own server sources with esbuild — which cannot inline `sharp`'s `.node` binary (`No loader is configured for ".node" files`). Because `sharp` is an unusable, unused dependency here (`images.unoptimized: true`, no `next/image` usage) it is now:
+  - excluded from the install via `pnpm.ignoredOptionalDependencies`, and
+  - aliased to OpenNext's `empty.js` shim by a pinned patch,
+    `patches/@opennextjs__cloudflare@1.20.6.patch` (`pnpm.patchedDependencies`), applied by
+    `pnpm install` on every machine and in CI.
+  Deploy verified: Worker `harrik` → <https://harrik.ahmedhameed2020.workers.dev> (10.2 MB / 2.0 MB gzip, 13 ms startup).
+
 ## [1.0.0] — 2026-09-16
 
 ### Added
