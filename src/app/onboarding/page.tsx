@@ -164,7 +164,7 @@ export default function OnboardingSetupPage() {
             <Rocket className="h-6 w-6" />
           </div>
           <div>
-            <h1 className="text-2xl font-black text-slate-900 dark:text-white font-arabic">{t.onbTitle}</h1>
+            <h1 className="heading-page font-arabic">{t.onbTitle}</h1>
             <p className="text-xs text-slate-500 dark:text-slate-400">
               {data?.organization.name_ar} — {t.onbSubtitleSuffix}
             </p>
@@ -326,7 +326,7 @@ function StepCard({
   children?: React.ReactNode;
 }) {
   return (
-    <div className="mt-4 rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-surface-card">
+    <div className="mt-4 surface-card p-5">
       <div className="flex items-center gap-3">
         <div className={`flex h-10 w-10 items-center justify-center rounded-2xl ${done ? "bg-emerald-500 text-white" : "bg-slate-100 text-slate-500 dark:bg-slate-800"}`}>
           {done ? <CheckCircle2 className="h-5 w-5" /> : icon}

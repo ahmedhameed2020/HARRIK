@@ -73,7 +73,7 @@ export function UnregisteredEscalationHub({
               <div className="inline-flex items-center gap-1.5 rounded-lg bg-amber-100/80 px-2.5 py-0.5 text-[11px] font-extrabold text-amber-800 dark:bg-amber-900/50 dark:text-amber-300 mb-1">
                 <span>{isAr ? "مركبة غير مسجلة بالكيان" : "Unregistered Vehicle"}</span>
               </div>
-              <h3 className="text-lg font-black text-slate-900 dark:text-white font-arabic">
+              <h3 className="heading-section font-arabic">
                 {isAr
                   ? `السيارة غير موجودة في سجلات ${venueLabel}`
                   : `Vehicle not registered in ${venueLabel} database`}

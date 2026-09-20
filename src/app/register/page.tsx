@@ -155,7 +155,7 @@ export default function RegisterPage() {
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-qatar text-white shadow-md shadow-qatar/20">
             <Car className="h-5 w-5" />
           </div>
-          <span className="text-lg font-black text-slate-900 dark:text-white font-arabic">{t.brandLockup}</span>
+          <span className="heading-section font-arabic">{t.brandLockup}</span>
         </Link>
         <Link href="/login" className="text-xs font-bold text-qatar hover:underline">
           {t.regHaveAccount}
@@ -221,7 +221,7 @@ export default function RegisterPage() {
             </div>
 
             {/* Card */}
-            <div className="mt-6 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-surface-card">
+            <div className="mt-6 surface-card p-6">
               {errorMessage && (
                 <div className="mb-4 flex items-center gap-3 rounded-2xl border border-red-200 bg-red-50 p-3.5 text-xs font-bold text-red-800 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-300">
                   <AlertCircle className="h-4 w-4 flex-shrink-0" />

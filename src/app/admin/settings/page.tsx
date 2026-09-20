@@ -584,10 +584,10 @@ export default function SettingsPage() {
         {activeTab === "profile" && (
           <div className="space-y-6">
             {/* Entity Category Selector */}
-            <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-surface-card">
+            <div className="surface-card p-6">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h3 className="text-base font-black text-slate-950 dark:text-white font-arabic">
+                  <h3 className="heading-card font-arabic">
                     {L("نوع وتصنيف المنشأة (Entity Type)", "Entity type & classification")}
                   </h3>
                   <p className="text-xs text-slate-500 dark:text-zinc-400">
@@ -689,8 +689,8 @@ export default function SettingsPage() {
             {/* Venue Names & Regional Setup */}
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
               <div className="lg:col-span-2 space-y-6">
-                <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-surface-card space-y-4">
-                  <h3 className="text-base font-black text-slate-950 dark:text-white font-arabic">
+                <div className="surface-card p-6 space-y-4">
+                  <h3 className="heading-card font-arabic">
                     {L("البيانات الرسمية للمنشأة", "Official organization details")}
                   </h3>
 
@@ -789,8 +789,8 @@ export default function SettingsPage() {
                 </div>
 
                 {/* Primary Brand Color Selection */}
-                <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-surface-card">
-                  <h3 className="text-base font-black text-slate-950 dark:text-white font-arabic mb-3">
+                <div className="surface-card p-6">
+                  <h3 className="heading-card font-arabic mb-3">
                     {L("اللون الرئيسي لشعار وهوية المنشأة", "Primary brand color")}
                   </h3>
                   <div className="flex flex-wrap items-center gap-3">
@@ -870,10 +870,10 @@ export default function SettingsPage() {
         {/* =================================================================== */}
         {activeTab === "privacy" && (
           <div className="space-y-6">
-            <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-surface-card space-y-4">
+            <div className="surface-card p-6 space-y-4">
               <div className="flex items-center gap-2">
                 <Shield className="h-5 w-5 text-qatar" />
-                <h3 className="text-base font-black text-slate-950 dark:text-white font-arabic">
+                <h3 className="heading-card font-arabic">
                   {L("مستويات خصوصية بيانات أصحاب السيارات (Privacy Policies)", "Vehicle owner data privacy levels")}
                 </h3>
               </div>
@@ -929,10 +929,10 @@ export default function SettingsPage() {
             </div>
 
             {/* Plate Search Rules */}
-            <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-surface-card space-y-4">
+            <div className="surface-card p-6 space-y-4">
               <div className="flex items-center gap-2">
                 <Search className="h-5 w-5 text-qatar" />
-                <h3 className="text-base font-black text-slate-950 dark:text-white font-arabic">
+                <h3 className="heading-card font-arabic">
                   {L("قواعد وآليات البحث باللوحة (Search Engine Rules)", "Plate search engine rules")}
                 </h3>
               </div>
@@ -986,11 +986,11 @@ export default function SettingsPage() {
         {activeTab === "alerts" && (
           <div className="space-y-6">
             {/* Alert types manager (§6) */}
-            <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-surface-card space-y-4">
+            <div className="surface-card p-6 space-y-4">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
                   <Bell className="h-5 w-5 text-qatar" />
-                  <h3 className="text-base font-black text-slate-950 dark:text-white font-arabic">
+                  <h3 className="heading-card font-arabic">
                     {L("أنواع تنبيهات المواقف", "Parking alert types")}
                   </h3>
                   <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[10px] font-black text-slate-600 dark:bg-zinc-800 dark:text-zinc-300">
@@ -1168,10 +1168,10 @@ export default function SettingsPage() {
               </div>
             </div>
 
-            <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-surface-card space-y-4">
+            <div className="surface-card p-6 space-y-4">
               <div className="flex items-center gap-2">
                 <MessageSquare className="h-5 w-5 text-emerald-600" />
-                <h3 className="text-base font-black text-slate-950 dark:text-white font-arabic">
+                <h3 className="heading-card font-arabic">
                   {L("تخصيص رسائل واتساب الرسمية (WhatsApp Integration)", "Official WhatsApp messages")}
                 </h3>
               </div>
@@ -1217,10 +1217,10 @@ export default function SettingsPage() {
         {/* =================================================================== */}
         {activeTab === "operations" && (
           <div className="space-y-6">
-            <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-surface-card space-y-4">
+            <div className="surface-card p-6 space-y-4">
               <div className="flex items-center gap-2">
                 <Clock className="h-5 w-5 text-qatar" />
-                <h3 className="text-base font-black text-slate-950 dark:text-white font-arabic">
+                <h3 className="heading-card font-arabic">
                   {L("ساعات العمل وأوقات الذروة لمواقف المنشأة", "Operating hours & peak times")}
                 </h3>
               </div>
@@ -1295,10 +1295,10 @@ export default function SettingsPage() {
         {/* =================================================================== */}
         {activeTab === "backup" && (
           <div className="space-y-6">
-            <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-surface-card space-y-4">
+            <div className="surface-card p-6 space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-base font-black text-slate-950 dark:text-white font-arabic">
+                  <h3 className="heading-card font-arabic">
                     {L("إحصائيات وسلامة بيانات المنشأة", "Organization data statistics & health")}
                   </h3>
                   <p className="text-xs text-slate-500 dark:text-zinc-400">

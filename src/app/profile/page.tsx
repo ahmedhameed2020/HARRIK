@@ -484,7 +484,7 @@ export default function ProfilePage() {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-black text-slate-900 dark:text-white font-arabic">
+              <h1 className="heading-page font-arabic">
                 {profile.name_ar}
               </h1>
               <span className="rounded-lg bg-slate-100 px-2.5 py-0.5 text-xs font-black text-slate-700 dark:bg-zinc-800 dark:text-zinc-300">
@@ -530,7 +530,7 @@ export default function ProfilePage() {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-black text-slate-900 dark:text-white font-arabic flex items-center gap-2">
+            <h2 className="heading-section font-arabic flex items-center gap-2">
               <Car className="h-5 w-5 text-qatar" />
               <span>{L(`سياراتي المسجلة في المواقف (${vehicles.length})`, `My registered vehicles (${vehicles.length})`)}</span>
             </h2>
@@ -567,7 +567,7 @@ export default function ProfilePage() {
             {vehicles.map((v) => (
               <div
                 key={v.id}
-                className="relative overflow-hidden rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm transition hover:shadow-md dark:border-zinc-800 dark:bg-surface-card"
+                className="relative overflow-hidden surface-card surface-card-hover p-5"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div>
@@ -639,8 +639,8 @@ export default function ProfilePage() {
       </div>
 
       {/* SECTION 2: Contact & Notification Preferences */}
-      <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-surface-card">
-        <h2 className="text-lg font-black text-slate-900 dark:text-white font-arabic mb-1 flex items-center gap-2">
+      <div className="surface-card p-6">
+        <h2 className="heading-section font-arabic mb-1 flex items-center gap-2">
           <Phone className="h-5 w-5 text-qatar" />
           <span>{L("بيانات التواصل واستقبال التنبيهات", "Contact details & alert reception")}</span>
         </h2>
@@ -659,7 +659,7 @@ export default function ProfilePage() {
                 value={mobile}
                 onChange={(e) => setMobile(e.target.value)}
                 placeholder="+974 5512 3456"
-                className="w-full rounded-2xl border border-slate-200 p-3 text-xs sm:text-sm font-bold focus:border-qatar focus:outline-none dark:border-zinc-800 dark:bg-zinc-900 dark:text-white"
+                className="field text-xs sm:text-sm"
                 dir="ltr"
               />
             </div>
@@ -672,7 +672,7 @@ export default function ProfilePage() {
             <select
               value={preferredLang}
               onChange={(e) => setPreferredLang(e.target.value as "ar" | "en")}
-              className="w-full rounded-2xl border border-slate-200 p-3 text-xs sm:text-sm font-bold focus:border-qatar focus:outline-none dark:border-zinc-800 dark:bg-zinc-900 dark:text-white"
+              className="field text-xs sm:text-sm"
             >
               <option value="ar">{L("العربية (Arabic)", "Arabic")}</option>
               <option value="en">{L("English (الإنجليزية)", "English")}</option>
@@ -693,14 +693,14 @@ export default function ProfilePage() {
       </div>
 
       {/* SECTION 3: Lockscreen Web Push Notifications */}
-      <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-surface-card">
+      <div className="surface-card p-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
               <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-qatar/10 text-qatar">
                 <BellRing className="h-4 w-4" />
               </div>
-              <h2 className="text-lg font-black text-slate-900 dark:text-white font-arabic">
+              <h2 className="heading-section font-arabic">
                 {L("إشعارات شاشة القفل في الخلفية (Web Push)", "Background lock-screen notifications (Web Push)")}
               </h2>
               <span
@@ -761,14 +761,14 @@ export default function ProfilePage() {
       </div>
 
       {/* SECTION 4: Biometric Device Unlock */}
-      <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-surface-card">
+      <div className="surface-card p-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
               <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-qatar/10 text-qatar">
                 <Fingerprint className="h-4 w-4" />
               </div>
-              <h2 className="text-lg font-black text-slate-900 dark:text-white font-arabic">
+              <h2 className="heading-section font-arabic">
                 {L("الفتح بالبصمة (Face ID / بصمة الإصبع)", "Biometric unlock (Face ID / Fingerprint)")}
               </h2>              <span
                 className={`rounded-full px-2.5 py-0.5 text-[10px] font-black ${
@@ -820,14 +820,14 @@ export default function ProfilePage() {
       </div>
 
       {/* SECTION 5: Devices & Sessions */}
-      <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-surface-card">
+      <div className="surface-card p-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
               <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-qatar/10 text-qatar">
                 <Monitor className="h-4 w-4" />
               </div>
-              <h2 className="text-lg font-black text-slate-900 dark:text-white font-arabic">
+              <h2 className="heading-section font-arabic">
                 {L("الأجهزة والجلسات النشطة", "Devices & active sessions")}
               </h2>
               <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[10px] font-black text-slate-600 dark:bg-zinc-800 dark:text-zinc-300">
@@ -962,7 +962,7 @@ export default function ProfilePage() {
                   onChange={(e) => setMake(e.target.value)}
                   placeholder={L("مثال: تويوتا، نيسان...", "e.g. Toyota, Nissan...")}
                   required
-                  className="w-full rounded-2xl border border-slate-200 p-3 text-xs sm:text-sm font-bold focus:border-qatar focus:outline-none dark:border-zinc-800 dark:bg-zinc-900 dark:text-white"
+                  className="field text-xs sm:text-sm"
                 />
               </div>
 
@@ -976,7 +976,7 @@ export default function ProfilePage() {
                   onChange={(e) => setModel(e.target.value)}
                   placeholder={L("مثال: لاندكروزر، كامري، باترول...", "e.g. Land Cruiser, Camry, Patrol...")}
                   required
-                  className="w-full rounded-2xl border border-slate-200 p-3 text-xs sm:text-sm font-bold focus:border-qatar focus:outline-none dark:border-zinc-800 dark:bg-zinc-900 dark:text-white"
+                  className="field text-xs sm:text-sm"
                 />
               </div>
 
@@ -1013,7 +1013,7 @@ export default function ProfilePage() {
                     value={year}
                     onChange={(e) => setYear(e.target.value)}
                     placeholder="2024"
-                    className="w-full rounded-2xl border border-slate-200 p-3 text-xs sm:text-sm font-bold focus:border-qatar focus:outline-none dark:border-zinc-800 dark:bg-zinc-900 dark:text-white"
+                    className="field text-xs sm:text-sm"
                   />
                 </div>
 

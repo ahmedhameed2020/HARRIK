@@ -256,7 +256,7 @@ export default function BulkImportPage() {
             </div>
 
             <div>
-              <h2 className="text-2xl font-black text-slate-900 dark:text-white font-arabic">
+              <h2 className="heading-page font-arabic">
                 {L(`تم استيراد وحفظ ${successCount} سجل ومركبة بنجاح!`, `Successfully imported ${successCount} records and vehicles!`)}
               </h2>
               <p className="mt-2 text-xs sm:text-sm text-slate-500 max-w-md mx-auto">

@@ -160,7 +160,7 @@ export function ReportUnknownDialog({
                 value={make}
                 onChange={(e) => setMake(e.target.value)}
                 placeholder={t.makePlaceholder}
-                className="w-full rounded-2xl border border-slate-200 p-3 text-xs sm:text-sm font-bold focus:border-qatar focus:outline-none dark:border-zinc-800 dark:bg-zinc-900 dark:text-white"
+                className="field text-xs sm:text-sm"
               />
             </div>
             <div>
@@ -172,7 +172,7 @@ export function ReportUnknownDialog({
                 value={model}
                 onChange={(e) => setModel(e.target.value)}
                 placeholder={t.modelPlaceholder}
-                className="w-full rounded-2xl border border-slate-200 p-3 text-xs sm:text-sm font-bold focus:border-qatar focus:outline-none dark:border-zinc-800 dark:bg-zinc-900 dark:text-white"
+                className="field text-xs sm:text-sm"
               />
             </div>
           </div>
@@ -214,7 +214,7 @@ export function ReportUnknownDialog({
               value={color}
               onChange={(e) => setColor(e.target.value)}
               placeholder={t.colorPlaceholder}
-              className="w-full rounded-2xl border border-slate-200 p-3 text-xs sm:text-sm font-bold focus:border-qatar focus:outline-none dark:border-zinc-800 dark:bg-zinc-900 dark:text-white"
+              className="field text-xs sm:text-sm"
             />
           </div>
 

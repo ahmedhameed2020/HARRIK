@@ -230,7 +230,7 @@ export default function AdminReportsPage() {
       {/* Top Action Toolbar (Hidden during Print) */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 print:hidden">
         <div>
-          <h1 className="text-2xl font-black text-slate-900 dark:text-white font-arabic flex items-center gap-2.5">
+          <h1 className="heading-page font-arabic flex items-center gap-2.5">
             <TrendingUp className="h-6 w-6 text-qatar" />
             <span>{t.repTitle}</span>
           </h1>

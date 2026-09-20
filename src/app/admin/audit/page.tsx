@@ -78,7 +78,7 @@ export default function AdminAuditPage() {
           </Link>
           <div className="flex items-center gap-2">
             <ShieldAlert className="h-6 w-6 text-qatar" />
-            <h1 className="text-2xl font-black text-slate-900 dark:text-white font-arabic">
+            <h1 className="heading-page font-arabic">
               {L("سجل التدقيق والأمان والامتثال", "Security & Compliance Audit Log")}
             </h1>
           </div>

@@ -56,7 +56,7 @@ export default function ParkingAlertsManagerPage() {
               <ArrowLeft className="h-3.5 w-3.5 rtl:rotate-180" />
               <span>{L("العودة للوحة الإدارة", "Back to dashboard")}</span>
             </Link>
-            <h1 className="text-2xl font-black text-slate-900 dark:text-white font-arabic">
+            <h1 className="heading-page font-arabic">
               {L("إدارة ومتابعة تنبيهات المواقف (Parking Alerts)", "Parking Alerts Management")}
             </h1>
             <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">

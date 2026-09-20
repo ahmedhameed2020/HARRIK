@@ -118,7 +118,7 @@ export function AlertsInbox({ lang }: AlertsInboxProps) {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-black text-slate-900 dark:text-white font-arabic">
+              <h1 className="heading-page font-arabic">
                 {t.navInbox}
               </h1>
               {/* Live Realtime Indicator Badge */}
@@ -247,7 +247,7 @@ export function AlertsInbox({ lang }: AlertsInboxProps) {
               </div>
 
               <div className="p-5">
-                <p className="text-lg font-black text-slate-900 dark:text-white font-arabic">
+                <p className="heading-section font-arabic">
                   {alert.message || t.alertType_BLOCKING}
                 </p>
 

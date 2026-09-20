@@ -98,7 +98,7 @@ export default function ResetPasswordPage() {
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-3xl bg-qatar text-white shadow-xl shadow-qatar/30">
             <Car className="h-8 w-8" />
           </div>
-          <h1 className="text-2xl font-black text-slate-900 dark:text-white font-arabic">{t.resetTitle}</h1>
+          <h1 className="heading-page font-arabic">{t.resetTitle}</h1>
         </div>
 
         {done ? (

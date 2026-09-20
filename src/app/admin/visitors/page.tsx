@@ -208,7 +208,7 @@ export default function AdminVisitorsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black text-slate-900 dark:text-white font-arabic flex items-center gap-2.5">
+          <h1 className="heading-page font-arabic flex items-center gap-2.5">
             <ShieldCheck className="h-6 w-6 text-qatar" />
             <span>{L("تصاريح مواقف الزوار والمراجعين المؤقتة", "Temporary Visitor & Contractor Parking Passes")}</span>
           </h1>
@@ -231,7 +231,7 @@ export default function AdminVisitorsPage() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-3 gap-4">
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-surface-card">
+        <div className="surface-card p-4">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-600 dark:text-slate-400">{L("التصاريح السارية", "Active passes")}</span>
             <CheckCircle2 className="h-4 w-4 text-emerald-600" />
@@ -240,7 +240,7 @@ export default function AdminVisitorsPage() {
           <p className="text-[10px] text-slate-500 mt-0.5">{L("مصرّح لها بالوقوف حالياً", "Currently authorized to park")}</p>
         </div>
 
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-surface-card">
+        <div className="surface-card p-4">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-600 dark:text-slate-400">{L("التصاريح المنتهية", "Expired passes")}</span>
             <Clock className="h-4 w-4 text-amber-500" />
@@ -249,7 +249,7 @@ export default function AdminVisitorsPage() {
           <p className="text-[10px] text-slate-500 mt-0.5">{L("انتهت صلاحية الوقوف", "Parking validity ended")}</p>
         </div>
 
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-surface-card">
+        <div className="surface-card p-4">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-600 dark:text-slate-400">{L("إجمالي السجلات", "Total records")}</span>
             <UserCheck className="h-4 w-4 text-qatar" />
@@ -462,7 +462,7 @@ export default function AdminVisitorsPage() {
                     value={plateNumber}
                     onChange={(e) => setPlateNumber(e.target.value)}
                     placeholder={L("مثال: 654321", "e.g. 654321")}
-                    className="w-full rounded-xl border border-slate-200 p-2.5 text-xs font-mono font-bold focus:border-qatar focus:outline-none dark:border-zinc-800 dark:bg-zinc-900 dark:text-white"
+                    className="field p-2.5 font-mono text-xs"
                     required
                   />
                 </div>
@@ -474,7 +474,7 @@ export default function AdminVisitorsPage() {
                   <select
                     value={validHours}
                     onChange={(e) => setValidHours(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 p-2.5 text-xs font-bold focus:border-qatar focus:outline-none dark:border-zinc-800 dark:bg-zinc-900 dark:text-white"
+                    className="field p-2.5 text-xs"
                   >
                     <option value="4">{L("4 ساعات (زيارة قصيرة)", "4 hours (short visit)")}</option>
                     <option value="8">{L("8 ساعات (دوام كامل)", "8 hours (full shift)")}</option>
@@ -494,7 +494,7 @@ export default function AdminVisitorsPage() {
                     value={visitorName}
                     onChange={(e) => setVisitorName(e.target.value)}
                     placeholder={L("الاسم الثلاثي", "Full name")}
-                    className="w-full rounded-xl border border-slate-200 p-2.5 text-xs font-bold focus:border-qatar focus:outline-none dark:border-zinc-800 dark:bg-zinc-900 dark:text-white"
+                    className="field p-2.5 text-xs"
                     required
                   />
                 </div>
@@ -508,7 +508,7 @@ export default function AdminVisitorsPage() {
                     value={visitorMobile}
                     onChange={(e) => setVisitorMobile(e.target.value)}
                     placeholder="+974 5512 3456"
-                    className="w-full rounded-xl border border-slate-200 p-2.5 text-xs font-mono font-bold focus:border-qatar focus:outline-none dark:border-zinc-800 dark:bg-zinc-900 dark:text-white"
+                    className="field p-2.5 font-mono text-xs"
                     dir="ltr"
                     required
                   />
@@ -566,7 +566,7 @@ export default function AdminVisitorsPage() {
                     value={hostName}
                     onChange={(e) => setHostName(e.target.value)}
                     placeholder={L("مثال: د. حمد الكواري", "e.g. Dr. Hamad Al-Kuwari")}
-                    className="w-full rounded-xl border border-slate-200 p-2.5 text-xs font-bold dark:border-zinc-800 dark:bg-zinc-900 dark:text-white"
+                    className="field p-2.5 text-xs"
                   />
                 </div>
 
@@ -579,7 +579,7 @@ export default function AdminVisitorsPage() {
                     value={purpose}
                     onChange={(e) => setPurpose(e.target.value)}
                     placeholder={L("اجتماع عمل / مقاول صيانة", "Business meeting / maintenance contractor")}
-                    className="w-full rounded-xl border border-slate-200 p-2.5 text-xs font-bold dark:border-zinc-800 dark:bg-zinc-900 dark:text-white"
+                    className="field p-2.5 text-xs"
                   />
                 </div>
               </div>
