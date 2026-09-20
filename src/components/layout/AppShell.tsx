@@ -88,7 +88,7 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
         aria-label="Mobile Navigation"
         className="fixed bottom-3 inset-x-4 z-40 mx-auto max-w-md md:hidden"
       >
-        <div className="floating-nav-island flex h-16 items-center justify-around rounded-[24px] px-3 shadow-lg">
+        <div className="floating-nav-island flex h-[68px] items-center justify-around rounded-[26px] px-2.5">
           {/* 1. Search Destination */}
           <Link
             href="/"
@@ -100,18 +100,18 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
               <motion.div
                 layoutId="activeNavPill"
                 transition={SPRINGS.responsive}
-                className="absolute inset-x-2 inset-y-1 rounded-[16px] bg-[#8a1538]/10 dark:bg-[#8a1538]/25"
+                className="absolute inset-x-1.5 inset-y-1 rounded-[18px] bg-qatar/[0.08] dark:bg-qatar/20"
               />
             )}
             <div className="relative z-10 flex flex-col items-center">
               <Search
                 className={`h-5 w-5 transition-transform duration-150 ${
-                  isSearch ? "text-[#8a1538] dark:text-rose-400 scale-105" : "text-slate-600 dark:text-slate-400"
+                  isSearch ? "text-qatar dark:text-rose-400" : "text-slate-500 dark:text-slate-400"
                 }`}
               />
               <span
                 className={`text-[10px] font-bold mt-0.5 transition-colors ${
-                  isSearch ? "text-[#8a1538] dark:text-rose-400" : "text-slate-600 dark:text-slate-400"
+                  isSearch ? "text-qatar dark:text-rose-400" : "text-slate-500 dark:text-slate-400"
                 }`}
               >
                 {t.navSearch}
@@ -130,14 +130,14 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
               <motion.div
                 layoutId="activeNavPill"
                 transition={SPRINGS.responsive}
-                className="absolute inset-x-2 inset-y-1 rounded-[16px] bg-[#8a1538]/10 dark:bg-[#8a1538]/25"
+                className="absolute inset-x-1.5 inset-y-1 rounded-[18px] bg-qatar/[0.08] dark:bg-qatar/20"
               />
             )}
             <div className="relative z-10 flex flex-col items-center">
               <div className="relative">
                 <Bell
                   className={`h-5 w-5 transition-transform duration-150 ${
-                    isInbox ? "text-[#8a1538] dark:text-rose-400 scale-105" : "text-slate-600 dark:text-slate-400"
+                    isInbox ? "text-qatar dark:text-rose-400 scale-105" : "text-slate-500 dark:text-slate-400"
                   }`}
                 />
                 {activeCount > 0 && (
@@ -148,7 +148,7 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
               </div>
               <span
                 className={`text-[10px] font-bold mt-0.5 transition-colors ${
-                  isInbox ? "text-[#8a1538] dark:text-rose-400" : "text-slate-600 dark:text-slate-400"
+                  isInbox ? "text-qatar dark:text-rose-400" : "text-slate-500 dark:text-slate-400"
                 }`}
               >
                 {t.navInbox}
@@ -167,18 +167,18 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
               <motion.div
                 layoutId="activeNavPill"
                 transition={SPRINGS.responsive}
-                className="absolute inset-x-2 inset-y-1 rounded-[16px] bg-[#8a1538]/10 dark:bg-[#8a1538]/25"
+                className="absolute inset-x-1.5 inset-y-1 rounded-[18px] bg-qatar/[0.08] dark:bg-qatar/20"
               />
             )}
             <div className="relative z-10 flex flex-col items-center">
               <User
                 className={`h-5 w-5 transition-transform duration-150 ${
-                  pathname === "/profile" ? "text-[#8a1538] dark:text-rose-400 scale-105" : "text-slate-600 dark:text-slate-400"
+                  pathname === "/profile" ? "text-qatar dark:text-rose-400 scale-105" : "text-slate-500 dark:text-slate-400"
                 }`}
               />
               <span
                 className={`text-[10px] font-bold mt-0.5 transition-colors ${
-                  pathname === "/profile" ? "text-[#8a1538] dark:text-rose-400" : "text-slate-600 dark:text-slate-400"
+                  pathname === "/profile" ? "text-qatar dark:text-rose-400" : "text-slate-500 dark:text-slate-400"
                 }`}
               >
                 {lang === "ar" ? "ملفي" : "Profile"}
@@ -198,18 +198,18 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
                 <motion.div
                   layoutId="activeNavPill"
                   transition={SPRINGS.responsive}
-                  className="absolute inset-x-2 inset-y-1 rounded-[16px] bg-[#8a1538]/10 dark:bg-[#8a1538]/25"
+                  className="absolute inset-x-1.5 inset-y-1 rounded-[18px] bg-qatar/[0.08] dark:bg-qatar/20"
                 />
               )}
               <div className="relative z-10 flex flex-col items-center">
                 <Shield
                   className={`h-5 w-5 transition-transform duration-150 ${
-                    isAdminPath ? "text-[#8a1538] dark:text-rose-400 scale-105" : "text-slate-600 dark:text-slate-400"
+                    isAdminPath ? "text-qatar dark:text-rose-400 scale-105" : "text-slate-500 dark:text-slate-400"
                   }`}
                 />
                 <span
                   className={`text-[10px] font-bold mt-0.5 transition-colors ${
-                    isAdminPath ? "text-[#8a1538] dark:text-rose-400" : "text-slate-600 dark:text-slate-400"
+                    isAdminPath ? "text-qatar dark:text-rose-400" : "text-slate-500 dark:text-slate-400"
                   }`}
                 >
                   {t.navAdmin}

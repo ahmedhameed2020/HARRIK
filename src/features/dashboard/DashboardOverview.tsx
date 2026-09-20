@@ -198,7 +198,7 @@ export function DashboardOverview({ lang }: DashboardOverviewProps) {
   const CustomAreaTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="rounded-xl border border-slate-200 bg-white/95 p-3.5 shadow-xl backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-900/95 text-xs font-arabic">
+        <div className="surface-glass rounded-control p-3.5 shadow-float text-xs font-arabic">
           <p className="font-black text-slate-900 dark:text-white mb-2">{label}</p>
           <div className="space-y-1">
             <p className="flex items-center justify-between gap-4 text-blue-600 dark:text-blue-400 font-bold">
@@ -221,7 +221,7 @@ export function DashboardOverview({ lang }: DashboardOverviewProps) {
       {/* Executive Command Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-950 dark:text-white font-arabic">
+          <h1 className="heading-page font-arabic">
             {t.dashboardGreeting}
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-zinc-400 mt-1">
@@ -285,7 +285,7 @@ export function DashboardOverview({ lang }: DashboardOverviewProps) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.2, delay: 0.02 }}
           whileHover={{ y: -2 }}
-          className="group relative overflow-hidden rounded-[20px] border border-amber-200/80 bg-white p-5 shadow-sm transition-shadow hover:shadow-md dark:border-amber-900/40 dark:bg-surface-card"
+          className="surface-card surface-card-hover group relative overflow-hidden p-5"
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-700 dark:text-zinc-300">
@@ -317,7 +317,7 @@ export function DashboardOverview({ lang }: DashboardOverviewProps) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.2, delay: 0.06 }}
           whileHover={{ y: -2 }}
-          className="group relative overflow-hidden rounded-[20px] border border-slate-200/80 bg-white p-5 shadow-sm transition-shadow hover:shadow-md dark:border-slate-800 dark:bg-surface-card"
+          className="surface-card surface-card-hover group relative overflow-hidden p-5"
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-500 dark:text-zinc-400">
@@ -360,7 +360,7 @@ export function DashboardOverview({ lang }: DashboardOverviewProps) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.2, delay: 0.10 }}
           whileHover={{ y: -2 }}
-          className="group relative overflow-hidden rounded-[20px] border border-slate-200/80 bg-white p-5 shadow-sm transition-shadow hover:shadow-md dark:border-slate-800 dark:bg-surface-card"
+          className="surface-card surface-card-hover group relative overflow-hidden p-5"
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-500 dark:text-zinc-400">
@@ -403,7 +403,7 @@ export function DashboardOverview({ lang }: DashboardOverviewProps) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.2, delay: 0.14 }}
           whileHover={{ y: -2 }}
-          className="group relative overflow-hidden rounded-[20px] border border-slate-200/80 bg-white p-5 shadow-sm transition-shadow hover:shadow-md dark:border-slate-800 dark:bg-surface-card"
+          className="surface-card surface-card-hover group relative overflow-hidden p-5"
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-500 dark:text-zinc-400">
@@ -441,7 +441,7 @@ export function DashboardOverview({ lang }: DashboardOverviewProps) {
       {/* Visual Analytics Grid: 2 Charts Side-by-Side */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Chart 1: 7-Day Traffic & Alerts Area Chart (Spans 2 columns) */}
-        <div className="lg:col-span-2 rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-surface-card">
+        <div className="surface-card lg:col-span-2 p-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6">
             <div>
               <h3 className="text-base font-black text-slate-900 dark:text-white font-arabic flex items-center gap-2">
@@ -540,7 +540,7 @@ export function DashboardOverview({ lang }: DashboardOverviewProps) {
         </div>
 
         {/* Chart 2: Resolution Speed Breakdown (Donut Chart) */}
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-surface-card flex flex-col justify-between">
+        <div className="surface-card flex flex-col justify-between p-6">
           <div>
             <h3 className="text-base font-black text-slate-900 dark:text-white font-arabic flex items-center gap-2">
               <Clock className="h-4 w-4 text-emerald-600" />
@@ -629,7 +629,7 @@ export function DashboardOverview({ lang }: DashboardOverviewProps) {
       {/* Peak Hours & Live Activity Grid */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Peak Hours Bar Chart (Spans 2 columns) */}
-        <div className="lg:col-span-2 rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-surface-card">
+        <div className="surface-card lg:col-span-2 p-6">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h3 className="text-base font-black text-slate-900 dark:text-white font-arabic">
@@ -709,7 +709,7 @@ export function DashboardOverview({ lang }: DashboardOverviewProps) {
         </div>
 
         {/* Operational Shortcuts & Highlights */}
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-surface-card flex flex-col justify-between">
+        <div className="surface-card flex flex-col justify-between p-6">
           <div>
             <h3 className="text-base font-black text-slate-900 dark:text-white font-arabic">
               {L("إجراءات الإدارة السريعة", "Quick admin actions")}

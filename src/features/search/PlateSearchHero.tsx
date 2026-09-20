@@ -197,18 +197,18 @@ export function PlateSearchHero({ lang }: PlateSearchHeroProps) {
   };
 
   return (
-    <div className="relative mx-auto max-w-xl px-4 pt-3 sm:pt-6">
-      {/* Brand Context Indicator */}
+    <div className="relative mx-auto max-w-xl px-4 pt-6 sm:pt-10">
+      {/* Brand context — quiet eyebrow, not a loud badge */}
       <div className="text-center">
-        <div className="inline-flex items-center gap-2 rounded-full px-3.5 py-1 text-xs font-bold text-[#8a1538] dark:text-rose-300 bg-rose-50 dark:bg-rose-950/40 border border-rose-200/60 dark:border-rose-900/60">
-          <Car className="h-3.5 w-3.5" />
+        <div className="inline-flex items-center gap-2 rounded-full border border-brand-border bg-brand-soft px-3.5 py-1.5 text-micro font-bold tracking-wide text-qatar dark:text-rose-300">
+          <Car className="h-3.5 w-3.5" aria-hidden="true" />
           <span>{t.descriptor}</span>
         </div>
 
-        <h1 className="mt-3 text-2xl sm:text-3xl font-black tracking-tight text-slate-950 dark:text-white font-arabic">
+        <h1 className="mt-5 text-h1 font-extrabold text-slate-950 dark:text-white font-arabic sm:text-display">
           {t.searchHeroTitle}
         </h1>
-        <p className="mt-1 text-xs sm:text-sm text-slate-600 dark:text-slate-400">
+        <p className="mx-auto mt-3 max-w-md text-body text-slate-600 dark:text-slate-400 sm:text-lead">
           {t.searchHeroSubtitle}
         </p>
       </div>
@@ -248,7 +248,7 @@ export function PlateSearchHero({ lang }: PlateSearchHeroProps) {
       </AnimatePresence>
 
       {/* Prominent Mobile-First Search Input Box */}
-      <div className="mt-2">
+      <div className="mt-6">
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -256,12 +256,12 @@ export function PlateSearchHero({ lang }: PlateSearchHeroProps) {
           }}
           className="relative"
         >
-          <div className="relative flex items-center overflow-hidden rounded-[20px] border border-slate-300 dark:border-slate-700 bg-white dark:bg-surface-card shadow-sm transition-all focus-within:border-[#8a1538] focus-within:ring-2 focus-within:ring-[#8a1538]/20">
-            <div className="flex h-14 w-11 items-center justify-center text-slate-400 flex-shrink-0">
+          <div className="relative flex items-center overflow-hidden rounded-[20px] border border-slate-200 bg-white shadow-card transition-all duration-200 focus-within:border-qatar focus-within:ring-4 focus-within:ring-qatar/10 dark:border-slate-800 dark:bg-surface-card">
+            <div className="flex h-14 w-12 items-center justify-center text-slate-400 flex-shrink-0">
               {isLoading ? (
-                <Loader2 className="h-5 w-5 animate-spin text-[#8a1538] dark:text-rose-400" />
+                <Loader2 className="h-5 w-5 animate-spin text-qatar dark:text-rose-400" />
               ) : (
-                <Search className="h-5 w-5" />
+                <Search className="h-5 w-5" aria-hidden="true" />
               )}
             </div>
 
@@ -290,10 +290,10 @@ export function PlateSearchHero({ lang }: PlateSearchHeroProps) {
               <button
                 type="button"
                 onClick={handleClear}
-                className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition flex-shrink-0"
+                className="me-1 flex h-11 w-11 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-200 flex-shrink-0"
                 aria-label={t.clearInput}
               >
-                <X className="h-4 w-4" />
+                <X className="h-4 w-4" aria-hidden="true" />
               </button>
             )}
 
@@ -301,10 +301,10 @@ export function PlateSearchHero({ lang }: PlateSearchHeroProps) {
               type="submit"
               disabled={isLoading || !query.trim()}
               whileTap={shouldReduceMotion ? undefined : TACTILE_TAP}
-              className={`m-1.5 flex h-11 min-w-[96px] items-center justify-center rounded-[14px] px-4 text-xs font-bold shadow-sm transition-all flex-shrink-0 sm:text-sm ${
+              className={`m-1.5 flex h-11 min-w-[96px] items-center justify-center rounded-control px-4 text-xs font-bold transition-all flex-shrink-0 sm:text-sm ${
                 query.trim() && !isLoading
-                  ? "bg-[#8a1538] text-white hover:bg-[#70112e] hover:shadow-md"
-                  : "cursor-not-allowed bg-slate-100 text-slate-500 dark:bg-zinc-800/70 dark:text-zinc-400"
+                  ? "bg-qatar text-white shadow-float shadow-qatar/10 hover:bg-qatar-800"
+                  : "cursor-not-allowed bg-slate-100 text-slate-500 dark:bg-slate-800/70 dark:text-slate-400"
               }`}
             >
               {isLoading ? (
@@ -320,21 +320,21 @@ export function PlateSearchHero({ lang }: PlateSearchHeroProps) {
         </form>
 
         {/* Tactile Tools Row (Keypad & Camera) */}
-        <div className="mt-3 flex items-center justify-center gap-2">
+        <div className="mt-4 flex items-center justify-center gap-2.5">
           <button
             type="button"
             onClick={() => {
               triggerHaptic("selection");
               setShowKeypad((prev) => !prev);
             }}
-            className={`flex h-9 items-center gap-1.5 rounded-xl px-3.5 text-xs font-bold transition-all border ${
+            className={`flex h-11 items-center gap-2 rounded-control border px-4 text-xs font-bold transition-all duration-200 ${
               showKeypad
-                ? "bg-[#8a1538] text-white border-[#8a1538] shadow-sm shadow-[#8a1538]/20"
-                : "bg-white dark:bg-surface-card border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 shadow-sm hover:border-slate-300 dark:hover:border-slate-700"
+                ? "border-qatar bg-qatar text-white shadow-float shadow-qatar/5"
+                : "border-slate-200 bg-white text-slate-700 shadow-soft hover:border-slate-300 hover:shadow-card dark:border-slate-800 dark:bg-surface-card dark:text-slate-200 dark:hover:border-slate-700"
             }`}
             title={lang === "ar" ? "لوحة الأرقام الملموسة" : "Numeric keypad"}
           >
-            <span>🔢</span>
+            <span aria-hidden="true">🔢</span>
             <span>{lang === "ar" ? "أرقام اللوحة" : "Numeric Keypad"}</span>
           </button>
 
@@ -344,7 +344,7 @@ export function PlateSearchHero({ lang }: PlateSearchHeroProps) {
               triggerHaptic("selection");
               setIsCameraOpen(true);
             }}
-            className="flex h-9 items-center gap-1.5 rounded-xl px-3.5 text-xs font-bold bg-white dark:bg-surface-card border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 shadow-sm hover:text-[#8a1538] hover:border-slate-300 dark:hover:border-slate-700 transition-all"
+            className="flex h-11 items-center gap-2 rounded-control border border-slate-200 bg-white px-4 text-xs font-bold text-slate-700 shadow-soft transition-all duration-200 hover:border-slate-300 hover:text-qatar hover:shadow-card dark:border-slate-800 dark:bg-surface-card dark:text-slate-200 dark:hover:border-slate-700"
             title={lang === "ar" ? "مسح اللوحة بالكاميرا" : "Scan plate with camera"}
           >
             <Camera className="h-4 w-4 text-[#8a1538] dark:text-rose-400" />
