@@ -62,10 +62,8 @@ export async function escalateStaleAlerts(
         ownerId: row.owner_id,
         plateDisplay: plate,
         alertId: row.id,
-        title: `⏰ تنبيه لم يُستلم خلال ${threshold} ثانية`,
-        body: plate
-          ? `لم يستجب مالك السيارة (${plate}) للتنبيه. يرجى المتابعة الميدانية.`
-          : "لم يستجب مالك السيارة للتنبيه. يرجى المتابعة الميدانية.",
+        // Wording is resolved per recipient, in their own language.
+        escalation: { kind: "no_response", plate, thresholdSeconds: threshold },
       });
 
       try {
