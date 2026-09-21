@@ -184,10 +184,26 @@ for a logo upload during onboarding, but there was nowhere to put the file —
 the column could only hold a hand-typed URL.
 
 `supabase/migrations/20260924000001_org_logo_storage.sql` creates the
-`org-logos` storage bucket and its policies. **It is not applied automatically**:
-run it in the Supabase SQL Editor, the same way migration 08 was. Until it is,
-the uploader returns a 503 that says exactly that, rather than a raw storage
-error.
+`org-logos` storage bucket and its policies. **Applied to the HARRIK project on
+2026-09-21** (recorded in `supabase_migrations` under the application timestamp
+`20260921185141`, not the file's own number — see the note below). Any other
+environment still needs it; the migration is idempotent, so re-running it is
+safe. Until it is applied, the uploader returns a 503 that says exactly that,
+rather than a raw storage error.
+
+Verified against the live project after applying: the bucket exists with the
+2 MiB limit and the four allowed MIME types, all four policies are present, and
+the authorization predicate evaluates as intended — an organization's admin may
+write to their own folder, the same admin may **not** write to another
+organization's folder, and a non-admin member may not write at all.
+
+> **Migration tracking drift.** `supabase_migrations` lists only up to `07`,
+> plus this one. Migrations 08, 09 and 10 were applied through the SQL Editor,
+> which does not record them, so the table under-reports what the database
+> actually has — their objects (`rate_limit_buckets`, `parking_alerts.escalated_at`,
+> `departments.kind`) are all present and were confirmed directly. Anything that
+> replays migrations from the folder will re-run those three; check they are
+> idempotent before doing so.
 
 - Layout is one folder per tenant, `<organization_id>/logo-<timestamp>.<ext>`.
   The policies authorise writes on that first path segment, so a tenant cannot
