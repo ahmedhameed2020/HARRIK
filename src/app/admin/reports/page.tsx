@@ -18,6 +18,7 @@ import {
   RefreshCw,
   Sparkles,
   Mail,
+  FileText,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocale } from "@/contexts/LocaleContext";
@@ -392,28 +393,37 @@ export default function AdminReportsPage() {
             <Clock className="h-4 w-4 text-qatar" />
             <span>{t.repPeakTitle}</span>
           </h3>
-          <div className="grid grid-cols-12 gap-1 sm:gap-2 items-end h-24 pt-4 border-b border-slate-200 print:border-slate-300">
-            {Object.entries(metrics.hourlyCounts).map(([hour, count]) => {
-              const maxCount = Math.max(1, ...Object.values(metrics.hourlyCounts));
-              const heightPct = Math.round((count / maxCount) * 100);
-              return (
-                <div key={hour} className="flex flex-col items-center gap-1 h-full justify-end">
-                  <span className="text-[9px] font-bold text-slate-700 print:text-slate-800">
-                    {count > 0 ? count : ""}
-                  </span>
-                  <div
-                    style={{ height: `${Math.max(6, heightPct)}%` }}
-                    className={`w-full max-w-[28px] rounded-t transition-all ${
-                      count > 0 ? "bg-qatar print:bg-slate-800" : "bg-slate-200 print:bg-slate-200"
-                    }`}
-                  />
-                  <span className="text-[9px] text-slate-500 font-mono mt-1">
-                    {hour}:00
-                  </span>
-                </div>
-              );
-            })}
-          </div>
+          {Object.values(metrics.hourlyCounts).some((c) => c > 0) ? (
+            <div className="grid grid-cols-12 gap-1 sm:gap-2 items-end h-24 pt-4 border-b border-slate-200 print:border-slate-300">
+              {Object.entries(metrics.hourlyCounts).map(([hour, count]) => {
+                const maxCount = Math.max(1, ...Object.values(metrics.hourlyCounts));
+                const heightPct = Math.round((count / maxCount) * 100);
+                return (
+                  <div key={hour} className="flex flex-col items-center gap-1 h-full justify-end">
+                    <span className="text-[9px] font-bold text-slate-700 print:text-slate-800">
+                      {count > 0 ? count : ""}
+                    </span>
+                    <div
+                      style={{ height: `${Math.max(6, heightPct)}%` }}
+                      className={`w-full max-w-[28px] rounded-t transition-all ${
+                        count > 0 ? "bg-qatar print:bg-slate-800" : "bg-slate-200 print:bg-slate-200"
+                      }`}
+                    />
+                    <span className="text-[9px] text-slate-500 font-mono mt-1">
+                      {hour}:00
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="flex h-24 flex-col items-center justify-center gap-1 rounded-control border border-dashed border-slate-200 bg-surface-sunken/50 text-center print:border-slate-300">
+              <Clock className="h-4 w-4 text-slate-400" aria-hidden="true" />
+              <p className="text-caption font-bold text-slate-600 print:text-slate-700">
+                {L("لا توجد بلاغات في هذه الفترة لعرض توزيعها", "No incidents in this period to distribute")}
+              </p>
+            </div>
+          )}
           <p className="text-[10px] text-slate-500 mt-2">{t.repPeakNote}</p>
         </div>
 
@@ -445,8 +455,19 @@ export default function AdminReportsPage() {
               <tbody className="divide-y divide-slate-200/80 print:divide-slate-300">
                 {filteredAlerts.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="p-6 text-center text-slate-400">
-                      {t.repEmpty}
+                    <td colSpan={7} className="px-6 py-10 text-center">
+                      <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-100 text-slate-400 print:bg-slate-100">
+                        <FileText className="h-5 w-5" aria-hidden="true" />
+                      </div>
+                      <p className="mt-3 text-caption font-bold text-slate-700 print:text-slate-800">
+                        {t.repEmpty}
+                      </p>
+                      <p className="mt-1 text-micro text-slate-500 print:text-slate-600">
+                        {L(
+                          "غيّر نطاق التاريخ أو اطبع التقرير بعد تسجيل أول بلاغ.",
+                          "Change the date range or print after the first incident is logged."
+                        )}
+                      </p>
                     </td>
                   </tr>
                 ) : (
