@@ -5,8 +5,9 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "build:cf": "opennextjs-cloudflare build",
-    "deploy:cf": "opennextjs-cloudflare deploy",
+    "postinstall": "node scripts/patch-opennext-sharp.mjs",
+    "build:cf": "node scripts/patch-opennext-sharp.mjs && opennextjs-cloudflare build",
+    "deploy:cf": "node scripts/patch-opennext-sharp.mjs && opennextjs-cloudflare deploy",
     "start": "next start",
     "lint": "next lint",
     "test": "vitest run",
@@ -63,13 +64,5 @@
     "tailwindcss": "^3.4.17",
     "typescript": "^5.7.3",
     "vitest": "^3.0.7"
-  },
-  "pnpm": {
-    "ignoredOptionalDependencies": [
-      "sharp"
-    ],
-    "patchedDependencies": {
-      "@opennextjs/cloudflare@1.20.6": "patches/@opennextjs__cloudflare@1.20.6.patch"
-    }
   }
 }

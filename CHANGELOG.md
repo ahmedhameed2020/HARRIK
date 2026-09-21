@@ -196,6 +196,17 @@ Rounds 3–7 applied the design system screen by screen and fixed what the audit
   canvas; `slate-500` was darkened to `#6E675F` (≈5.1:1) and the axe suite is green again —
   **16/16**.
 
+### Fixed (Cloudflare CI could not install)
+- **`ERR_PNPM_LOCKFILE_CONFIG_MISMATCH` on Cloudflare's build image.** The `sharp` workaround used
+  `pnpm.patchedDependencies`, and Cloudflare's build image ships **pnpm 10.11.1** — which compares
+  that lockfile config strictly and refused `pnpm install --frozen-lockfile`, while the local
+  **10.28.1** accepted it happily. The patch config is gone: `scripts/patch-opennext-sharp.mjs`
+  now applies the same alias idempotently and runs from **`postinstall`**, so it lands on every
+  machine and every CI regardless of the package manager version. `patches/` was removed and the
+  lockfile regenerated without the config block.
+  Verified by simulating CI: strip the shim → `pnpm install --frozen-lockfile` → the script
+  re-applies it (and the Cloudflare build still succeeds).
+
 ### Fixed (Cloudflare build)
 - **`opennextjs-cloudflare build` failed on the native `sharp` binary:** `sharp` is an optional Next.js dependency of the image optimizer, and the adapter bundles Next's own server sources with esbuild — which cannot inline `sharp`'s `.node` binary (`No loader is configured for ".node" files`). Because `sharp` is an unusable, unused dependency here (`images.unoptimized: true`, no `next/image` usage) it is now:
   - excluded from the install via `pnpm.ignoredOptionalDependencies`, and
