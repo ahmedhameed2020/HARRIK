@@ -151,6 +151,16 @@ Rounds 3–7 applied the design system screen by screen and fixed what the audit
 
 ### Changed (performance & test harness)
 
+- **Authenticated chrome split out of the public pages:** `AppShell` (70 lines) now only owns the
+  providers and the public/auth early-return, while the navbar, mobile island, biometric gate, PWA
+  prompt and error reporter live in `AppChrome`, loaded through `next/dynamic` (still
+  server-rendered, so the navbar never pops in after hydration).
+  **Measured honestly:** this did *not* reduce the first-load bundle — `/login` and `/admin` load
+  exactly the same 15 chunks (192 kB / 350 kB before and after), because the chrome was already in
+  the shared graph the root layout pulls in. It is a maintainability change, not a perf win; the
+  real weight on `/login` is the Supabase auth client, the i18n dictionary and lucide icons, all of
+  which that screen genuinely needs.
+
 - **Self-hosted fonts:** replaced the render-blocking Google Fonts stylesheet with `next/font`
   (IBM Plex Sans Arabic + Inter, preloaded, `display: swap`). No external font request remains;
   measured FCP improved 2.0 s → 1.4 s on the deployed Worker.
