@@ -74,6 +74,9 @@ interface UserVehicle {
   year?: number | null;
   is_primary: boolean;
   is_active: boolean;
+  /** Issued automatically per vehicle; drives the QR sticker. */
+  permit_token?: string;
+  permit_status?: string | null;
 }
 
 const COMMON_MAKES = ["تويوتا", "نيسان", "لكزس", "لاندكروزر", "كيا", "هيونداي", "فورد"];
@@ -1109,6 +1112,9 @@ export default function ProfilePage() {
             mobile: profile.mobile,
           }}
           venueName={profile.organization?.name_ar || profile.organization?.name_en || "حَرِّك | HARRIK"}
+          onPermitChanged={() => {
+            fetchProfileData();
+          }}
         />
       )}
     </div>

@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useRef } from "react";
 import QRCode from "qrcode";
-import { X, Printer, Download, Sparkles, ShieldCheck, QrCode } from "lucide-react";
+import { X, Printer, Download, Sparkles, ShieldCheck, QrCode, RefreshCw, Ban, AlertTriangle } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { triggerHaptic } from "@/lib/haptics";
 import { QatarPlate } from "@/components/ui/QatarPlate";
@@ -15,11 +15,18 @@ interface ParkingPermitModalProps {
   vehicle: {
     id?: string;
     permit_token?: string;
+    permit_status?: string | null;
     plate_number: string;
     make: string;
     model: string;
     color: string;
   };
+  /**
+   * Called after the permit token is rotated or revoked so the screen that owns
+   * the vehicle list can refetch. Without it the modal would show a new QR code
+   * while the list behind it still holds the old token.
+   */
+  onPermitChanged?: () => void;
   profile: {
     name_ar: string;
     name_en: string;
@@ -36,31 +43,49 @@ export function ParkingPermitModal({
   vehicle,
   profile,
   venueName = "حَرِّك | HARRIK",
+  onPermitChanged,
 }: ParkingPermitModalProps) {
   const [qrDataUrl, setQrDataUrl] = useState<string>("");
+  // The token can change while the modal is open (rotation), so the QR is
+  // driven by state rather than by the prop alone.
+  const [token, setToken] = useState<string>("");
+  const [permitStatus, setPermitStatus] = useState<string>(vehicle?.permit_status || "active");
+  const [permitBusy, setPermitBusy] = useState<null | "rotate" | "revoke">(null);
+  const [permitError, setPermitError] = useState<string | null>(null);
   const permitRef = useRef<HTMLDivElement>(null);
   const { lang } = useLocale();
   const L = (ar: string, en: string) => (lang === "ar" ? ar : en);
 
+  // Seed the token from the vehicle whenever the modal opens, then keep it in
+  // state so a rotation can replace the QR code without closing the sheet.
   useEffect(() => {
-    if (isOpen && (vehicle?.permit_token || vehicle?.id || vehicle?.plate_number)) {
-      const origin = typeof window !== "undefined" ? window.location.origin : "http://localhost:3000";
-      // High-entropy opaque permit token architecture: Never encode raw plate as token
-      const token = vehicle.permit_token || vehicle.id || "11111111-1111-4111-8111-111111111111";
-      const scanUrl = `${origin}/scan?token=${encodeURIComponent(token)}`;
+    if (!isOpen) return;
+    setToken(vehicle?.permit_token || vehicle?.id || "");
+    setPermitStatus(vehicle?.permit_status || "active");
+    setPermitError(null);
+  }, [isOpen, vehicle?.permit_token, vehicle?.id, vehicle?.permit_status]);
 
-      QRCode.toDataURL(scanUrl, {
-        width: 320,
-        margin: 1.5,
-        color: {
-          dark: "#1e1e24",
-          light: "#ffffff",
-        },
-      })
-        .then((url) => setQrDataUrl(url))
-        .catch((err) => console.error("QR Code generation error:", err));
+  useEffect(() => {
+    if (!isOpen || !token) {
+      setQrDataUrl("");
+      return;
     }
-  }, [isOpen, vehicle?.plate_number]);
+
+    const origin = typeof window !== "undefined" ? window.location.origin : "http://localhost:3000";
+    // High-entropy opaque permit token architecture: never encode the raw plate.
+    const scanUrl = `${origin}/scan?token=${encodeURIComponent(token)}`;
+
+    QRCode.toDataURL(scanUrl, {
+      width: 320,
+      margin: 1.5,
+      color: {
+        dark: "#1e1e24",
+        light: "#ffffff",
+      },
+    })
+      .then((url) => setQrDataUrl(url))
+      .catch((err) => console.error("QR Code generation error:", err));
+  }, [isOpen, token]);
 
   if (!isOpen) return null;
 
@@ -77,6 +102,86 @@ export function ParkingPermitModal({
     a.download = `HARRIK_QR_${vehicle.plate_number}.png`;
     a.click();
   };
+
+  /**
+   * Rotating issues a fresh token and invalidates the old sticker immediately:
+   * the QR printed on a copied sticker stops verifying. This is the answer to
+   * "someone photographed my permit", which until now had none — the endpoint
+   * existed but nothing in the app called it.
+   */
+  const handleRotatePermit = async () => {
+    if (!vehicle?.id) return;
+    if (
+      !confirm(
+        L(
+          "سيتم إصدار رمز جديد وإبطال الملصق الحالي فوراً. ستحتاج لطباعة الملصق من جديد. هل تريد المتابعة؟",
+          "A new code will be issued and the current sticker invalidated immediately. You will need to print it again. Continue?"
+        )
+      )
+    )
+      return;
+
+    triggerHaptic("medium");
+    setPermitBusy("rotate");
+    setPermitError(null);
+    try {
+      const res = await fetch("/api/profile/vehicles/permit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ vehicleId: vehicle.id }),
+      });
+      const json = await res.json();
+      if (res.ok && json.success && json.permitToken) {
+        setToken(json.permitToken);
+        setPermitStatus("active");
+        triggerHaptic("success");
+        onPermitChanged?.();
+      } else {
+        setPermitError(json.error || L("تعذّر تدوير التصريح", "Could not rotate the permit"));
+      }
+    } catch {
+      setPermitError(L("خطأ في الاتصال", "Connection error"));
+    } finally {
+      setPermitBusy(null);
+    }
+  };
+
+  /** Revoking stops the permit verifying at all, without deleting the vehicle. */
+  const handleRevokePermit = async () => {
+    if (!vehicle?.id) return;
+    if (
+      !confirm(
+        L(
+          "سيتم إلغاء التصريح ولن يعمل الملصق عند المسح. هل أنت متأكد؟",
+          "The permit will be revoked and the sticker will stop working when scanned. Are you sure?"
+        )
+      )
+    )
+      return;
+
+    triggerHaptic("warning");
+    setPermitBusy("revoke");
+    setPermitError(null);
+    try {
+      const res = await fetch(
+        `/api/profile/vehicles/permit?vehicleId=${encodeURIComponent(vehicle.id)}`,
+        { method: "DELETE" }
+      );
+      const json = await res.json();
+      if (res.ok && json.success) {
+        setPermitStatus("revoked");
+        triggerHaptic("success");
+        onPermitChanged?.();
+      } else {
+        setPermitError(json.error || L("تعذّر إلغاء التصريح", "Could not revoke the permit"));
+      }
+    } catch {
+      setPermitError(L("خطأ في الاتصال", "Connection error"));
+    } finally {
+      setPermitBusy(null);
+    }
+  };
+
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm sm:items-center sm:p-4">
@@ -204,6 +309,73 @@ export function ParkingPermitModal({
             <Download className="h-4 w-4" />
             <span>{L("حفظ رمز QR", "Save QR code")}</span>
           </motion.button>
+        </div>
+
+        {/* Permit lifecycle. A printed sticker can be photographed or copied;
+            until this existed there was no way to invalidate one — the rotate
+            and revoke endpoints were built but nothing called them. */}
+        <div className="mt-3 rounded-control border border-line bg-surface-sunken/40 p-3">
+          <div className="flex items-start gap-2">
+            <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-qatar" aria-hidden="true" />
+            <div className="min-w-0">
+              <h4 className="text-caption font-bold text-slate-800 dark:text-slate-100">
+                {L("أمان التصريح", "Permit security")}
+              </h4>
+              <p className="mt-0.5 text-micro text-slate-500 dark:text-slate-400">
+                {L(
+                  "إذا صُوِّر الملصق أو نُسخ، أصدر رمزاً جديداً ليتوقف الملصق القديم عن العمل فوراً.",
+                  "If the sticker was photographed or copied, issue a new code so the old one stops working immediately."
+                )}
+              </p>
+            </div>
+          </div>
+
+          {permitStatus === "revoked" && (
+            <div className="mt-2.5 flex items-center gap-2 rounded-control bg-rose-50 px-3 py-2 text-caption font-bold text-rose-700 dark:bg-rose-950/40 dark:text-rose-300">
+              <Ban className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+              <span>{L("هذا التصريح ملغى ولن يعمل عند المسح", "This permit is revoked and will not verify")}</span>
+            </div>
+          )}
+
+          {permitError && (
+            <div className="mt-2.5 flex items-center gap-2 rounded-control bg-amber-50 px-3 py-2 text-caption font-bold text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
+              <AlertTriangle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+              <span>{permitError}</span>
+            </div>
+          )}
+
+          <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+            <button
+              type="button"
+              onClick={handleRotatePermit}
+              disabled={!vehicle?.id || permitBusy !== null}
+              className="btn btn-secondary gap-2 text-xs disabled:opacity-50"
+            >
+              <RefreshCw
+                className={`h-4 w-4 ${permitBusy === "rotate" ? "animate-spin" : ""}`}
+                aria-hidden="true"
+              />
+              <span>
+                {permitBusy === "rotate"
+                  ? L("جارٍ الإصدار...", "Issuing...")
+                  : L("إصدار رمز جديد", "Issue a new code")}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleRevokePermit}
+              disabled={!vehicle?.id || permitBusy !== null || permitStatus === "revoked"}
+              className="btn btn-secondary gap-2 text-xs text-rose-600 disabled:opacity-50 dark:text-rose-400"
+            >
+              <Ban className="h-4 w-4" aria-hidden="true" />
+              <span>
+                {permitBusy === "revoke"
+                  ? L("جارٍ الإلغاء...", "Revoking...")
+                  : L("إلغاء التصريح", "Revoke permit")}
+              </span>
+            </button>
+          </div>
         </div>
       </motion.div>
     </div>
