@@ -16,10 +16,12 @@
   //   every minute — escalate alerts nobody has acknowledged (§5 requires the
   //                  escalation to fire within 60-90s, so it runs at Cloudflare's
   //                  finest granularity)
+  //   02:00 UTC     — expire event logs past each tenant's retention window
   //   03:00 UTC     — 06:00 Asia/Qatar, the daily operations report e-mail
   "triggers": {
     "crons": [
       "* * * * *",
+      "0 2 * * *",
       "0 3 * * *"
     ]
   },

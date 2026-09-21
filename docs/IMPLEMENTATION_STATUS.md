@@ -142,6 +142,7 @@ entrypoint is `worker/index.mjs`, which wraps the generated
 | schedule | job | why |
 |---|---|---|
 | `* * * * *` | `POST /api/alerts/escalate` | §5 wants an unacknowledged alert escalated to the security team within 60–90s. One minute is Cloudflare's finest granularity. |
+| `0 2 * * *` | `POST /api/retention/purge` | Expires the search and contact logs past each tenant's `retention_days`. Runs an hour before the report, so the report is computed on what survived. |
 | `0 3 * * *` | `POST /api/reports/email` | 06:00 Asia/Qatar — the daily operations report. |
 
 Each job is dispatched **in process**: the handler builds a `Request` and hands
@@ -175,6 +176,24 @@ The SMS itself only leaves the system when an provider is configured —
 `.env.example`). Without them `lib/notifications/channels.ts` reports
 `not_configured` and the alert still goes out over push and in-app; nothing
 breaks, the fallback is simply inert.
+
+#### Data retention
+
+`system_settings.retention_days` is applied by the nightly purge in
+`lib/retention/purge.ts` and configurable in **الإعدادات → الخصوصية والبحث**
+(30 / 90 / 180 / 365 days; 90 is the default). Admins can also run it
+immediately for their own organization with `POST /api/retention/purge`, which
+writes an audit entry.
+
+It expires exactly two tables — `vehicle_search_events` (who looked up which
+plate) and `contact_action_events` (who contacted whom). Deliberately kept:
+`audit_logs`, because erasing the compliance trail on a timer would also erase
+the record of the purges themselves; `parking_alerts`, which the report and
+dashboard are computed from; and anything describing a person or a vehicle,
+which is removed through the screens that own it.
+
+The window is clamped to 7–3650 days on both write and read, so a missing or
+zero value can never be read as "delete everything".
 
 #### Mobile readiness (the app is phone-first)
 

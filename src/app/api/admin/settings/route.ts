@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { MIN_RETENTION_DAYS, MAX_RETENTION_DAYS } from "@/lib/retention/purge";
 import { createClient } from "@/lib/supabase/server";
 import { getAuthenticatedSession } from "@/lib/supabase/auth-helpers";
 
@@ -123,6 +124,7 @@ export async function PATCH(request: NextRequest) {
       whatsapp_enabled,
       country_calling_code,
       branding,
+      retention_days,
     } = body;
 
     // Validate essential organization name
@@ -170,6 +172,23 @@ export async function PATCH(request: NextRequest) {
       default_language: default_language === "en" ? "en" : "ar",
       updated_at: new Date().toISOString(),
     };
+
+    // How long the search / contact event logs are kept before the nightly
+    // purge expires them (lib/retention/purge.ts). Clamped so a stray 0 cannot
+    // be read as "delete everything".
+    if (retention_days !== undefined) {
+      const days = Number(retention_days);
+      if (!Number.isFinite(days) || days < MIN_RETENTION_DAYS || days > MAX_RETENTION_DAYS) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: `مدة الاحتفاظ يجب أن تكون بين ${MIN_RETENTION_DAYS} و${MAX_RETENTION_DAYS} يوماً`,
+          },
+          { status: 400 }
+        );
+      }
+      settingsUpdatePayload.retention_days = Math.floor(days);
+    }
 
     if (branding && typeof branding === "object") {
       settingsUpdatePayload.branding = branding;

@@ -48,6 +48,7 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith("/api/register") ||
     pathname.startsWith("/api/observability/") ||
     pathname.startsWith("/api/alerts/escalate") ||
+    pathname.startsWith("/api/retention/purge") ||
     pathname.startsWith("/api/reports/email") ||
     pathname.includes(".") ||
     pathname === "/favicon.ico"

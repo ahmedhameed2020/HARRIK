@@ -90,6 +90,7 @@ export default function SettingsPage() {
   const [privacyMode, setPrivacyMode] = useState<"mode_a" | "mode_b" | "mode_c">("mode_a");
   const [partialSearch, setPartialSearch] = useState(true);
   const [minDigits, setMinDigits] = useState(3);
+  const [retentionDays, setRetentionDays] = useState(90);
   const [whatsappEnabled, setWhatsappEnabled] = useState(true);
   const [countryCallingCode, setCountryCallingCode] = useState("+974");
 
@@ -233,6 +234,7 @@ export default function SettingsPage() {
         setPrivacyMode(set.privacy_mode || "mode_a");
         setPartialSearch(set.partial_search_enabled !== false);
         setMinDigits(set.min_partial_digits || 3);
+        setRetentionDays(set.retention_days || 90);
         setWhatsappEnabled(set.whatsapp_enabled !== false);
         setCountryCallingCode(set.country_calling_code || "+974");
 
@@ -297,6 +299,7 @@ export default function SettingsPage() {
         privacy_mode: privacyMode,
         partial_search_enabled: partialSearch,
         min_partial_digits: minDigits,
+        retention_days: retentionDays,
         whatsapp_enabled: whatsappEnabled,
         country_calling_code: countryCallingCode,
         branding: {
@@ -1051,6 +1054,34 @@ export default function SettingsPage() {
                     <option value={3}>{L("3 أرقام (موصى به)", "3 digits (recommended)")}</option>
                     <option value={4}>{L("4 أرقام", "4 digits")}</option>
                     <option value={5}>{L("5 أرقام", "5 digits")}</option>
+                  </select>
+                </div>
+
+                {/* Retention. The nightly purge (lib/retention/purge.ts) expires
+                    the search and contact logs past this window; records about
+                    people and vehicles, and the audit trail, are never expired
+                    on a timer. */}
+                <div className="rounded-xl border border-slate-200 p-4 dark:border-zinc-800 dark:bg-zinc-900/40 flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <span className="text-xs font-bold text-slate-900 dark:text-white font-arabic">
+                      {L("مدة الاحتفاظ بسجلات البحث والتواصل", "Search & contact log retention")}
+                    </span>
+                    <p className="text-caption text-slate-500 dark:text-zinc-400 mt-0.5">
+                      {L(
+                        "تُحذف سجلات من بحث عن أي لوحة ومن تواصل مع من بعد هذه المدة تلقائياً كل ليلة. لا تُحذف بيانات الأفراد أو المركبات أو سجل التدقيق.",
+                        "Records of who searched which plate and who contacted whom are deleted automatically each night after this window. People, vehicles and the audit trail are never expired."
+                      )}
+                    </p>
+                  </div>
+                  <select
+                    value={retentionDays}
+                    onChange={(e) => setRetentionDays(Number(e.target.value))}
+                    className="shrink-0 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold font-mono dark:border-zinc-700 dark:bg-zinc-800"
+                  >
+                    <option value={30}>{L("30 يوماً", "30 days")}</option>
+                    <option value={90}>{L("90 يوماً (موصى به)", "90 days (recommended)")}</option>
+                    <option value={180}>{L("180 يوماً", "180 days")}</option>
+                    <option value={365}>{L("سنة كاملة", "1 year")}</option>
                   </select>
                 </div>
               </div>

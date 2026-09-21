@@ -11,11 +11,15 @@
 /** Keep these identical to `triggers.crons` in wrangler.jsonc. */
 export const CRON_ESCALATE_STALE_ALERTS = "* * * * *";
 export const CRON_DAILY_OPERATIONS_REPORT = "0 3 * * *";
+export const CRON_DAILY_RETENTION_PURGE = "0 2 * * *";
 
 /** Which route each schedule drives, and what to send it. */
 export const CRON_JOBS = {
   [CRON_ESCALATE_STALE_ALERTS]: { path: "/api/alerts/escalate", body: {} },
   [CRON_DAILY_OPERATIONS_REPORT]: { path: "/api/reports/email", body: { days: 7 } },
+  // Runs an hour before the report so the report is computed on the data that
+  // survived the purge, not on rows that are about to disappear.
+  [CRON_DAILY_RETENTION_PURGE]: { path: "/api/retention/purge", body: {} },
 };
 
 /**
