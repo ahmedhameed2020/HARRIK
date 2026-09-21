@@ -122,7 +122,7 @@ export function AlertsInbox({ lang }: AlertsInboxProps) {
                 {t.navInbox}
               </h1>
               {/* Live Realtime Indicator Badge */}
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-bold text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 border border-emerald-500/20">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-caption font-bold text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 border border-emerald-500/20">
                 <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
                 <span>{lang === "ar" ? "بث مباشر" : "Live"}</span>
               </span>
@@ -169,7 +169,7 @@ export function AlertsInbox({ lang }: AlertsInboxProps) {
               <p className="text-xs font-bold text-slate-900 dark:text-white">
                 {lang === "ar" ? "تفعيل إشعارات المتصفح الفورية" : "Enable Web Notifications"}
               </p>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400">
+              <p className="text-caption text-slate-500 dark:text-slate-400">
                 {lang === "ar"
                   ? "لتلقي رنين واهتزاز وإشعار عند ورود طلب تحريك سيارتك"
                   : "Get chime, vibration, and banners when someone alerts you"}
@@ -308,7 +308,7 @@ export function AlertsInbox({ lang }: AlertsInboxProps) {
                     <span className="font-bold text-sm text-slate-900 dark:text-white font-arabic">
                       {alert.message}
                     </span>
-                    <span className="block text-[11px] text-slate-500 font-mono mt-0.5">
+                    <span className="block text-caption text-slate-500 font-mono mt-0.5">
                       {new Date(alert.created_at).toLocaleTimeString(lang === "ar" ? "ar-QA" : "en-US", {
                         hour: "2-digit",
                         minute: "2-digit",

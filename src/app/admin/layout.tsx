@@ -181,7 +181,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 </h2>
                 <div className="flex items-center gap-1.5 mt-0.5">
                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
+                  <span className="text-caption font-bold text-emerald-600 dark:text-emerald-400">
                     {isRtl ? "متصل مباشر" : "Live Connected"}
                   </span>
                 </div>
@@ -190,7 +190,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
             {/* Vertical Nav List */}
             <nav aria-label="Admin Navigation" className="space-y-1">
-              <p className="px-3 pb-2 text-[10px] font-bold tracking-wider text-slate-500 dark:text-zinc-500 uppercase font-arabic">
+              <p className="px-3 pb-2 text-micro font-bold tracking-wider text-slate-500 dark:text-zinc-500 uppercase font-arabic">
                 {isRtl ? "أقسام الإدارة" : "Administration"}
               </p>
               {navItems.map((item) => {
@@ -224,7 +224,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                     {/* Pending Alerts Live Counter Badge */}
                     {typeof item.badge === "number" && item.badge > 0 && (
                       <span
-                        className={`flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-[10px] font-black ${
+                        className={`flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-micro font-black ${
                           active
                             ? "bg-white text-qatar shadow-sm ring-2 ring-qatar"
                             : "bg-red-600 text-white animate-pulse"
@@ -241,7 +241,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
           {/* Footer Info / Timezone */}
           <div className="pt-4 border-t border-slate-100 dark:border-zinc-800/60">
-            <div className="rounded-xl border border-slate-200/60 bg-slate-50/60 p-3 text-[11px] text-slate-500 dark:border-zinc-800/60 dark:bg-zinc-900/40 dark:text-zinc-400">
+            <div className="rounded-xl border border-slate-200/60 bg-slate-50/60 p-3 text-caption text-slate-500 dark:border-zinc-800/60 dark:bg-zinc-900/40 dark:text-zinc-400">
               <div className="flex items-center justify-between font-mono">
                 <span className="text-qatar font-bold">
                   {isRtl ? "توقيت الدوحة:" : "Doha Time:"}
@@ -250,7 +250,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                   <DohaClock isRtl={isRtl} />
                 </span>
               </div>
-              <p className="mt-1 text-[10px] text-slate-500 dark:text-zinc-400 truncate">
+              <p className="mt-1 text-micro text-slate-500 dark:text-zinc-400 truncate">
                 {profile?.organization?.timezone || "Asia/Qatar"} • {isRtl ? "نظام آمن" : "Secure Node"}
               </p>
             </div>
@@ -273,7 +273,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                     <h2 className="text-sm font-black text-slate-900 dark:text-zinc-50 font-arabic truncate">
                       {profile?.organization?.name_ar || profile?.organization?.name_en || (isRtl ? "منظومة المواقف الذكية" : "Smart Parking")}
                     </h2>
-                    <p className="text-[10px] text-slate-500 dark:text-zinc-400 truncate">
+                    <p className="text-micro text-slate-500 dark:text-zinc-400 truncate">
                       {isRtl ? "لوحة التحكم المركزية" : "Central Command"}
                     </p>
                   </div>
@@ -323,7 +323,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
                       {typeof item.badge === "number" && item.badge > 0 && (
                         <span
-                          className={`flex h-4 min-w-[16px] items-center justify-center rounded-full px-1 text-[10px] font-black ${
+                          className={`flex h-4 min-w-[16px] items-center justify-center rounded-full px-1 text-micro font-black ${
                             active
                               ? "bg-white text-qatar shadow-sm ring-2 ring-qatar"
                               : "bg-red-600 text-white animate-pulse"
@@ -385,7 +385,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                       </h2>
                       <div className="flex items-center gap-1.5 mt-0.5">
                         <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                        <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
+                        <span className="text-caption font-bold text-emerald-600 dark:text-emerald-400">
                           {isRtl ? "متصل مباشر" : "Live Connected"}
                         </span>
                       </div>
@@ -406,7 +406,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
                 {/* Drawer Nav Items */}
                 <nav aria-label="Mobile Drawer Navigation" className="space-y-1">
-                  <p className="px-3 pb-2 text-[10px] font-bold tracking-wider text-slate-500 dark:text-zinc-500 uppercase font-arabic">
+                  <p className="px-3 pb-2 text-micro font-bold tracking-wider text-slate-500 dark:text-zinc-500 uppercase font-arabic">
                     {isRtl ? "أقسام الإدارة" : "Administration"}
                   </p>
                   {navItems.map((item) => {
@@ -443,7 +443,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                         {/* Pending Alerts Live Counter Badge */}
                         {typeof item.badge === "number" && item.badge > 0 && (
                           <span
-                            className={`flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-[10px] font-black ${
+                            className={`flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-micro font-black ${
                               active
                                 ? "bg-white text-qatar shadow-sm ring-2 ring-qatar"
                                 : "bg-red-600 text-white animate-pulse"
@@ -460,7 +460,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
               {/* Drawer Footer */}
               <div className="pt-4 border-t border-slate-100 dark:border-zinc-800/60">
-                <div className="rounded-xl border border-slate-200/60 bg-slate-50/60 p-3 text-[11px] text-slate-500 dark:border-zinc-800/60 dark:bg-zinc-900/40 dark:text-zinc-400">
+                <div className="rounded-xl border border-slate-200/60 bg-slate-50/60 p-3 text-caption text-slate-500 dark:border-zinc-800/60 dark:bg-zinc-900/40 dark:text-zinc-400">
                   <div className="flex items-center justify-between font-mono">
                     <span className="text-qatar font-bold">
                       {isRtl ? "توقيت الدوحة:" : "Doha Time:"}
@@ -469,7 +469,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                       <DohaClock isRtl={isRtl} />
                     </span>
                   </div>
-                  <p className="mt-1 text-[10px] text-slate-500 dark:text-zinc-400 truncate">
+                  <p className="mt-1 text-micro text-slate-500 dark:text-zinc-400 truncate">
                     {profile?.organization?.timezone || "Asia/Qatar"} • {isRtl ? "نظام آمن" : "Secure Node"}
                   </p>
                 </div>

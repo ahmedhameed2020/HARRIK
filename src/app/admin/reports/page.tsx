@@ -323,7 +323,7 @@ export default function AdminReportsPage() {
               <Building2 className="h-8 w-8" />
             </div>
             <div>
-              <div className="text-[11px] font-bold text-slate-500 print:text-slate-700">{t.repStateLine}</div>
+              <div className="text-caption font-bold text-slate-500 print:text-slate-700">{t.repStateLine}</div>
               <h2 className="text-xl sm:text-2xl font-black text-slate-900 print:text-black font-arabic">
                 {profile?.organization?.name_ar || profile?.organization?.name_en || "HARRIK"}
               </h2>
@@ -334,7 +334,7 @@ export default function AdminReportsPage() {
           <div className="text-left text-xs font-mono space-y-1">
             <div className="font-bold text-slate-900 print:text-black">{reportRefNumber}</div>
             <div className="text-slate-500 print:text-slate-700">{reportDate}</div>
-            <div className="inline-block rounded bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200 print:border-slate-300">
+            <div className="inline-block rounded bg-emerald-50 px-2 py-0.5 text-micro font-bold text-emerald-700 border border-emerald-200 print:border-slate-300">
               {t.repCertified}
             </div>
           </div>
@@ -350,7 +350,7 @@ export default function AdminReportsPage() {
             <div className="text-3xl font-black text-slate-900 print:text-black font-arabic">
               {metrics.total}
             </div>
-            <p className="text-[10px] text-slate-500 mt-1">{t.repKpiTotalSub}</p>
+            <p className="text-micro text-slate-500 mt-1">{t.repKpiTotalSub}</p>
           </div>
 
           <div className="rounded-2xl border border-slate-200/80 bg-slate-50/50 p-4 print:border-slate-300 print:bg-slate-50">
@@ -361,7 +361,7 @@ export default function AdminReportsPage() {
             <div className="text-3xl font-black text-emerald-600 font-arabic">
               {metrics.resolutionRate}%
             </div>
-            <p className="text-[10px] text-slate-500 mt-1">{t.repKpiComplianceSub}</p>
+            <p className="text-micro text-slate-500 mt-1">{t.repKpiComplianceSub}</p>
           </div>
 
           <div className="rounded-2xl border border-slate-200/80 bg-slate-50/50 p-4 print:border-slate-300 print:bg-slate-50">
@@ -372,7 +372,7 @@ export default function AdminReportsPage() {
             <div className="text-3xl font-black text-blue-600 font-arabic">
               {metrics.avgResolutionTime} <span className="text-sm font-bold">{t.repMinutes}</span>
             </div>
-            <p className="text-[10px] text-slate-500 mt-1">{t.repKpiAvgTimeSub}</p>
+            <p className="text-micro text-slate-500 mt-1">{t.repKpiAvgTimeSub}</p>
           </div>
 
           <div className="rounded-2xl border border-slate-200/80 bg-slate-50/50 p-4 print:border-slate-300 print:bg-slate-50">
@@ -383,7 +383,7 @@ export default function AdminReportsPage() {
             <div className="text-3xl font-black text-amber-600 font-arabic">
               {metrics.pending}
             </div>
-            <p className="text-[10px] text-slate-500 mt-1">{t.repKpiPendingSub}</p>
+            <p className="text-micro text-slate-500 mt-1">{t.repKpiPendingSub}</p>
           </div>
         </div>
 
@@ -424,7 +424,7 @@ export default function AdminReportsPage() {
               </p>
             </div>
           )}
-          <p className="text-[10px] text-slate-500 mt-2">{t.repPeakNote}</p>
+          <p className="text-micro text-slate-500 mt-2">{t.repPeakNote}</p>
         </div>
 
         {/* 4. Incident Logs Table */}
@@ -498,7 +498,7 @@ export default function AdminReportsPage() {
                       </td>
                       <td className="p-3">
                         <span
-                          className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                          className={`inline-block rounded-full px-2 py-0.5 text-micro font-bold ${
                             a.status === "resolved"
                               ? "bg-emerald-100 text-emerald-800 print:border print:border-emerald-700"
                               : a.status === "acknowledged"
@@ -520,7 +520,7 @@ export default function AdminReportsPage() {
             </table>
           </div>
           {filteredAlerts.length > 15 && (
-            <p className="text-[10px] text-slate-500 mt-2 text-center">{t.repPrintNote}</p>
+            <p className="text-micro text-slate-500 mt-2 text-center">{t.repPrintNote}</p>
           )}
         </div>
 
@@ -528,24 +528,24 @@ export default function AdminReportsPage() {
         <div className="mt-12 pt-8 border-t-2 border-slate-200 print:border-slate-400 grid grid-cols-3 gap-6 text-center text-xs">
           <div>
             <div className="font-bold text-slate-700 print:text-black mb-1">{t.repSignSecurity}</div>
-            <div className="text-[11px] text-slate-500">{t.repSignSecurityEn}</div>
+            <div className="text-caption text-slate-500">{t.repSignSecurityEn}</div>
             <div className="mt-8 border-b border-dashed border-slate-400 w-32 mx-auto" />
-            <div className="text-[10px] text-slate-500 mt-1">{t.repSignDate}</div>
+            <div className="text-micro text-slate-500 mt-1">{t.repSignDate}</div>
           </div>
 
           <div>
             <div className="font-bold text-slate-700 print:text-black mb-1">{t.repSeal}</div>
-            <div className="text-[11px] text-slate-500">{t.repSealEn}</div>
-            <div className="mt-2 h-16 w-28 mx-auto rounded-xl border border-dashed border-slate-300 flex items-center justify-center text-[10px] text-slate-300">
+            <div className="text-caption text-slate-500">{t.repSealEn}</div>
+            <div className="mt-2 h-16 w-28 mx-auto rounded-xl border border-dashed border-slate-300 flex items-center justify-center text-micro text-slate-300">
               {t.repSealPlaceholder}
             </div>
           </div>
 
           <div>
             <div className="font-bold text-slate-700 print:text-black mb-1">{t.repSignOps}</div>
-            <div className="text-[11px] text-slate-500">{t.repSignOpsEn}</div>
+            <div className="text-caption text-slate-500">{t.repSignOpsEn}</div>
             <div className="mt-8 border-b border-dashed border-slate-400 w-32 mx-auto" />
-            <div className="text-[10px] text-slate-500 mt-1">{t.repSignDate}</div>
+            <div className="text-micro text-slate-500 mt-1">{t.repSignDate}</div>
           </div>
         </div>
       </div>

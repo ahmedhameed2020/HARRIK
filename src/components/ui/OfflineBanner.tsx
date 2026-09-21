@@ -29,7 +29,7 @@ export function OfflineBanner() {
   if (!isOffline) return null;
 
   return (
-    <div className="sticky top-16 z-40 flex items-center justify-center gap-2 bg-amber-500 px-4 py-1.5 text-center text-[11px] font-bold text-white">
+    <div className="sticky top-16 z-40 flex items-center justify-center gap-2 bg-amber-500 px-4 py-1.5 text-center text-caption font-bold text-white">
       <WifiOff className="h-3.5 w-3.5" />
       <span>{t.offlineBanner}</span>
     </div>

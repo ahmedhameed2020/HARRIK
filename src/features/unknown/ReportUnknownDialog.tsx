@@ -125,7 +125,7 @@ export function ReportUnknownDialog({
           {/* Quick Make Chips */}
           {isAr && (
             <div>
-              <label className="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1.5">
+              <label className="block text-caption font-bold text-slate-500 dark:text-slate-400 mb-1.5">
                 نوع السيارة الشائع (اختيار سريع):
               </label>
               <div className="flex flex-wrap gap-1.5">
@@ -180,7 +180,7 @@ export function ReportUnknownDialog({
           {/* Quick Color Chips */}
           {isAr && (
             <div>
-              <label className="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1.5">
+              <label className="block text-caption font-bold text-slate-500 dark:text-slate-400 mb-1.5">
                 لون السيارة (اختيار سريع):
               </label>
               <div className="flex flex-wrap gap-1.5">

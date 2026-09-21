@@ -12,6 +12,7 @@ import {
   AlertCircle,
   FileSpreadsheet,
   Download,
+  Phone,
 } from "lucide-react";
 import { triggerHaptic } from "@/lib/haptics";
 import { BottomSheet } from "@/components/ui/BottomSheet";
@@ -300,7 +301,7 @@ export default function StaffDirectoryPage() {
           <div>
             <Link
               href="/admin"
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-qatar hover:underline mb-2 transition active:scale-95"
+              className="mb-2 inline-flex min-h-[44px] items-center gap-1.5 text-caption font-bold text-qatar transition hover:underline active:scale-95"
             >
               <ArrowLeft className="h-3.5 w-3.5 rtl:rotate-180" />
               <span>{L("العودة للوحة الإدارة", "Back to dashboard")}</span>
@@ -410,10 +411,97 @@ export default function StaffDirectoryPage() {
             </p>
           </div>
         ) : (
-          <div className="surface-card overflow-hidden">
+          <>
+            {/* Mobile: one card per person. A six-column table on a 390px screen
+                squeezes the content and buries rows under the floating nav. */}
+            <div className="space-y-3 md:hidden">
+              {filteredStaff.map((staff) => (
+                <article key={staff.id} className="surface-card p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <h3 className="truncate text-body font-bold text-slate-900 dark:text-white font-arabic">
+                        {lang === "ar" ? staff.name_ar : staff.name_en || staff.name_ar}
+                      </h3>
+                      <p className="mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-caption text-slate-500 dark:text-slate-400">
+                        <span className="font-mono font-bold">#{staff.employee_id}</span>
+                        <span className="text-slate-300 dark:text-slate-600">•</span>
+                        <span className="font-arabic">
+                          {lang === "ar"
+                            ? staff.department?.name_ar || "—"
+                            : staff.department?.name_en || staff.department?.name_ar || "—"}
+                        </span>
+                      </p>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-1.5">
+                      <span
+                        className={`rounded-pill px-2.5 py-1 text-caption font-bold ${
+                          staff.role === "admin"
+                            ? "bg-qatar-50 text-qatar dark:bg-qatar-950/60 dark:text-qatar-300"
+                            : staff.role === "security"
+                            ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300"
+                            : "bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300"
+                        }`}
+                      >
+                        {roleLabel(staff.role)}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => openEditModal(staff)}
+                        aria-label={L(`تعديل بيانات ${memberSingle}`, `Edit ${memberSingle}`)}
+                        className="flex h-11 w-11 items-center justify-center rounded-control border border-line text-slate-600 transition active:scale-95 dark:text-slate-300"
+                      >
+                        <Edit2 className="h-4 w-4" aria-hidden="true" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="mt-3 flex items-center justify-between gap-3 border-t border-line pt-3">
+                    {staff.mobile ? (
+                      <a
+                        href={`tel:${staff.mobile}`}
+                        className="flex min-h-[44px] items-center gap-2 rounded-control bg-surface-sunken/60 px-3 font-mono text-caption font-bold text-slate-700 dark:text-slate-200"
+                      >
+                        <Phone className="h-3.5 w-3.5 text-qatar" aria-hidden="true" />
+                        {staff.mobile}
+                      </a>
+                    ) : (
+                      <span className="text-caption text-slate-500 dark:text-slate-400">
+                        {L("بدون رقم", "No number")}
+                      </span>
+                    )}
+
+                    <div className="flex items-center gap-2">
+                      <span className="inline-flex items-center gap-1.5 rounded-pill border border-line px-2.5 py-1 text-caption font-bold text-slate-600 dark:text-slate-300">
+                        <Car className="h-3.5 w-3.5 text-qatar" aria-hidden="true" />
+                        {staff.staff_vehicles?.length || 0}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleToggleActive(staff)}
+                        className={`flex min-h-[44px] items-center gap-1.5 rounded-pill px-3 text-caption font-bold ${
+                          staff.is_active
+                            ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300"
+                            : "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400"
+                        }`}
+                      >
+                        <span
+                          className={`h-1.5 w-1.5 rounded-full ${
+                            staff.is_active ? "bg-emerald-500" : "bg-slate-400"
+                          }`}
+                        />
+                        {staff.is_active ? L("نشط", "Active") : L("معطل", "Disabled")}
+                      </button>
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+
+            {/* Desktop: the full table. */}
+            <div className="surface-card hidden overflow-hidden md:block">
             <div className="overflow-x-auto">
               <table className="w-full text-start text-xs text-slate-600 dark:text-slate-300">
-                <thead className="border-b border-slate-200 bg-slate-50/70 text-[11px] font-bold text-slate-500 dark:border-slate-800 dark:bg-slate-900/40 dark:text-slate-400">
+                <thead className="border-b border-slate-200 bg-slate-50/70 text-caption font-bold text-slate-500 dark:border-slate-800 dark:bg-slate-900/40 dark:text-slate-400">
                   <tr>
                     <th className="px-5 py-3.5 text-start">{identifierLabel}</th>
                     <th className="px-5 py-3.5 text-start">{L("الاسم", "Name")}</th>
@@ -435,7 +523,7 @@ export default function StaffDirectoryPage() {
                         <span className="font-bold text-slate-900 dark:text-white block font-arabic text-sm">
                           {lang === "ar" ? staff.name_ar : staff.name_en || staff.name_ar}
                         </span>
-                        <span className="text-[11px] text-slate-500 font-sans">
+                        <span className="text-caption text-slate-500 font-sans">
                           {lang === "ar" ? staff.name_en : staff.name_ar}
                         </span>
                       </td>
@@ -501,7 +589,8 @@ export default function StaffDirectoryPage() {
                 </tbody>
               </table>
             </div>
-          </div>
+            </div>
+          </>
         )}
 
         {/* Server-side pagination */}

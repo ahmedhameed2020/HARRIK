@@ -237,7 +237,7 @@ export default function AdminVisitorsPage() {
             <CheckCircle2 className="h-4 w-4 text-emerald-600" />
           </div>
           <div className="text-2xl font-black text-emerald-600 mt-2 font-arabic">{stats.active}</div>
-          <p className="text-[10px] text-slate-500 mt-0.5">{L("مصرّح لها بالوقوف حالياً", "Currently authorized to park")}</p>
+          <p className="text-micro text-slate-500 mt-0.5">{L("مصرّح لها بالوقوف حالياً", "Currently authorized to park")}</p>
         </div>
 
         <div className="surface-card p-4">
@@ -246,7 +246,7 @@ export default function AdminVisitorsPage() {
             <Clock className="h-4 w-4 text-amber-500" />
           </div>
           <div className="text-2xl font-black text-slate-700 dark:text-zinc-300 mt-2 font-arabic">{stats.expired}</div>
-          <p className="text-[10px] text-slate-500 mt-0.5">{L("انتهت صلاحية الوقوف", "Parking validity ended")}</p>
+          <p className="text-micro text-slate-500 mt-0.5">{L("انتهت صلاحية الوقوف", "Parking validity ended")}</p>
         </div>
 
         <div className="surface-card p-4">
@@ -255,7 +255,7 @@ export default function AdminVisitorsPage() {
             <UserCheck className="h-4 w-4 text-qatar" />
           </div>
           <div className="text-2xl font-black text-slate-900 dark:text-white mt-2 font-arabic">{stats.total}</div>
-          <p className="text-[10px] text-slate-500 mt-0.5">{L("كل التصاريح الصادرة", "All issued passes")}</p>
+          <p className="text-micro text-slate-500 mt-0.5">{L("كل التصاريح الصادرة", "All issued passes")}</p>
         </div>
       </div>
 
@@ -360,7 +360,7 @@ export default function AdminVisitorsPage() {
                       </td>
                       <td className="p-4">
                         <div className="font-bold text-slate-800 dark:text-zinc-200">{pass.host_name || L("عام", "General")}</div>
-                        <div className="text-[10px] text-slate-500">{pass.purpose}</div>
+                        <div className="text-micro text-slate-500">{pass.purpose}</div>
                       </td>
                       <td className="p-4 font-mono text-slate-700 dark:text-zinc-300">
                         <div>
@@ -370,13 +370,13 @@ export default function AdminVisitorsPage() {
                             minute: "2-digit",
                           })}
                         </div>
-                        <div className="text-[10px] text-slate-500">
+                        <div className="text-micro text-slate-500">
                           {new Date(pass.valid_until).toLocaleDateString(lang === "ar" ? "ar-QA" : "en-US")}
                         </div>
                       </td>
                       <td className="p-4">
                         <span
-                          className={`inline-block rounded-full px-2.5 py-0.5 text-[10px] font-bold ${
+                          className={`inline-block rounded-full px-2.5 py-0.5 text-micro font-bold ${
                             !isExpired
                               ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300"
                               : "bg-slate-100 text-slate-700 dark:bg-zinc-800 dark:text-zinc-400"
@@ -398,7 +398,7 @@ export default function AdminVisitorsPage() {
                             <button
                               onClick={() => handleExtendPass(pass.id)}
                               title={L("تمديد 4 ساعات", "Extend 4 hours")}
-                              className="rounded-lg px-2 py-1 text-[11px] font-bold text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/40"
+                              className="rounded-lg px-2 py-1 text-caption font-bold text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/40"
                             >
                               {L("+4س", "+4h")}
                             </button>
@@ -517,7 +517,7 @@ export default function AdminVisitorsPage() {
 
               <div className="grid grid-cols-3 gap-2">
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                  <label className="block text-caption font-bold text-slate-700 dark:text-slate-300 mb-1">
                     {L("الشركة المصنعة", "Make")}
                   </label>
                   <input
@@ -530,7 +530,7 @@ export default function AdminVisitorsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                  <label className="block text-caption font-bold text-slate-700 dark:text-slate-300 mb-1">
                     {L("الموديل", "Model")}
                   </label>
                   <input
@@ -543,7 +543,7 @@ export default function AdminVisitorsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                  <label className="block text-caption font-bold text-slate-700 dark:text-slate-300 mb-1">
                     {L("اللون", "Color")}
                   </label>
                   <input
@@ -625,7 +625,7 @@ export default function AdminVisitorsPage() {
                   {profile?.organization?.name_ar || profile?.organization?.name_en || "HARRIK"}
                 </span>
               </div>
-              <div className="text-[10px] font-bold text-qatar mb-4">{L("تصريح موقف زائر رسمي (VISITOR PARKING PASS)", "Official Visitor Parking Pass")}</div>
+              <div className="text-micro font-bold text-qatar mb-4">{L("تصريح موقف زائر رسمي (VISITOR PARKING PASS)", "Official Visitor Parking Pass")}</div>
 
               <div className="flex justify-center mb-3">
                 <QatarPlateBadge plateNumber={selectedPass.plate_number} size="lg" />
@@ -633,9 +633,9 @@ export default function AdminVisitorsPage() {
 
               <div className="space-y-1.5 text-xs text-slate-700 dark:text-zinc-300">
                 <div className="font-bold text-slate-900 dark:text-white text-sm">{selectedPass.visitor_name}</div>
-                <div className="text-[11px] text-slate-500">{selectedPass.vehicle_make} {selectedPass.vehicle_model} • {selectedPass.vehicle_color}</div>
-                <div className="text-[11px]">{L("المستضيف:", "Host:")} <span className="font-bold">{selectedPass.host_name || L("عام", "General")}</span></div>
-                <div className="rounded-lg bg-emerald-50 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 font-bold p-1.5 text-[11px] border border-emerald-200">
+                <div className="text-caption text-slate-500">{selectedPass.vehicle_make} {selectedPass.vehicle_model} • {selectedPass.vehicle_color}</div>
+                <div className="text-caption">{L("المستضيف:", "Host:")} <span className="font-bold">{selectedPass.host_name || L("عام", "General")}</span></div>
+                <div className="rounded-lg bg-emerald-50 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 font-bold p-1.5 text-caption border border-emerald-200">
                   {L("صالح حتى:", "Valid until:")} {new Date(selectedPass.valid_until).toLocaleTimeString(lang === "ar" ? "ar-QA" : "en-US", { hour: "2-digit", minute: "2-digit" })} ({new Date(selectedPass.valid_until).toLocaleDateString(lang === "ar" ? "ar-QA" : "en-US")})
                 </div>
               </div>

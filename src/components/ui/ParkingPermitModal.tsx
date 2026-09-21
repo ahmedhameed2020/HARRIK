@@ -97,7 +97,7 @@ export function ParkingPermitModal({
               <h3 className="text-base font-extrabold text-slate-900 dark:text-white font-arabic">
                 {L("تصريح الموقف وملصق الباركود الذكي", "Smart parking permit & barcode sticker")}
               </h3>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400">
+              <p className="text-caption text-slate-500 dark:text-slate-400">
                 Printable QR Smart Parking Permit
               </p>
             </div>
@@ -151,7 +151,7 @@ export function ParkingPermitModal({
               ) : (
                 <div className="h-44 w-44 animate-pulse bg-slate-100 rounded-2xl" />
               )}
-              <p className="mt-2 text-[11px] font-black text-slate-600 font-arabic">
+              <p className="mt-2 text-caption font-black text-slate-600 font-arabic">
                 {L("📱 امسح الباركود بكاميرا هاتفك لتنبيه السائق فوراً", "📱 Scan the code with your phone camera to alert the driver instantly")}
               </p>
             </div>
@@ -159,18 +159,18 @@ export function ParkingPermitModal({
             {/* Driver and Vehicle Meta */}
             <div className="mt-3 pt-3 border-t border-slate-200 text-xs grid grid-cols-2 gap-2 text-start bg-slate-50 p-2.5 rounded-xl font-arabic">
               <div>
-                <span className="text-[10px] text-slate-500 block">{L("الاسم:", "Name:")}</span>
+                <span className="text-micro text-slate-500 block">{L("الاسم:", "Name:")}</span>
                 <span className="font-bold text-slate-800">{lang === "ar" ? profile.name_ar : profile.name_en || profile.name_ar}</span>
               </div>
               <div>
-                <span className="text-[10px] text-slate-500 block">{L("المركبة:", "Vehicle:")}</span>
+                <span className="text-micro text-slate-500 block">{L("المركبة:", "Vehicle:")}</span>
                 <span className="font-bold text-slate-800">
                   {vehicle.make} {vehicle.model} ({vehicle.color})
                 </span>
               </div>
               {profile.department_name && (
                 <div className="col-span-2">
-                  <span className="text-[10px] text-slate-500 block">{L("القسم / الإدارة:", "Unit / department:")}</span>
+                  <span className="text-micro text-slate-500 block">{L("القسم / الإدارة:", "Unit / department:")}</span>
                   <span className="font-bold text-slate-800">{profile.department_name}</span>
                 </div>
               )}

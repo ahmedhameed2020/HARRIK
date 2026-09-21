@@ -557,7 +557,7 @@ export default function ProfilePage() {
             </p>
             <button
               onClick={handleOpenAddVehicle}
-              className="mt-3 font-bold text-xs text-qatar hover:underline"
+              className="btn btn-secondary mt-4"
             >
               {L("+ أضف سيارتك الآن للتعرف التلقائي عليها", "+ Add your vehicle now for automatic identification")}
             </button>
@@ -573,7 +573,7 @@ export default function ProfilePage() {
                   <div>
                     {/* Qatar Plate simulation */}
                     <div className="inline-flex items-stretch overflow-hidden rounded-xl border-2 border-slate-900 bg-white shadow-sm mb-3">
-                      <div className="flex flex-col items-center justify-center bg-qatar px-2.5 py-1 text-[10px] font-black text-white">
+                      <div className="flex flex-col items-center justify-center bg-qatar px-2.5 py-1 text-micro font-black text-white">
                         <span>{L("قطر", "QATAR")}</span>
                         <span className="text-[8px] tracking-wider opacity-90">QATAR</span>
                       </div>
@@ -592,7 +592,7 @@ export default function ProfilePage() {
 
                   <div className="flex flex-col items-end gap-1.5">
                     {v.is_primary && (
-                      <span className="rounded-lg bg-amber-100 px-2 py-0.5 text-[10px] font-black text-amber-800 dark:bg-amber-950/60 dark:text-amber-300">
+                      <span className="rounded-lg bg-amber-100 px-2 py-0.5 text-micro font-black text-amber-800 dark:bg-amber-950/60 dark:text-amber-300">
                         {L("السيارة الأساسية ⭐", "Primary vehicle ⭐")}
                       </span>
                     )}
@@ -704,7 +704,7 @@ export default function ProfilePage() {
                 {L("إشعارات شاشة القفل في الخلفية (Web Push)", "Background lock-screen notifications (Web Push)")}
               </h2>
               <span
-                className={`rounded-full px-2.5 py-0.5 text-[10px] font-black ${
+                className={`rounded-full px-2.5 py-0.5 text-micro font-black ${
                   isPushSubscribed
                     ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300"
                     : "bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300"
@@ -754,7 +754,7 @@ export default function ProfilePage() {
         </div>
 
         {!isPushSupported && (
-          <p className="mt-3 text-[11px] text-amber-600 dark:text-amber-400">
+          <p className="mt-3 text-caption text-amber-600 dark:text-amber-400">
             {L("⚠️ المتصفح الحالي لا يدعم تقنية Web Push. على هواتف iPhone، تأكد من إضافة التطبيق للشاشة الرئيسية (Add to Home Screen) وتحديث نظام iOS إلى 16.4+.", "⚠️ This browser does not support Web Push. On iPhone, add the app to your Home Screen and update iOS to 16.4+.")}
           </p>
         )}
@@ -771,7 +771,7 @@ export default function ProfilePage() {
               <h2 className="heading-section font-arabic">
                 {L("الفتح بالبصمة (Face ID / بصمة الإصبع)", "Biometric unlock (Face ID / Fingerprint)")}
               </h2>              <span
-                className={`rounded-full px-2.5 py-0.5 text-[10px] font-black ${
+                className={`rounded-full px-2.5 py-0.5 text-micro font-black ${
                   biometricEnabled
                     ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300"
                     : "bg-slate-100 text-slate-600 dark:bg-zinc-800 dark:text-zinc-300"
@@ -813,7 +813,7 @@ export default function ProfilePage() {
         </div>
 
         {!biometricSupported && (
-          <p className="mt-3 text-[11px] text-amber-600 dark:text-amber-400">
+          <p className="mt-3 text-caption text-amber-600 dark:text-amber-400">
             {L("⚠️ هذا الجهاز أو المتصفح لا يدعم المصادقة الحيوية. تأكد من استخدام جهاز يحتوي على قارئ بصمة أو Face ID، ومن فتح التطبيق عبر اتصال آمن (HTTPS).", "⚠️ This device or browser does not support biometric authentication. Use a device with a fingerprint reader or Face ID, and open the app over a secure (HTTPS) connection.")}
           </p>
         )}
@@ -830,7 +830,7 @@ export default function ProfilePage() {
               <h2 className="heading-section font-arabic">
                 {L("الأجهزة والجلسات النشطة", "Devices & active sessions")}
               </h2>
-              <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[10px] font-black text-slate-600 dark:bg-zinc-800 dark:text-zinc-300">
+              <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-micro font-black text-slate-600 dark:bg-zinc-800 dark:text-zinc-300">
                 {devices.length}
               </span>
             </div>
@@ -875,11 +875,11 @@ export default function ProfilePage() {
                   </div>
                   <div className="min-w-0">
                     <div className="truncate text-xs font-bold text-slate-800 dark:text-zinc-200">{d.host}</div>
-                    <div className="truncate text-[10px] text-slate-500">
+                    <div className="truncate text-micro text-slate-500">
                       {d.userAgent || L("جهاز غير معروف", "Unknown device")}
                     </div>
                     {d.createdAt && (
-                      <div className="text-[10px] text-slate-500">
+                      <div className="text-micro text-slate-500">
                         {new Date(d.createdAt).toLocaleDateString(lang === "ar" ? "ar-QA" : "en-US")}
                       </div>
                     )}
@@ -890,7 +890,7 @@ export default function ProfilePage() {
                   type="button"
                   onClick={() => handleRemoveDevice(d.id)}
                   disabled={deviceBusyId === d.id}
-                  className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 px-3 py-1.5 text-[11px] font-bold text-rose-700 transition hover:bg-rose-100 disabled:opacity-50 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-300"
+                  className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 px-3 py-1.5 text-caption font-bold text-rose-700 transition hover:bg-rose-100 disabled:opacity-50 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-300"
                 >
                   <Trash2 className="h-3 w-3" />
                   <span>{L("إنهاء", "End")}</span>
@@ -937,7 +937,7 @@ export default function ProfilePage() {
 
               {/* Quick Make Chips */}
               <div>
-                <label className="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">
+                <label className="block text-caption font-bold text-slate-500 dark:text-slate-400 mb-1">
                   {L("الشركة المصنعة (Make) *", "Make *")}
                 </label>
                 <div className="flex flex-wrap gap-1.5 mb-2">
@@ -982,7 +982,7 @@ export default function ProfilePage() {
 
               {/* Quick Color Chips */}
               <div>
-                <label className="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">
+                <label className="block text-caption font-bold text-slate-500 dark:text-slate-400 mb-1">
                   {L("لون السيارة *", "Vehicle color *")}
                 </label>
                 <div className="flex flex-wrap gap-1.5 mb-2">

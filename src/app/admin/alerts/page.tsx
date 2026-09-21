@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { ArrowLeft, RefreshCw, CheckCircle2, Download } from "lucide-react";
 import { ParkingAlert } from "@/types";
+import { QatarPlate } from "@/components/ui/QatarPlate";
 import { exportAlertsToExcel } from "@/lib/excel-utils";
 import { triggerHaptic } from "@/lib/haptics";
 import { useLocale } from "@/contexts/LocaleContext";
@@ -51,7 +52,7 @@ export default function ParkingAlertsManagerPage() {
           <div>
             <Link
               href="/admin"
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-qatar hover:underline mb-2 transition active:scale-95"
+              className="inline-flex items-center gap-1.5 mb-2 inline-flex min-h-[44px] items-center text-caption font-bold text-qatar transition hover:underline active:scale-95"
             >
               <ArrowLeft className="h-3.5 w-3.5 rtl:rotate-180" />
               <span>{L("العودة للوحة الإدارة", "Back to dashboard")}</span>
@@ -109,8 +110,50 @@ export default function ParkingAlertsManagerPage() {
         ))}
       </div>
 
+      {/* Alerts — cards on phones, table from md up */}
+      <div className="space-y-3 md:hidden">
+        {filtered.map((alert) => (
+          <article key={alert.id} className="surface-card p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <QatarPlate plateNumber={alert.vehicle?.plate_number || "482731"} size="sm" />
+                <p className="mt-2 text-caption font-bold text-slate-800 dark:text-slate-100 font-arabic">
+                  {alert.message || L("سيارتك حاجزة سيارتي", "Blocking my vehicle")}
+                </p>
+                <p className="mt-1 text-caption text-slate-500 dark:text-slate-400 font-arabic">
+                  {alert.owner?.name_ar || L("مالك مسجل", "Registered owner")}
+                </p>
+              </div>
+              <span
+                className={`shrink-0 rounded-pill px-2.5 py-1 text-caption font-bold ${
+                  alert.status === "pending"
+                    ? "bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300"
+                    : alert.status === "acknowledged"
+                    ? "bg-blue-100 text-blue-800 dark:bg-blue-950/50 dark:text-blue-300"
+                    : "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300"
+                }`}
+              >
+                {statusLabel(alert.status)}
+              </span>
+            </div>
+
+            <div className="mt-3 flex items-center justify-between gap-3 border-t border-line pt-3 text-caption text-slate-500 dark:text-slate-400">
+              <span className="font-mono font-bold">
+                {new Date(alert.created_at).toLocaleTimeString(lang === "ar" ? "ar-QA" : "en-US", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </span>
+              <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">
+                {alert.resolved_at ? L("مُحلّة", "Resolved") : "—"}
+              </span>
+            </div>
+          </article>
+        ))}
+      </div>
+
       {/* Alerts Table */}
-      <div className="glass-panel overflow-hidden rounded-3xl border border-slate-200/80 shadow-sm dark:border-slate-800">
+      <div className="glass-panel hidden overflow-hidden rounded-3xl border border-slate-200/80 shadow-sm md:block dark:border-slate-800">
         <div className="overflow-x-auto">
           <table className="w-full text-start text-sm">
             <thead className="border-b bg-slate-100/70 text-xs font-bold text-slate-600 dark:bg-slate-800/80 dark:border-slate-800 dark:text-slate-300">

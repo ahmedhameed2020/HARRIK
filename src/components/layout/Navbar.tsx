@@ -108,7 +108,7 @@ export function Navbar({
                       ? `${activeCount} تنبيه نشط`
                       : `${activeCount} active alerts`
                   }
-                  className="absolute -top-1.5 -right-2 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-black text-white ring-2 ring-white dark:ring-slate-900 animate-pulse"
+                  className="absolute -top-1.5 -right-2 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-600 px-1 text-micro font-black text-white ring-2 ring-white dark:ring-slate-900 animate-pulse"
                 >
                   {activeCount > 9 ? "9+" : activeCount}
                 </span>
@@ -163,7 +163,7 @@ export function Navbar({
                 {profile?.name_ar || profile?.name_en || user.email?.split("@")[0]}
               </Link>
               {role && (
-                <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
+                <span className={`rounded-full px-1.5 py-0.5 text-micro font-bold ${
                   isAdmin
                     ? "bg-qatar-50 text-qatar dark:bg-qatar-950 dark:text-qatar-300"
                     : role === "security"

@@ -70,7 +70,7 @@ export function UnregisteredEscalationHub({
               <ShieldAlert className="h-6 w-6" />
             </div>
             <div>
-              <div className="inline-flex items-center gap-1.5 rounded-lg bg-amber-100/80 px-2.5 py-0.5 text-[11px] font-extrabold text-amber-800 dark:bg-amber-900/50 dark:text-amber-300 mb-1">
+              <div className="inline-flex items-center gap-1.5 rounded-lg bg-amber-100/80 px-2.5 py-0.5 text-caption font-extrabold text-amber-800 dark:bg-amber-900/50 dark:text-amber-300 mb-1">
                 <span>{isAr ? "مركبة غير مسجلة بالكيان" : "Unregistered Vehicle"}</span>
               </div>
               <h3 className="heading-section font-arabic">
@@ -89,7 +89,7 @@ export function UnregisteredEscalationHub({
           {/* Qatar Plate Badge */}
           <div className="flex flex-col items-center shrink-0">
             <div className="inline-flex items-stretch overflow-hidden rounded-xl border-2 border-slate-900 bg-white shadow-sm dark:border-zinc-300">
-              <div className="flex flex-col items-center justify-center bg-qatar px-2.5 py-1 text-[10px] font-black text-white">
+              <div className="flex flex-col items-center justify-center bg-qatar px-2.5 py-1 text-micro font-black text-white">
                 <span>قطر</span>
                 <span className="text-[8px] tracking-wider opacity-90">QATAR</span>
               </div>
@@ -100,7 +100,7 @@ export function UnregisteredEscalationHub({
             <button
               type="button"
               onClick={handleCopyPlate}
-              className="mt-1.5 inline-flex items-center gap-1 text-[11px] font-bold text-slate-500 hover:text-slate-800 dark:text-zinc-400 dark:hover:text-zinc-200"
+              className="mt-1.5 inline-flex items-center gap-1 text-caption font-bold text-slate-500 hover:text-slate-800 dark:text-zinc-400 dark:hover:text-zinc-200"
             >
               {copiedPlate ? (
                 <>
@@ -135,7 +135,7 @@ export function UnregisteredEscalationHub({
                 <PhoneCall className="h-5 w-5" />
               </div>
               <div>
-                <span className="text-[10px] font-black uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
+                <span className="text-micro font-black uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
                   {isAr ? "الإجراء الأسرع ميدانياً" : "Fastest On-Site Action"}
                 </span>
                 <h4 className="text-base font-extrabold text-slate-900 dark:text-white font-arabic">
@@ -187,7 +187,7 @@ export function UnregisteredEscalationHub({
                 <Megaphone className="h-5 w-5" />
               </div>
               <div>
-                <span className="text-[10px] font-black uppercase tracking-wider text-qatar dark:text-rose-400">
+                <span className="text-micro font-black uppercase tracking-wider text-qatar dark:text-rose-400">
                   {isAr ? "تسجيل بلاغ رسمي" : "Official Dispatch Log"}
                 </span>
                 <h4 className="text-base font-extrabold text-slate-900 dark:text-white font-arabic">
@@ -228,7 +228,7 @@ export function UnregisteredEscalationHub({
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="inline-flex items-center gap-1 rounded-md bg-[#8A1538]/10 px-2 py-0.5 text-[10px] font-black text-qatar dark:bg-[#8A1538]/30 dark:text-rose-300">
+                <span className="inline-flex items-center gap-1 rounded-md bg-[#8A1538]/10 px-2 py-0.5 text-micro font-black text-qatar dark:bg-[#8A1538]/30 dark:text-rose-300">
                   {isAr ? "الإدارة العامة للمرور — دولة قطر" : "Qatar Traffic Directorate"}
                 </span>
               </div>
@@ -266,25 +266,25 @@ export function UnregisteredEscalationHub({
             </h5>
             <ol className="space-y-2 text-xs text-slate-600 dark:text-slate-300">
               <li className="flex items-start gap-2">
-                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-qatar/10 text-qatar font-bold text-[10px]">
+                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-qatar/10 text-qatar font-bold text-micro">
                   1
                 </span>
                 <span>{isAr ? "افتح تطبيق «مطراش 2» على هاتفك وسجل الدخول." : "Open the Metrash2 app on your phone and log in."}</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-qatar/10 text-qatar font-bold text-[10px]">
+                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-qatar/10 text-qatar font-bold text-micro">
                   2
                 </span>
                 <span>{isAr ? "اختر «خدمات المرور» (Traffic Services)." : "Select 'Traffic Services'."}</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-qatar/10 text-qatar font-bold text-[10px]">
+                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-qatar/10 text-qatar font-bold text-micro">
                   3
                 </span>
                 <span>{isAr ? "اختر خدمة «المركبات الحاجزة للمواقف»." : "Choose 'Blocking Vehicles' service."}</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-qatar/10 text-qatar font-bold text-[10px]">
+                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-qatar/10 text-qatar font-bold text-micro">
                   4
                 </span>
                 <span>
@@ -312,7 +312,7 @@ export function UnregisteredEscalationHub({
           <span>{isAr ? "البحث عن رقم لوحة آخر" : "Search another plate number"}</span>
         </button>
 
-        <div className="flex items-center gap-2 text-[11px] font-bold text-slate-500 dark:text-zinc-400">
+        <div className="flex items-center gap-2 text-caption font-bold text-slate-500 dark:text-zinc-400">
           <AlertOctagon className="h-3.5 w-3.5 text-rose-500 shrink-0" />
           <span>
             {isAr

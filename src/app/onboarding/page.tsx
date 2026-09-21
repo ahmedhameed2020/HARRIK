@@ -212,7 +212,7 @@ export default function OnboardingSetupPage() {
                 placeholder={t.onbTemplatePlaceholder}
                 className={`${inputClass} resize-none`}
               />
-              <p className="mt-1 text-[10px] text-slate-500">{t.onbTemplateVars}</p>
+              <p className="mt-1 text-micro text-slate-500">{t.onbTemplateVars}</p>
             </div>
             <div>
               <label className="mb-1.5 block text-xs font-bold text-slate-700 dark:text-slate-300">{t.onbPrivacy}</label>
@@ -249,7 +249,7 @@ export default function OnboardingSetupPage() {
               </button>
               <div className="flex items-center gap-2">
                 <input type="color" value={primaryColor} onChange={(e) => setPrimaryColor(e.target.value)} className="h-9 w-12 cursor-pointer rounded-lg border border-slate-200 dark:border-slate-700" />
-                <span className="text-[10px] font-bold text-slate-500">{t.onbPrimaryColor}</span>
+                <span className="text-micro font-bold text-slate-500">{t.onbPrimaryColor}</span>
               </div>
             </div>
           </div>

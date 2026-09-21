@@ -62,7 +62,9 @@ export function AppChrome({ children }: { children: React.ReactNode }) {
         id="main-content"
         tabIndex={-1}
         data-testid="main-content"
-        className="flex-1 pb-[max(5.5rem,calc(env(safe-area-inset-bottom)+4rem))] md:pb-12"
+        // Clears the floating island (~68px) plus its offset and the iOS home
+        // indicator, so the last row of a list is never trapped underneath it.
+        className="flex-1 pb-[calc(env(safe-area-inset-bottom)+7.5rem)] md:pb-12"
       >
         {children}
       </main>
@@ -70,7 +72,7 @@ export function AppChrome({ children }: { children: React.ReactNode }) {
       {/* Floating Signature Mobile Bottom Navigation Island */}
       <nav 
         aria-label="Mobile Navigation"
-        className="fixed bottom-3 inset-x-4 z-40 mx-auto max-w-md md:hidden"
+        className="fixed inset-x-4 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-40 mx-auto max-w-md md:hidden"
       >
         <div className="floating-nav-island flex h-[68px] items-center justify-around rounded-[26px] px-2.5">
           {/* 1. Search Destination */}
@@ -94,7 +96,7 @@ export function AppChrome({ children }: { children: React.ReactNode }) {
                 }`}
               />
               <span
-                className={`text-[10px] font-bold mt-0.5 transition-colors ${
+                className={`text-micro font-bold mt-0.5 transition-colors ${
                   isSearch ? "text-qatar dark:text-rose-400" : "text-slate-500 dark:text-slate-400"
                 }`}
               >
@@ -131,7 +133,7 @@ export function AppChrome({ children }: { children: React.ReactNode }) {
                 )}
               </div>
               <span
-                className={`text-[10px] font-bold mt-0.5 transition-colors ${
+                className={`text-micro font-bold mt-0.5 transition-colors ${
                   isInbox ? "text-qatar dark:text-rose-400" : "text-slate-500 dark:text-slate-400"
                 }`}
               >
@@ -161,7 +163,7 @@ export function AppChrome({ children }: { children: React.ReactNode }) {
                 }`}
               />
               <span
-                className={`text-[10px] font-bold mt-0.5 transition-colors ${
+                className={`text-micro font-bold mt-0.5 transition-colors ${
                   pathname === "/profile" ? "text-qatar dark:text-rose-400" : "text-slate-500 dark:text-slate-400"
                 }`}
               >
@@ -192,7 +194,7 @@ export function AppChrome({ children }: { children: React.ReactNode }) {
                   }`}
                 />
                 <span
-                  className={`text-[10px] font-bold mt-0.5 transition-colors ${
+                  className={`text-micro font-bold mt-0.5 transition-colors ${
                     isAdminPath ? "text-qatar dark:text-rose-400" : "text-slate-500 dark:text-slate-400"
                   }`}
                 >

@@ -357,14 +357,14 @@ export function PlateSearchHero({ lang }: PlateSearchHeroProps) {
         {!hasSearched && recentSearches.length > 0 && (
           <div className="mt-6">
             <div className="mb-2 flex items-center justify-between">
-              <span className="flex items-center gap-1.5 text-[11px] font-bold text-slate-500 dark:text-zinc-400">
+              <span className="flex items-center gap-1.5 text-caption font-bold text-slate-500 dark:text-zinc-400">
                 <History className="h-3.5 w-3.5" aria-hidden="true" />
                 {lang === "ar" ? "أحدث عمليات البحث على هذا الجهاز" : "Recent searches on this device"}
               </span>
               <button
                 type="button"
                 onClick={clearRecentSearches}
-                className="rounded-lg px-2 py-1 text-[11px] font-bold text-slate-500 transition hover:text-qatar dark:text-zinc-500 dark:hover:text-rose-400"
+                className="rounded-lg px-2 py-1 text-caption font-bold text-slate-500 transition hover:text-qatar dark:text-zinc-500 dark:hover:text-rose-400"
               >
                 {lang === "ar" ? "مسح" : "Clear"}
               </button>

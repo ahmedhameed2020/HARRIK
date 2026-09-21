@@ -71,7 +71,7 @@ export default function AdminAuditPage() {
         <div>
           <Link
             href="/admin"
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-qatar hover:underline mb-2 transition active:scale-95"
+            className="inline-flex items-center gap-1.5 mb-2 inline-flex min-h-[44px] items-center text-caption font-bold text-qatar transition hover:underline active:scale-95"
           >
             <ArrowLeft className="h-3.5 w-3.5 rtl:rotate-180" />
             <span>{L("العودة للوحة الإدارة", "Back to dashboard")}</span>
@@ -165,7 +165,7 @@ export default function AdminAuditPage() {
                         {L("بواسطة:", "By:")} {log.actor?.name_ar || log.actor?.name_en || L("مدير النظام", "System admin")}
                       </span>
                       {log.actor?.employee_id && (
-                        <span className="text-[10px] text-slate-500 font-mono">
+                        <span className="text-micro text-slate-500 font-mono">
                           ({L("رقم", "ID")}: {log.actor.employee_id})
                         </span>
                       )}
@@ -186,7 +186,7 @@ export default function AdminAuditPage() {
                   </div>
                 </div>
 
-                <div className="text-start sm:text-end text-[11px] text-slate-500 font-mono">
+                <div className="text-start sm:text-end text-caption text-slate-500 font-mono">
                   {new Date(log.created_at).toLocaleString(lang === "ar" ? "ar-QA" : "en-US", {
                     month: "short",
                     day: "numeric",

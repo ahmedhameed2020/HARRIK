@@ -95,7 +95,7 @@ export function PWAInstallPrompt() {
             </div>
             <div>
               <h4 className="text-sm font-black font-arabic">{lang === "ar" ? "تثبيت تطبيق حَرِّك" : "Install the HARRIK app"}</h4>
-              <p className="text-[11px] text-slate-300">
+              <p className="text-caption text-slate-300">
                 {lang === "ar" ? "أيقونة سريعة واستقبال فوري للتنبيهات" : "Quick icon and instant alert delivery"}
               </p>
             </div>

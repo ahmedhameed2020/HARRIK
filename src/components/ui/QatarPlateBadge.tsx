@@ -19,7 +19,7 @@ export function QatarPlateBadge({ plateNumber, size = "md", className = "" }: Qa
     >
       <div
         className={`flex flex-col items-center justify-center bg-qatar font-black text-white ${
-          isSm ? "px-1.5 py-0.5 text-[8px]" : isLg ? "px-3.5 py-1.5 text-xs" : "px-2.5 py-1 text-[10px]"
+          isSm ? "px-1.5 py-0.5 text-[8px]" : isLg ? "px-3.5 py-1.5 text-xs" : "px-2.5 py-1 text-micro"
         }`}
       >
         <span>قطر</span>

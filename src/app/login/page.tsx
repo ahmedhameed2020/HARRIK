@@ -380,7 +380,7 @@ function LoginForm() {
       </main>
 
       {/* Footer */}
-      <div className="py-4 text-center text-[11px] text-slate-500 dark:text-slate-400">
+      <div className="py-4 text-center text-caption text-slate-500 dark:text-slate-400">
         حَرِّك | HARRIK Smart Parking • Qatar Edition
       </div>
     </div>

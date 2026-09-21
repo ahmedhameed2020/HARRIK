@@ -208,7 +208,7 @@ export default function RegisterPage() {
                       >
                         {isComplete ? <CheckCircle2 className="h-5 w-5" /> : <Icon className="h-5 w-5" />}
                       </div>
-                      <span className={`text-[10px] font-bold ${isActive ? "text-qatar" : "text-slate-500 dark:text-slate-400"}`}>
+                      <span className={`text-micro font-bold ${isActive ? "text-qatar" : "text-slate-500 dark:text-slate-400"}`}>
                         {s.title}
                       </span>
                     </div>
@@ -315,7 +315,7 @@ export default function RegisterPage() {
                   <ReviewRow label={t.regReviewAdmin} value={adminNameAr || "—"} />
                   <ReviewRow label={t.regReviewEmail} value={email || "—"} />
                   <ReviewRow label={t.regReviewMobile} value={mobile || "—"} />
-                  <p className="pt-2 text-[11px] text-slate-500">{t.regTerms}</p>
+                  <p className="pt-2 text-caption text-slate-500">{t.regTerms}</p>
                   <TurnstileWidget onVerify={setTurnstileToken} className="flex justify-center pt-2" />
                 </div>
               )}

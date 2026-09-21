@@ -297,7 +297,7 @@ export default function VehiclesDirectoryPage() {
         <div>
           <Link
             href="/admin"
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-qatar hover:underline mb-2 transition active:scale-95"
+            className="inline-flex items-center gap-1.5 mb-2 inline-flex min-h-[44px] items-center text-caption font-bold text-qatar transition hover:underline active:scale-95"
           >
             <ArrowLeft className="h-3.5 w-3.5 rtl:rotate-180" />
             <span>{L("العودة للوحة الإدارة", "Back to dashboard")}</span>
@@ -425,12 +425,12 @@ export default function VehiclesDirectoryPage() {
                     {v.make} {v.model}
                   </span>
                   {v.year && (
-                    <span className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold text-slate-600 dark:bg-slate-800 dark:text-slate-300 font-mono">
+                    <span className="rounded-md bg-slate-100 px-1.5 py-0.5 text-micro font-bold text-slate-600 dark:bg-slate-800 dark:text-slate-300 font-mono">
                       {v.year}
                     </span>
                   )}
                   {v.is_primary && (
-                    <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
+                    <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-micro font-bold text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
                       {L("أساسية", "Primary")}
                     </span>
                   )}
@@ -496,7 +496,7 @@ export default function VehiclesDirectoryPage() {
           <div className="flex justify-center py-2">
             <div className="qatar-plate-frame flex items-stretch h-14 rounded-2xl overflow-hidden border border-slate-300 bg-white shadow-md ring-2 ring-slate-200/80 dark:border-slate-700 dark:bg-slate-900">
               <div className="bg-qatar flex flex-col items-center justify-center px-3 py-1 text-white">
-                <span className="text-[10px] font-black leading-none font-arabic">قطر</span>
+                <span className="text-micro font-black leading-none font-arabic">قطر</span>
                 <span className="text-[7px] font-bold tracking-widest leading-none mt-0.5">QATAR</span>
               </div>
               <div className="flex items-center px-5 font-mono text-xl font-black tracking-widest text-slate-900 dark:text-white min-w-[120px] justify-center">
@@ -636,7 +636,7 @@ export default function VehiclesDirectoryPage() {
           <div className="flex justify-center py-2">
             <div className="qatar-plate-frame flex items-stretch h-14 rounded-2xl overflow-hidden border border-slate-300 bg-white shadow-md ring-2 ring-slate-200/80 dark:border-slate-700 dark:bg-slate-900">
               <div className="bg-qatar flex flex-col items-center justify-center px-3 py-1 text-white">
-                <span className="text-[10px] font-black leading-none font-arabic">قطر</span>
+                <span className="text-micro font-black leading-none font-arabic">قطر</span>
                 <span className="text-[7px] font-bold tracking-widest leading-none mt-0.5">QATAR</span>
               </div>
               <div className="flex items-center px-5 font-mono text-xl font-black tracking-widest text-slate-900 dark:text-white min-w-[120px] justify-center">

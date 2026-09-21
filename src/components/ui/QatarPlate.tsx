@@ -35,7 +35,7 @@ export function QatarPlate({
     },
     md: {
       frame: "h-13 sm:h-14 rounded-xl border-2",
-      ribbon: "pl-4 pr-3 py-1 text-[10px]",
+      ribbon: "pl-4 pr-3 py-1 text-micro",
       countryAr: "text-xs font-black",
       countryEn: "text-[7px] tracking-wider",
       digitsArea: "pl-3.5 pr-5 sm:pl-4 sm:pr-6 text-xl sm:text-2xl tracking-widest",

@@ -156,7 +156,7 @@ export default function ResetPasswordPage() {
                     style={{ width: `${(score / 4) * 100}%` }}
                   />
                 </div>
-                <span className="text-[11px] font-bold text-slate-500">
+                <span className="text-caption font-bold text-slate-500">
                   {t.passwordStrength}: {STRENGTH_LABELS[lang][score]}
                 </span>
               </div>

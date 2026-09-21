@@ -212,7 +212,7 @@ function ScanContent() {
 
           {vehicle.venueName && (
             <div className="text-end">
-              <div className="flex items-center gap-1 text-[10px] font-bold text-slate-500">
+              <div className="flex items-center gap-1 text-micro font-bold text-slate-500">
                 <Building2 className="h-3 w-3" />
                 <span>{t.scanVenueLabel}:</span>
               </div>

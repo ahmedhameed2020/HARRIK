@@ -214,7 +214,7 @@ export default function BulkImportPage() {
           <div>
             <Link
               href="/admin"
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-qatar hover:underline mb-2 transition active:scale-95"
+              className="inline-flex items-center gap-1.5 mb-2 inline-flex min-h-[44px] items-center text-caption font-bold text-qatar transition hover:underline active:scale-95"
             >
               <ArrowLeft className="h-3.5 w-3.5 rtl:rotate-180" />
               <span>{L("العودة للوحة الإدارة", "Back to dashboard")}</span>
@@ -439,7 +439,7 @@ export default function BulkImportPage() {
                               {r.vehicle_make} {r.vehicle_model} ({r.vehicle_color})
                             </td>
                             <td className="px-3 py-2">
-                              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
+                              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-micro font-bold text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
                                 <ShieldCheck className="h-3 w-3" />
                                 {L("معتمد", "Verified")}
                               </span>

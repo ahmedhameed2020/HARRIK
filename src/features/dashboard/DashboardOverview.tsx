@@ -121,7 +121,7 @@ function ChartEmptyState({
         {loading ? "" : label}
       </p>
       {!loading && (
-        <p className="max-w-xs text-[11px] text-slate-500 dark:text-zinc-400">{hint}</p>
+        <p className="max-w-xs text-caption text-slate-500 dark:text-zinc-400">{hint}</p>
       )}
     </div>
   );
@@ -249,7 +249,7 @@ export function DashboardOverview({ lang }: DashboardOverviewProps) {
                     triggerHaptic("selection");
                     setTimeRange(range);
                   }}
-                  className={`rounded-lg px-3 py-1.5 text-xs font-bold transition-all ${
+                  className={`inline-flex min-h-[44px] items-center rounded-control px-3.5 text-caption font-bold transition-all ${
                     active
                       ? "bg-qatar text-white shadow-sm"
                       : "text-slate-600 hover:text-slate-950 dark:text-zinc-400 dark:hover:text-white"
@@ -303,7 +303,7 @@ export function DashboardOverview({ lang }: DashboardOverviewProps) {
               {metric(ci?.pending)} {L("بانتظار", "pending")}
             </span>
           </div>
-          <div className="mt-3 text-[11px] text-slate-500 dark:text-zinc-400 flex items-center justify-between">
+          <div className="mt-3 text-caption text-slate-500 dark:text-zinc-400 flex items-center justify-between">
             <span>{L("أقدم حالة نشطة:", "Oldest active incident:")}</span>
             <span className="font-mono font-bold text-slate-800 dark:text-zinc-200">
               {ci?.oldestActiveIncident ? L(`لوحة ${ci.oldestActiveIncident.plateDisplay}`, `Plate ${ci.oldestActiveIncident.plateDisplay}`) : L("لا توجد بلاغات نشطة", "No active incidents")}
@@ -338,7 +338,7 @@ export function DashboardOverview({ lang }: DashboardOverviewProps) {
           </div>
           {/* Mini Sparkline Bar */}
           <div className="mt-3">
-            <div className="flex justify-between text-[10px] text-slate-500 dark:text-zinc-400 font-semibold mb-1">
+            <div className="flex justify-between text-micro text-slate-500 dark:text-zinc-400 font-semibold mb-1">
               <span>{lang === "ar" ? `نسبة تسجيل ${config.memberLabel}` : `${config.memberLabelEn} Registration`}</span>
               <span>
                 {metric(m?.registeredStaff?.value)}{" "}
@@ -383,7 +383,7 @@ export function DashboardOverview({ lang }: DashboardOverviewProps) {
           </div>
           {/* Mini Sparkline Bar */}
           <div className="mt-3">
-            <div className="flex justify-between text-[10px] text-slate-500 dark:text-zinc-400 font-semibold mb-1">
+            <div className="flex justify-between text-micro text-slate-500 dark:text-zinc-400 font-semibold mb-1">
               <span>{L("دقة العثور على المالك", "Owner lookup accuracy")}</span>
               <span>{m?.searches?.value ? L(`${Math.round((m.searches.value * (m.searchSuccessRate?.value ?? 100)) / 100)} بحث ناجح`, `${Math.round((m.searches.value * (m.searchSuccessRate?.value ?? 100)) / 100)} successful searches`) : L("جاهز للبحث", "Ready to search")}</span>
             </div>
@@ -426,7 +426,7 @@ export function DashboardOverview({ lang }: DashboardOverviewProps) {
                 : ""}
             </span>
           </div>
-          <div className="mt-3 text-[11px] text-slate-500 dark:text-zinc-400 flex items-center justify-between">
+          <div className="mt-3 text-caption text-slate-500 dark:text-zinc-400 flex items-center justify-between">
             <span>{L("متوسط زمن الحل الميداني:", "Average field resolution time:")}</span>
             <span className="font-mono font-bold text-emerald-700 dark:text-emerald-400">
               {m?.averageResolutionTime?.value != null
@@ -533,7 +533,7 @@ export function DashboardOverview({ lang }: DashboardOverviewProps) {
             )}
           </div>
           {series.truncated && (
-            <p className="mt-2 text-[10px] font-bold text-amber-600 dark:text-amber-400">
+            <p className="mt-2 text-micro font-bold text-amber-600 dark:text-amber-400">
               {L("الرسم مبني على أحدث 20,000 سجل في الفترة.", "Chart is based on the latest 20,000 records in the range.")}
             </p>
           )}
@@ -594,7 +594,7 @@ export function DashboardOverview({ lang }: DashboardOverviewProps) {
                 <span className="text-2xl font-black text-slate-900 dark:text-white font-mono">
                   {resolutionSpeedData[0].value}%
                 </span>
-                <span className="text-[10px] font-bold text-slate-500 dark:text-zinc-400 font-arabic">
+                <span className="text-micro font-bold text-slate-500 dark:text-zinc-400 font-arabic">
                   {L("< 5 دقائق", "< 5 min")}
                 </span>
               </div>
@@ -614,7 +614,7 @@ export function DashboardOverview({ lang }: DashboardOverviewProps) {
                 </span>
               </div>
             ))}
-            <p className="pt-1 text-[10px] text-slate-500 dark:text-zinc-400">
+            <p className="pt-1 text-micro text-slate-500 dark:text-zinc-400">
               {hasResolution
                 ? L(
                     `متوسط زمن الحل: ${formatDuration(resolution.averageSeconds ?? 0, lang)}`,
@@ -774,8 +774,8 @@ export function DashboardOverview({ lang }: DashboardOverviewProps) {
           </div>
 
           <div className="mt-4 rounded-xl bg-qatar/5 border border-qatar/15 p-3 text-center">
-            <span className="text-[11px] font-bold text-qatar">{L("نظام حَرِّك الذكي v1.0", "HARRIK Smart System v1.0")}</span>
-            <p className="text-[10px] text-slate-500 dark:text-zinc-400 mt-0.5">{L("جاهز للربط مع كاميرات البوابات الرقمية", "Ready to integrate with digital gate cameras")}</p>
+            <span className="text-caption font-bold text-qatar">{L("نظام حَرِّك الذكي v1.0", "HARRIK Smart System v1.0")}</span>
+            <p className="text-micro text-slate-500 dark:text-zinc-400 mt-0.5">{L("جاهز للربط مع كاميرات البوابات الرقمية", "Ready to integrate with digital gate cameras")}</p>
           </div>
         </div>
       </div>
