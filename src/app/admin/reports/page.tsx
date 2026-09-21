@@ -25,6 +25,8 @@ import { useLocale } from "@/contexts/LocaleContext";
 import { translations } from "@/i18n/translations";
 import { triggerHaptic } from "@/lib/haptics";
 import { sanitizeCellValue } from "@/lib/excel-utils";
+import { useEntityConfig } from "@/contexts/EntityConfigContext";
+import { operatingHourRange } from "@/lib/analytics/operating-hours";
 
 interface ReportAlert {
   id: string;
@@ -53,7 +55,10 @@ interface ReportAlert {
 
 export default function AdminReportsPage() {
   const { profile } = useAuth();
+  const { settings } = useEntityConfig();
   const { lang, dir } = useLocale();
+  // The facility's configured operating window (الإعدادات → ساعات العمل).
+  const operatingHours = settings.branding?.operating_hours;
   const t = translations[lang];
   const L = (ar: string, en: string) => (lang === "ar" ? ar : en);
   const [timeRange, setTimeRange] = useState<"today" | "7days" | "30days" | "all">("30days");
@@ -175,9 +180,11 @@ export default function AdminReportsPage() {
 
     const avgResolutionTime = resolvedWithDuration > 0 ? Math.round(totalMinutes / resolvedWithDuration) : 6;
 
-    // Hourly distribution (7 to 16)
+    // Hourly distribution across the facility's configured operating window.
+    // This used to be hardcoded 06:00-17:00, so a site working an evening or
+    // overnight shift printed an empty peak chart.
     const hourlyCounts: Record<number, number> = {};
-    for (let h = 6; h <= 17; h++) hourlyCounts[h] = 0;
+    for (const h of operatingHourRange(operatingHours)) hourlyCounts[h] = 0;
 
     filteredAlerts.forEach((a) => {
       const h = new Date(a.created_at).getHours();
@@ -194,7 +201,7 @@ export default function AdminReportsPage() {
       avgResolutionTime,
       hourlyCounts,
     };
-  }, [filteredAlerts]);
+  }, [filteredAlerts, operatingHours]);
 
   const handlePrint = () => {
     triggerHaptic("selection");

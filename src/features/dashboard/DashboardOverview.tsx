@@ -47,6 +47,7 @@ import {
 import { translations, Language } from "@/i18n/translations";
 import { triggerHaptic } from "@/lib/haptics";
 import { useEntityConfig } from "@/contexts/EntityConfigContext";
+import { pickPeakHour, isWithinOperatingHours } from "@/lib/analytics/operating-hours";
 import { useLocale } from "@/contexts/LocaleContext";
 import { motion } from "motion/react";
 import { SPRINGS } from "@/lib/motion";
@@ -128,7 +129,7 @@ function ChartEmptyState({
 }
 
 export function DashboardOverview({ lang }: DashboardOverviewProps) {
-  const { config } = useEntityConfig();
+  const { config, settings } = useEntityConfig();
   const { theme } = useLocale();
   const c = chartTheme(theme);
   const [data, setData] = useState<IDashboardOverview | null>(null);
@@ -154,10 +155,11 @@ export function DashboardOverview({ lang }: DashboardOverviewProps) {
   ];
   const hasResolution = resolution.total > 0;
   const hasTraffic = traffic.some((p) => p.searches + p.alerts > 0);
-  const peakHour = peakHours.reduce(
-    (best, p) => (p.count > (best?.count ?? -1) ? p : best),
-    peakHours[0]
-  );
+  // The facility's configured operating window (الإعدادات → ساعات العمل). The
+  // busiest hour is taken from inside it, so a handful of overnight events are
+  // not reported as a school's peak parking hour.
+  const operatingHours = settings.branding?.operating_hours;
+  const peakHour = pickPeakHour(peakHours, operatingHours);
   const hasPeak = peakHours.some((p) => p.count > 0);
 
   /** Labels that follow the selected window instead of always saying "today". */
@@ -640,6 +642,14 @@ export function DashboardOverview({ lang }: DashboardOverviewProps) {
                   ? "تحديد أوقات الازدحام اليومية لحركة الدخول والخروج"
                   : "Daily Entry & Exit Traffic Patterns"}
               </p>
+              {operatingHours?.start && operatingHours?.end && (
+                <p className="mt-1 text-micro text-slate-400 dark:text-zinc-500">
+                  {L(
+                    `تُحتسب الذروة ضمن ساعات العمل (${operatingHours.start} – ${operatingHours.end}); الساعات خارجها باهتة.`,
+                    `Peak is measured within operating hours (${operatingHours.start} – ${operatingHours.end}); hours outside are dimmed.`
+                  )}
+                </p>
+              )}
             </div>
             {hasPeak && (
               <span className="inline-flex items-center gap-1 rounded-full bg-qatar/10 px-2.5 py-1 text-xs font-bold text-qatar">
@@ -688,6 +698,7 @@ export function DashboardOverview({ lang }: DashboardOverviewProps) {
                       <Cell
                         key={`bar-${entry.hour}`}
                         fill={entry.hour === peakHour?.hour ? c.bar : c.barSoft}
+                        fillOpacity={isWithinOperatingHours(entry.hour, operatingHours) ? 1 : 0.35}
                         className="transition-all hover:opacity-80"
                       />
                     ))}

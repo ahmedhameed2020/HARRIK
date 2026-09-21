@@ -177,6 +177,24 @@ The SMS itself only leaves the system when an provider is configured —
 `not_configured` and the alert still goes out over push and in-app; nothing
 breaks, the fallback is simply inert.
 
+#### Operating hours drive the peak analytics
+
+The settings panel has always offered **ساعات العمل وأوقات الذروة** and stated
+that these times tune the peak analytics. They are now actually applied, via the
+pure helpers in `lib/analytics/operating-hours.ts` (overnight windows included):
+
+- The dashboard's "الذروة" badge takes the busiest hour from *inside* the
+  window, so a handful of overnight events are no longer reported as a school's
+  peak parking hour. Hours outside the window are dimmed in the chart, and the
+  window is named underneath it.
+- The printable report's hourly distribution spans the configured window
+  instead of a hardcoded 06:00–17:00, which used to print an empty chart for any
+  site working an evening or overnight shift.
+
+An unset or unparseable window means "no opinion": every hour counts and the
+report keeps its original 06:00–17:00 span, so a tenant that never configured
+one sees no change.
+
 #### Data retention
 
 `system_settings.retention_days` is applied by the nightly purge in
