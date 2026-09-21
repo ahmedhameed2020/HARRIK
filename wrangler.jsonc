@@ -1,7 +1,13 @@
-﻿{
+{
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "harrik",
   "main": ".open-next/worker.js",
+  // Cloudflare's Workers Builds finishes with `npx wrangler deploy`, which only
+  // uploads `main` above. A plain `next build` never produces `.open-next/`, so
+  // without this hook the CI tries to deploy a worker that was never built.
+  "build": {
+    "command": "pnpm run build:cf"
+  },
   "compatibility_date": "2025-01-01",
   "compatibility_flags": [
     "nodejs_compat"
