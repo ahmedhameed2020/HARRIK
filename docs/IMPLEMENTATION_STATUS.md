@@ -129,6 +129,48 @@ two Next dev processes sharing `.next` corrupt each other's webpack cache.
 
 ---
 
+#### Configuration: build variables vs runtime secrets (read this first when something says "Invalid API key")
+
+On Cloudflare Workers the build and the runtime have **separate** variables.
+Cloudflare's own documentation is explicit: *"Build variables will not be
+accessible at runtime"*, and *"unlike Pages, Workers does not share the same
+set of runtime and build-time variables."*
+
+That matters because `next build` **inlines every `NEXT_PUBLIC_*` value into the
+browser bundle**. A value that exists only as a Worker secret, or only in
+`wrangler.jsonc` `vars`, is a *runtime* value — the build never sees it, and the
+browser ships whatever fallback was compiled in.
+
+| variable | Workers Builds → Build variables | Worker → Variables & Secrets |
+|---|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | ✅ required (inlined into the bundle) | ✅ required (server code reads it) |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | ✅ required (inlined into the bundle) | ✅ required |
+| `SUPABASE_SERVICE_ROLE_KEY` | ❌ never — server-only | ✅ required, as a **secret** |
+| `CRON_SECRET`, `VAPID_PRIVATE_KEY`, SMS/e-mail keys | ❌ | ✅ as secrets |
+
+Changing a build variable requires a **redeploy**, not just a restart: the value
+is compiled in.
+
+**Check it in one request:** `GET /api/health/config` reports which variables
+are present — names and booleans only, never a value, never a prefix. It
+answers without a session, because the case it exists for is the one where
+sign-in itself is broken. `blocking` lists what stops the app working at all;
+`publicAnonKeyInlinedAtBuild: false` specifically means the *build* lacked the
+key, even if the runtime has it.
+
+**Why this section exists.** Every Supabase client used to fall back to a
+literal placeholder (`"placeholder-anon-key"`) when its variable was unset, and
+Supabase answers a placeholder with `Invalid API key`. So a **missing** secret
+produced the error message for a **wrong** one, and registration failed with a
+message that sent the reader into the Supabase dashboard to check a key that
+was never the problem. The service-role client now throws
+`SupabaseConfigError` naming the missing variables, and `/api/register` returns
+503 with that list rather than passing Supabase's message through.
+
+The service-role client also no longer falls back to the anon key: that
+downgrade meant admin work ran at anon privileges — succeeding at the wrong
+level instead of failing.
+
 #### Scheduled jobs (Cron Triggers)
 
 The worker answers Cloudflare Cron Triggers as well as HTTP requests. The

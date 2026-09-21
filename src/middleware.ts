@@ -1,4 +1,5 @@
 import { createServerClient } from "@supabase/ssr";
+import { readPublicSupabaseEnv } from "@/lib/supabase/env";
 import { NextResponse, type NextRequest } from "next/server";
 
 export async function middleware(request: NextRequest) {
@@ -8,8 +9,10 @@ export async function middleware(request: NextRequest) {
     },
   });
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder-project.supabase.co";
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "placeholder-anon-key";
+  // Falls back to placeholders so a build, a test and a local `next dev`
+  // without credentials still run; see lib/supabase/env.ts for why the
+  // placeholder is tracked rather than silently used.
+  const { url: supabaseUrl, anonKey: supabaseAnonKey } = readPublicSupabaseEnv();
 
   const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
     cookieOptions: {
@@ -49,6 +52,9 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith("/api/observability/") ||
     pathname.startsWith("/api/alerts/escalate") ||
     pathname.startsWith("/api/retention/purge") ||
+    // Must answer without a session: it exists to diagnose the case where
+    // sign-in itself is broken by missing configuration.
+    pathname.startsWith("/api/health/") ||
     pathname.startsWith("/api/reports/email") ||
     pathname.includes(".") ||
     pathname === "/favicon.ico"

@@ -1,4 +1,5 @@
 import { createBrowserClient } from "@supabase/ssr";
+import { readPublicSupabaseEnv } from "./env";
 
 /**
  * Long-lived, secure session cookies so the user only signs in once and stays
@@ -8,8 +9,8 @@ const MAX_AGE_SECONDS = 400 * 24 * 60 * 60; // ~400 days
 
 export function createClient() {
   return createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder-project.supabase.co",
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "placeholder-anon-key",
+    readPublicSupabaseEnv().url,
+    readPublicSupabaseEnv().anonKey,
     {
       cookieOptions: {
         path: "/",
