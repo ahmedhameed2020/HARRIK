@@ -129,6 +129,53 @@ two Next dev processes sharing `.next` corrupt each other's webpack cache.
 
 ---
 
+#### Scheduled jobs (Cron Triggers)
+
+The worker answers Cloudflare Cron Triggers as well as HTTP requests. The
+entrypoint is `worker/index.mjs`, which wraps the generated
+`.open-next/worker.js` — that file is rebuilt by every build and exports only
+`fetch`, so `scheduled()` has to be added around it. `wrangler.jsonc` points
+`main` at the wrapper and declares the schedules; the routing lives in
+`worker/cron-jobs.mjs` so it can be unit-tested without a Cloudflare build
+(`tests/unit/cron-jobs.test.ts`, which also fails if the two files drift apart).
+
+| schedule | job | why |
+|---|---|---|
+| `* * * * *` | `POST /api/alerts/escalate` | §5 wants an unacknowledged alert escalated to the security team within 60–90s. One minute is Cloudflare's finest granularity. |
+| `0 3 * * *` | `POST /api/reports/email` | 06:00 Asia/Qatar — the daily operations report. |
+
+Each job is dispatched **in process**: the handler builds a `Request` and hands
+it to the app's own fetch handler, so there is no public URL to configure and
+the shared secret never leaves the isolate. Both routes are excluded from the
+session middleware and authenticate the caller themselves.
+
+**Required secret.** Neither job runs without `CRON_SECRET`; the handler logs
+`CRON_SECRET is not set` and skips, rather than firing an unauthenticated call
+every minute:
+
+```bash
+npx wrangler secret put CRON_SECRET
+```
+
+Before this existed, escalation ran only *lazily* — `GET /api/alerts` and
+`GET /api/dashboard` escalate stale alerts as a side effect — so it depended on
+somebody having the app open. That lazy path is still in place and is now the
+backstop rather than the mechanism.
+
+#### Notification channels (push → SMS fallback)
+
+`profiles.notification_channel` (migration 07) decides whether an owner whose
+push notification could not be delivered also gets an SMS. It is set per person
+in **/profile → قناة استقبال التنبيهات**: `push` (default), `push_sms` or `all`.
+Choosing anything other than `push` requires a valid mobile number, which the
+API enforces.
+
+The SMS itself only leaves the system when an provider is configured —
+`SMS_PROVIDER` plus that provider's keys (`TWILIO_*` or `UNIFONIC_*`, see
+`.env.example`). Without them `lib/notifications/channels.ts` reports
+`not_configured` and the alert still goes out over push and in-app; nothing
+breaks, the fallback is simply inert.
+
 #### Mobile readiness (the app is phone-first)
 
 HARRIK is operated on a phone — one-handed, outdoors, often in a hurry — so the

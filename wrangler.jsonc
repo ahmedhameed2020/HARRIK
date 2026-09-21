@@ -1,12 +1,28 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "harrik",
-  "main": ".open-next/worker.js",
+  // The entrypoint wraps the generated OpenNext worker (which only exports
+  // `fetch`) so the app can also answer Cloudflare Cron Triggers. See
+  // worker/index.mjs — without it the alert escalation only ran when somebody
+  // happened to open the app.
+  "main": "worker/index.mjs",
   // Cloudflare's Workers Builds finishes with `npx wrangler deploy`, and wrangler
   // hands an OpenNext project straight to `opennextjs-cloudflare deploy` — a
   // `build` hook here is never reached. So `.open-next/` has to exist by the time
   // the deploy command runs, which is why `pnpm run build` (the CI build command)
   // is `opennextjs-cloudflare build` rather than a plain `next build`.
+  // Scheduled jobs. Keep these in sync with the cron constants in
+  // worker/index.mjs, which dispatches each one to its route.
+  //   every minute — escalate alerts nobody has acknowledged (§5 requires the
+  //                  escalation to fire within 60-90s, so it runs at Cloudflare's
+  //                  finest granularity)
+  //   03:00 UTC     — 06:00 Asia/Qatar, the daily operations report e-mail
+  "triggers": {
+    "crons": [
+      "* * * * *",
+      "0 3 * * *"
+    ]
+  },
   "compatibility_date": "2025-01-01",
   "compatibility_flags": [
     "nodejs_compat"

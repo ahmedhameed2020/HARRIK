@@ -39,6 +39,9 @@ import {
 } from "@/lib/biometric";
 import { Fingerprint } from "lucide-react";
 
+/** Mirrors the CHECK constraint on profiles.notification_channel (migration 07). */
+type NotificationChannel = "push" | "push_sms" | "all";
+
 interface ProfileData {
   id: string;
   name_ar: string;
@@ -47,6 +50,7 @@ interface ProfileData {
   mobile: string;
   role: string;
   preferred_language: "ar" | "en";
+  notification_channel?: NotificationChannel;
   department?: {
     id: string;
     name_ar: string;
@@ -89,6 +93,7 @@ export default function ProfilePage() {
   // Editable Profile fields
   const [mobile, setMobile] = useState("");
   const [preferredLang, setPreferredLang] = useState<"ar" | "en">("ar");
+  const [notificationChannel, setNotificationChannel] = useState<NotificationChannel>("push");
 
   // Add/Edit Vehicle Modal
   const [isVehicleModalOpen, setIsVehicleModalOpen] = useState(false);
@@ -296,6 +301,7 @@ export default function ProfilePage() {
         setProfile(data.profile);
         setMobile(data.profile.mobile || "");
         setPreferredLang(data.profile.preferred_language || "ar");
+        setNotificationChannel(data.profile.notification_channel || "push");
         setVehicles(data.vehicles || []);
       }
     } catch {
@@ -323,6 +329,7 @@ export default function ProfilePage() {
         body: JSON.stringify({
           mobile,
           preferred_language: preferredLang,
+          notification_channel: notificationChannel,
         }),
       });
 
@@ -677,6 +684,42 @@ export default function ProfilePage() {
               <option value="ar">{L("العربية (Arabic)", "Arabic")}</option>
               <option value="en">{L("English (الإنجليزية)", "English")}</option>
             </select>
+          </div>
+
+          {/* Notification channel. Web Push only reaches a device that has
+              granted permission and still has a live subscription; when a car
+              blocks a lane and the owner's push does not land, an SMS is the
+              only remaining way to reach them. */}
+          <div>
+            <label
+              htmlFor="notification-channel"
+              className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5"
+            >
+              {L("قناة استقبال التنبيهات", "Alert delivery channel")}
+            </label>
+            <select
+              id="notification-channel"
+              value={notificationChannel}
+              onChange={(e) => setNotificationChannel(e.target.value as NotificationChannel)}
+              className="field text-xs sm:text-sm"
+            >
+              <option value="push">{L("إشعار فقط (Push)", "Push only")}</option>
+              <option value="push_sms">
+                {L("إشعار + رسالة نصية عند تعذّر الوصول", "Push + SMS when push fails")}
+              </option>
+              <option value="all">{L("كل القنوات المتاحة", "Every available channel")}</option>
+            </select>
+            <p className="mt-1.5 text-micro text-slate-500 dark:text-slate-400">
+              {notificationChannel === "push"
+                ? L(
+                    "لن تصلك رسالة نصية إذا تعذّر إيصال الإشعار إلى جهازك.",
+                    "You will not receive an SMS if the push notification cannot reach your device."
+                  )
+                : L(
+                    "تُرسل الرسالة النصية إلى رقم جوالك أعلاه فقط عند تعذّر إيصال الإشعار.",
+                    "An SMS goes to the mobile number above only when the push notification cannot be delivered."
+                  )}
+            </p>
           </div>
 
           <div className="pt-2">
