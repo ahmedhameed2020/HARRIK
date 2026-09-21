@@ -29,6 +29,38 @@ interface AdminLayoutProps {
   children: React.ReactNode;
 }
 
+/**
+ * Live Doha clock.
+ *
+ * The time is only produced after mount: formatting `new Date()` on the server
+ * and again on the client yields different text and trips a React hydration
+ * mismatch (#418) on every admin page, which forces React to throw the tree away
+ * and re-render it. The placeholder keeps both markups identical, and the value
+ * then ticks every 30 seconds.
+ */
+function DohaClock({ isRtl }: { isRtl: boolean }) {
+  const [time, setTime] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    const tick = () =>
+      setTime(
+        new Date().toLocaleTimeString(isRtl ? "ar-QA" : "en-QA", {
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      );
+    tick();
+    const id = window.setInterval(tick, 30_000);
+    return () => window.clearInterval(id);
+  }, [isRtl]);
+
+  return (
+    <span className="font-mono font-bold text-slate-700 dark:text-slate-300">
+      {time ?? "--:--"}
+    </span>
+  );
+}
+
 export default function AdminLayout({ children }: AdminLayoutProps) {
   const pathname = usePathname();
   const { profile } = useAuth();
@@ -215,7 +247,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                   {isRtl ? "توقيت الدوحة:" : "Doha Time:"}
                 </span>
                 <span>
-                  {new Date().toLocaleTimeString(isRtl ? "ar-QA" : "en-QA", { hour: "2-digit", minute: "2-digit" })}
+                  <DohaClock isRtl={isRtl} />
                 </span>
               </div>
               <p className="mt-1 text-[10px] text-slate-500 dark:text-zinc-400 truncate">
@@ -434,7 +466,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                       {isRtl ? "توقيت الدوحة:" : "Doha Time:"}
                     </span>
                     <span>
-                      {new Date().toLocaleTimeString(isRtl ? "ar-QA" : "en-QA", { hour: "2-digit", minute: "2-digit" })}
+                      <DohaClock isRtl={isRtl} />
                     </span>
                   </div>
                   <p className="mt-1 text-[10px] text-slate-500 dark:text-zinc-400 truncate">
