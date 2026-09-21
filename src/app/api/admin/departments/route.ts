@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getAuthenticatedSession } from "@/lib/supabase/auth-helpers";
+import type { DepartmentKind } from "@/types";
+
+const KINDS: DepartmentKind[] = ["academic", "administrative", "support"];
+
+function normalizeKind(value: unknown, fallback: DepartmentKind = "academic"): DepartmentKind {
+  return KINDS.includes(value as DepartmentKind) ? (value as DepartmentKind) : fallback;
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -43,7 +50,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { code, nameAr, nameEn } = body;
+    const { code, nameAr, nameEn, kind } = body;
 
     if (!code || !nameAr) {
       return NextResponse.json({ success: false, error: "code and nameAr are required" }, { status: 400 });
@@ -58,6 +65,7 @@ export async function POST(request: NextRequest) {
         code: code.trim().toUpperCase(),
         name_ar: nameAr.trim(),
         name_en: (nameEn || nameAr).trim(),
+        kind: normalizeKind(kind),
         is_active: true,
       })
       .select()
@@ -95,7 +103,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { id, nameAr, nameEn, code, isActive } = body;
+    const { id, nameAr, nameEn, code, isActive, kind } = body;
 
     if (!id) {
       return NextResponse.json({ success: false, error: "id is required" }, { status: 400 });
@@ -125,6 +133,11 @@ export async function PATCH(request: NextRequest) {
     if (nameEn !== undefined) updatePayload.name_en = nameEn.trim();
     if (code !== undefined) updatePayload.code = code.trim().toUpperCase();
     if (isActive !== undefined) updatePayload.is_active = Boolean(isActive);
+    if (kind !== undefined) updatePayload.kind = normalizeKind(kind);
+
+    if (Object.keys(updatePayload).length === 0) {
+      return NextResponse.json({ success: false, error: "Nothing to update" }, { status: 400 });
+    }
 
     const { data: updated, error } = await supabase
       .from("departments")

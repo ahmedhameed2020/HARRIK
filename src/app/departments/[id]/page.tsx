@@ -18,6 +18,7 @@ import { QatarPlate } from "@/components/ui/QatarPlate";
 import { triggerHaptic } from "@/lib/haptics";
 import { useLocale } from "@/contexts/LocaleContext";
 import { translations } from "@/i18n/translations";
+import { useDepartments } from "@/features/departments/useDepartments";
 import type { DepartmentSummary } from "@/types";
 
 interface MemberVehicle {
@@ -65,6 +66,12 @@ export default function DepartmentPage() {
   const [privacyMode, setPrivacyMode] = useState<string>("mode_a");
   const [status, setStatus] = useState<"loading" | "ready" | "missing" | "error">("loading");
   const [query, setQuery] = useState("");
+  const { recordVisit } = useDepartments();
+
+  // Deep links count too, so the home strip learns what this operator uses.
+  useEffect(() => {
+    if (params?.id) recordVisit(params.id);
+  }, [params?.id, recordVisit]);
 
   useEffect(() => {
     if (!params?.id) return;

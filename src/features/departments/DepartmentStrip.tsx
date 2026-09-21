@@ -21,21 +21,23 @@ const KIND_ORDER: DepartmentKind[] = ["academic", "administrative", "support"];
 export function DepartmentStrip() {
   const { lang } = useLocale();
   const L = (ar: string, en: string) => (lang === "ar" ? ar : en);
-  const { departments } = useDepartments();
+  const { departments, visits, recordVisit } = useDepartments();
   const [expanded, setExpanded] = useState(false);
 
   if (!departments || departments.length === 0) return null;
 
-  // Teaching departments first; a long list stays collapsed by default so the
-  // home screen keeps its focus on the plate field.
+  // Units this operator actually opens come first, then teaching departments,
+  // then by size — so the strip adapts to real usage instead of a fixed order.
   const sorted = [...departments].sort(
     (a, b) =>
+      (visits[b.id] ?? 0) - (visits[a.id] ?? 0) ||
       KIND_ORDER.indexOf(a.kind) - KIND_ORDER.indexOf(b.kind) ||
       b.staffCount - a.staffCount ||
       a.name_ar.localeCompare(b.name_ar, "ar")
   );
   const visible = expanded ? sorted : sorted.slice(0, 6);
   const hiddenCount = sorted.length - visible.length;
+  const hasPersonalOrder = Object.keys(visits).length > 0;
 
   return (
     <section className="mx-auto mt-14 w-full max-w-2xl" aria-labelledby="dept-strip-title">
@@ -49,10 +51,15 @@ export function DepartmentStrip() {
             {L("تصفّح حسب القسم", "Browse by department")}
           </h2>
           <p className="mt-0.5 text-caption text-slate-500 dark:text-slate-400">
-            {L(
-              "مش لاقي اللوحة؟ اوصل لصاحب المركبة من قسمه.",
-              "No plate number? Reach the owner through their department."
-            )}
+            {hasPersonalOrder
+              ? L(
+                  "مرتّبة حسب الأقسام اللي تفتحها أكتر.",
+                  "Ordered by the units you open most."
+                )
+              : L(
+                  "مش لاقي اللوحة؟ اوصل لصاحب المركبة من قسمه.",
+                  "No plate number? Reach the owner through their department."
+                )}
           </p>
         </div>
         {hiddenCount > 0 && (
@@ -76,7 +83,10 @@ export function DepartmentStrip() {
             <Link
               key={dept.id}
               href={`/departments/${dept.id}`}
-              onClick={() => triggerHaptic("selection")}
+              onClick={() => {
+                triggerHaptic("selection");
+                recordVisit(dept.id);
+              }}
               className="surface-card surface-card-hover group flex min-h-[52px] items-center gap-3 px-3.5 py-2.5"
             >
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-control bg-brand-soft text-qatar dark:text-rose-300">

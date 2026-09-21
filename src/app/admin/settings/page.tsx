@@ -20,6 +20,7 @@ import {
   Globe,
   Sliders,
   Clock,
+  Network,
   Download,
   AlertTriangle,
   Phone,
@@ -35,6 +36,7 @@ import {
 import { triggerHaptic } from "@/lib/haptics";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocale } from "@/contexts/LocaleContext";
+import type { DepartmentKind } from "@/types";
 import {
   ENTITY_PRESETS,
   getEntityPreset,
@@ -68,7 +70,7 @@ export default function SettingsPage() {
   const isEn = lang === "en";
 
   const [activeTab, setActiveTab] = useState<
-    "profile" | "privacy" | "alerts" | "operations" | "backup"
+    "profile" | "privacy" | "alerts" | "operations" | "departments" | "backup"
   >("profile");
 
   const [isLoading, setIsLoading] = useState(true);
@@ -127,6 +129,73 @@ export default function SettingsPage() {
   const [newTypeAr, setNewTypeAr] = useState("");
   const [newTypeEn, setNewTypeEn] = useState("");
   const [isAddingType, setIsAddingType] = useState(false);
+
+  // ---------------------- Departments manager (migration 09) ----------------------
+  interface DepartmentRow {
+    id: string;
+    code: string;
+    name_ar: string;
+    name_en: string;
+    kind: DepartmentKind;
+    is_active: boolean;
+    staffCount?: number;
+  }
+  const [departmentRows, setDepartmentRows] = useState<DepartmentRow[]>([]);
+  const [isLoadingDepartments, setIsLoadingDepartments] = useState(false);
+  const [departmentBusyId, setDepartmentBusyId] = useState<string | null>(null);
+  const [departmentError, setDepartmentError] = useState<string | null>(null);
+
+  const fetchDepartments = async () => {
+    setIsLoadingDepartments(true);
+    setDepartmentError(null);
+    try {
+      const res = await fetch("/api/admin/departments", { credentials: "same-origin" });
+      const json = await res.json().catch(() => null);
+      if (!res.ok || !json?.success) {
+        throw new Error(json?.error || `HTTP ${res.status}`);
+      }
+      setDepartmentRows(
+        (json.departments ?? []).map((d: any) => ({
+          id: d.id,
+          code: d.code,
+          name_ar: d.name_ar,
+          name_en: d.name_en,
+          kind: (d.kind ?? "academic") as DepartmentKind,
+          is_active: Boolean(d.is_active),
+          staffCount: d.staffCount ?? 0,
+        }))
+      );
+    } catch (err: any) {
+      setDepartmentError(err?.message || "failed");
+    } finally {
+      setIsLoadingDepartments(false);
+    }
+  };
+
+  const updateDepartmentKind = async (id: string, kind: DepartmentKind) => {
+    setDepartmentBusyId(id);
+    setDepartmentError(null);
+    const previous = departmentRows;
+    // Optimistic: the select should not lag behind the tap.
+    setDepartmentRows((rows) => rows.map((r) => (r.id === id ? { ...r, kind } : r)));
+    try {
+      const res = await fetch("/api/admin/departments", {
+        method: "PATCH",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, kind }),
+      });
+      const json = await res.json().catch(() => null);
+      if (!res.ok || !json?.success) throw new Error(json?.error || `HTTP ${res.status}`);
+      triggerHaptic("success");
+    } catch (err: any) {
+      setDepartmentRows(previous);
+      setDepartmentError(err?.message || "failed");
+      triggerHaptic("error");
+    } finally {
+      setDepartmentBusyId(null);
+    }
+  };
 
   const fetchSettings = async () => {
     setIsLoading(true);
@@ -316,6 +385,14 @@ export default function SettingsPage() {
     fetchAlertTypes();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Load the department grouping lazily, the first time its tab is opened.
+  useEffect(() => {
+    if (activeTab === "departments" && departmentRows.length === 0 && !departmentError) {
+      fetchDepartments();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab]);
 
   const handleAddAlertType = async () => {
     setTypeError(null);
@@ -551,6 +628,7 @@ export default function SettingsPage() {
           { id: "privacy", label: L("الخصوصية والبحث", "Privacy & search"), icon: Shield },
           { id: "alerts", label: L("البلاغات ورسائل واتساب", "Alerts & WhatsApp"), icon: MessageSquare },
           { id: "operations", label: L("ساعات العمل وبوابة الأمن", "Operating hours & gate"), icon: Clock },
+          { id: "departments", label: L("الأقسام والتصنيف", "Departments & grouping"), icon: Network },
           { id: "backup", label: L("النسخ الاحتياطي والحوكمة", "Backup & governance"), icon: Sliders },
         ].map((tab) => {
           const active = activeTab === tab.id;
@@ -1215,6 +1293,113 @@ export default function SettingsPage() {
         {/* =================================================================== */}
         {/* TAB 4: OPERATIONS & GATE SECURITY */}
         {/* =================================================================== */}
+        {activeTab === "departments" && (
+          <div className="space-y-6">
+            <div className="surface-card p-6">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <Network className="h-5 w-5 text-qatar" aria-hidden="true" />
+                  <h3 className="heading-card font-arabic">
+                    {L("تصنيف الأقسام", "Department grouping")}
+                  </h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    triggerHaptic("light");
+                    fetchDepartments();
+                  }}
+                  disabled={isLoadingDepartments}
+                  className="btn btn-secondary"
+                >
+                  <RefreshCw className={`h-3.5 w-3.5 ${isLoadingDepartments ? "animate-spin" : ""}`} aria-hidden="true" />
+                  {L("تحديث", "Refresh")}
+                </button>
+              </div>
+              <p className="mt-2 text-caption text-slate-500 dark:text-slate-400">
+                {L(
+                  "التصنيف يُجمّع الأقسام في صفحة «تصفّح حسب القسم» على الشاشة الرئيسية: الأكاديمية أولًا ثم الإدارية ثم الخدمات المساندة.",
+                  "The grouping decides how units are ordered on the home screen's browse-by-department strip: academic first, then administrative, then support."
+                )}
+              </p>
+
+              {departmentError && (
+                <p className="mt-3 rounded-control border border-red-200 bg-red-50 p-3 text-caption font-bold text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-300">
+                  {L("تعذّر تحديث التصنيف", "Could not update the grouping")}: {departmentError}
+                </p>
+              )}
+
+              <div className="mt-4 divide-y divide-slate-100 dark:divide-slate-800">
+                {isLoadingDepartments && departmentRows.length === 0 && (
+                  <div className="space-y-3 py-4">
+                    {Array.from({ length: 4 }).map((_, i) => (
+                      <div key={i} className="flex items-center gap-3">
+                        <div className="h-4 w-40 animate-pulse rounded bg-slate-200/80 dark:bg-slate-800/80" />
+                        <div className="ms-auto h-11 w-40 animate-pulse rounded-control bg-slate-200/70 dark:bg-slate-800/70" />
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {!isLoadingDepartments && departmentRows.length === 0 && !departmentError && (
+                  <div className="flex flex-col items-center py-12 text-center">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500">
+                      <Network className="h-5 w-5" aria-hidden="true" />
+                    </div>
+                    <p className="mt-3 text-body font-bold text-slate-800 dark:text-slate-200">
+                      {L("لا توجد أقسام بعد", "No departments yet")}
+                    </p>
+                    <p className="mt-1 max-w-sm text-caption text-slate-500 dark:text-slate-400">
+                      {L(
+                        "أضف الأقسام من دليل الأفراد ثم صنّفها هنا.",
+                        "Add units from the directory, then group them here."
+                      )}
+                    </p>
+                  </div>
+                )}
+
+                {departmentRows.map((row) => (
+                  <div key={row.id} className="flex flex-wrap items-center gap-3 py-3.5">
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-body font-bold text-slate-800 dark:text-slate-100 font-arabic">
+                        {lang === "ar" ? row.name_ar : row.name_en}
+                      </p>
+                      <p className="mt-0.5 flex items-center gap-2 text-micro text-slate-500 dark:text-slate-400">
+                        <span className="rounded-pill bg-slate-100 px-2 py-0.5 font-mono font-bold text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                          {row.code}
+                        </span>
+                        <span>
+                          {row.staffCount ?? 0} {L("فرد", "people")}
+                        </span>
+                        {!row.is_active && (
+                          <span className="rounded-pill bg-amber-100 px-2 py-0.5 font-bold text-amber-800 dark:bg-amber-950/50 dark:text-amber-300">
+                            {L("غير نشط", "Inactive")}
+                          </span>
+                        )}
+                      </p>
+                    </div>
+
+                    <label className="sr-only" htmlFor={`kind-${row.id}`}>
+                      {L("تصنيف القسم", "Department grouping")}
+                    </label>
+                    <select
+                      id={`kind-${row.id}`}
+                      value={row.kind}
+                      disabled={departmentBusyId === row.id}
+                      onChange={(e) => updateDepartmentKind(row.id, e.target.value as DepartmentKind)}
+                      className="field h-11 w-full max-w-[190px] py-0 text-caption font-bold disabled:opacity-60"
+                    >
+                      <option value="academic">{L("أكاديمي", "Academic")}</option>
+                      <option value="administrative">{L("إداري", "Administrative")}</option>
+                      <option value="support">{L("خدمات مساندة", "Support")}</option>
+                    </select>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
         {activeTab === "operations" && (
           <div className="space-y-6">
             <div className="surface-card p-6 space-y-4">

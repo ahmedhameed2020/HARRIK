@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { Car, Lightbulb, Maximize2, AlertTriangle, PhoneCall, Check, Loader2, Bell } from "lucide-react";
+import { Car, Lightbulb, Maximize2, AlertTriangle, PhoneCall, Check, Loader2, Bell, Building2 } from "lucide-react";
 import { motion, AnimatePresence, useReducedMotion } from "motion/react";
 import { SearchResultVehicle } from "@/types";
 import { translations, Language } from "@/i18n/translations";
@@ -42,6 +42,19 @@ export function CreateAlertDialog({
   const [isSent, setIsSent] = useState(false);
   const shouldReduceMotion = useReducedMotion();
   const { alertTypes } = useEntityConfig();
+
+  // Routing context shown above the form. The department already arrives with
+  // the search result, so no extra request is needed.
+  const ownerName =
+    (lang === "ar" ? vehicle?.owner_name_ar : vehicle?.owner_name_en) ||
+    vehicle?.owner_name_ar ||
+    vehicle?.owner_name_en ||
+    "";
+  const departmentName =
+    (lang === "ar" ? vehicle?.department_name_ar : vehicle?.department_name_en) ||
+    vehicle?.department_name_ar ||
+    vehicle?.department_name_en ||
+    "";
 
   // Tenant-configured alert types, falling back to the canonical five.
   const alertOptions = useMemo<Array<{ code: string; label: string; icon: React.ReactNode }>>(() => {
@@ -123,6 +136,23 @@ export function CreateAlertDialog({
       }
       subtitle={t.alertModalSubtitle}
     >
+      {/* Routing context: who owns it and which unit they belong to, so the
+          officer knows where the alert is going before sending it. */}
+      <div className="mb-4 flex flex-wrap items-center gap-2 rounded-control border border-line bg-surface-sunken/60 px-3.5 py-2.5">
+        <span className="text-micro font-bold text-slate-500 dark:text-slate-400">
+          {lang === "ar" ? "التوجيه إلى:" : "Routed to:"}
+        </span>
+        <span className="text-caption font-bold text-slate-800 dark:text-slate-100 font-arabic">
+          {ownerName || (lang === "ar" ? "صاحب المركبة" : "Vehicle owner")}
+        </span>
+        {departmentName && (
+          <span className="ms-auto inline-flex items-center gap-1.5 rounded-pill bg-brand-soft px-2.5 py-1 text-micro font-bold text-qatar dark:text-rose-300">
+            <Building2 className="h-3.5 w-3.5" aria-hidden="true" />
+            {departmentName}
+          </span>
+        )}
+      </div>
+
       <AnimatePresence mode="wait">
         {isSent ? (
           /* Operational Success State (No Confetti, Clean Native Confirmation) */
