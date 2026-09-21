@@ -880,7 +880,7 @@ export default function SettingsPage() {
                           triggerHaptic("selection");
                           setPrimaryColor(color.hex);
                         }}
-                        className={`flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-bold transition border ${
+                        className={`flex min-h-[44px] items-center gap-2 rounded-control border px-3.5 text-caption font-bold transition ${
                           primaryColor === color.hex
                             ? "border-slate-900 bg-slate-100 ring-2 ring-slate-900 dark:border-white dark:bg-zinc-800 dark:ring-white"
                             : "border-slate-200 bg-white hover:bg-slate-50 dark:border-zinc-800 dark:bg-zinc-900"

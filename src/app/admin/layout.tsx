@@ -298,10 +298,11 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 </div>
               </div>
 
-              {/* Mobile Horizontal Scrollable Tabs */}
+              {/* Mobile section tabs — wrapping keeps every destination visible
+                  (a horizontal scroller hid the last one behind the edge). */}
               <nav
                 aria-label="Admin Sections Mobile"
-                className="no-scrollbar flex items-center gap-1.5 overflow-x-auto pt-1"
+                className="flex flex-wrap items-center gap-1.5 pt-1"
               >
                 {navItems.map((item) => {
                   const active = isLinkActive(item);

@@ -328,7 +328,7 @@ export default function StaffDirectoryPage() {
                 triggerHaptic("medium");
                 exportStaffToExcel(filteredStaff, `HARRIK_${config.venueName || "Directory"}_Export.xlsx`);
               }}
-              className="glass-btn-secondary inline-flex items-center gap-2 rounded-2xl px-4 py-2.5 text-xs font-bold text-slate-800 dark:text-slate-100 shadow-sm"
+              className="btn btn-secondary gap-2 px-4 text-caption text-slate-800 dark:text-slate-100 shadow-sm"
               title={L(`تصدير بيانات ${memberLabel} إلى ملف إكسل`, `Export ${memberLabel} to Excel`)}
             >
               <Download className="h-4 w-4 text-qatar" />
@@ -347,7 +347,7 @@ export default function StaffDirectoryPage() {
             <Link
               href="/admin/import"
               onClick={() => triggerHaptic("light")}
-              className="glass-btn-secondary inline-flex items-center gap-2 rounded-2xl px-3.5 py-2.5 text-xs font-bold text-slate-700 dark:text-slate-200"
+              className="btn btn-secondary gap-2 px-3.5 text-caption text-slate-700 dark:text-slate-200"
               title={L(`استيراد دفعات ${memberLabel} والسيارات من ملفات إكسل`, `Bulk-import ${memberLabel} and vehicles from Excel`)}
             >
               <FileSpreadsheet className="h-4 w-4 text-emerald-600" />
@@ -603,7 +603,7 @@ export default function StaffDirectoryPage() {
                 fetchStaff(staffList.length, true);
               }}
               disabled={isLoadingMore}
-              className="glass-btn-secondary inline-flex items-center gap-2 rounded-2xl px-5 py-2.5 text-xs font-bold text-slate-700 disabled:opacity-50 dark:text-slate-200"
+              className="btn btn-secondary gap-2 px-5 text-caption"
             >
               {isLoadingMore ? <RefreshCw className="h-3.5 w-3.5 animate-spin text-qatar" /> : null}
               <span>{L("تحميل المزيد", "Load more")}</span>

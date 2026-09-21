@@ -724,7 +724,7 @@ export default function ProfilePage() {
                 type="button"
                 onClick={handleSendTestPush}
                 disabled={isSendingTestPush}
-                className="inline-flex items-center gap-1.5 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-100 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200 disabled:opacity-50"
+                className="btn btn-secondary gap-1.5 px-4 text-caption"
               >
                 <Send className="h-3.5 w-3.5 text-qatar" />
                 <span>{isSendingTestPush ? L("جارٍ الإرسال...", "Sending...") : L("تجربة إشعار", "Test notification")}</span>
@@ -791,7 +791,7 @@ export default function ProfilePage() {
                 type="button"
                 onClick={handleTestBiometric}
                 disabled={biometricBusy}
-                className="inline-flex items-center gap-1.5 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-100 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200 disabled:opacity-50"
+                className="btn btn-secondary gap-1.5 px-4 text-caption"
               >
                 <Fingerprint className="h-3.5 w-3.5 text-qatar" />
                 <span>{L("تجربة البصمة", "Test biometrics")}</span>
@@ -846,7 +846,7 @@ export default function ProfilePage() {
             type="button"
             onClick={handleSignOutOtherDevices}
             disabled={isSigningOutOthers}
-            className="inline-flex shrink-0 items-center gap-1.5 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-bold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200"
+            className="btn btn-secondary shrink-0 gap-1.5 px-4 text-caption"
           >
             {isSigningOutOthers ? (
               <RefreshCw className="h-3.5 w-3.5 animate-spin text-qatar" />
