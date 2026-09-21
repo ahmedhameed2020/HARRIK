@@ -90,7 +90,7 @@ Delivered in migration `20260918000001_rate_limit_and_timed_escalation.sql` plus
 - **Browser E2E harness (§13):** `playwright.config.ts` + `tests/e2e/public.spec.ts` (8 specs) and `tests/e2e/authenticated.spec.ts` (6 specs), run on two projects — `mobile-ar` (Pixel 7, ar-QA) and `desktop-en` (Chrome, en-US). Vitest excludes `tests/e2e`.
 
 ```bash
-pnpm build                      # or let the config fall back to `next dev`
+pnpm build:next                 # or let the config fall back to `next dev`
 pnpm exec playwright install chromium
 pnpm test:e2e                   # public suite always runs
 # authenticated journey (skips automatically without these):
@@ -132,7 +132,7 @@ two Next dev processes sharing `.next` corrupt each other's webpack cache.
 #### Deploying to Cloudflare
 
 ```bash
-pnpm build:cf     # opennextjs-cloudflare build   (Windows is supported but warned about)
+pnpm build        # opennextjs-cloudflare build (also the CI build command); `build:cf` is an alias
 pnpm deploy:cf    # opennextjs-cloudflare deploy  -> Worker `harrik`
 ```
 
