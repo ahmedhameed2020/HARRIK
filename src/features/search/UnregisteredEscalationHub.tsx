@@ -91,7 +91,7 @@ export function UnregisteredEscalationHub({
             <div className="inline-flex items-stretch overflow-hidden rounded-xl border-2 border-slate-900 bg-white shadow-sm dark:border-zinc-300">
               <div className="flex flex-col items-center justify-center bg-qatar px-2.5 py-1 text-micro font-black text-white">
                 <span>قطر</span>
-                <span className="text-[8px] tracking-wider opacity-90">QATAR</span>
+                <span className="text-[8px] tracking-wider opacity-90">QATAR</span> {/* mobile-audit-ignore: plate artwork microprint */}
               </div>
               <div className="flex items-center px-3.5 py-1 font-mono text-lg font-black tracking-widest text-slate-900">
                 {plateQuery}

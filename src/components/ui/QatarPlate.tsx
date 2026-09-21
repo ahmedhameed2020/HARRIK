@@ -25,9 +25,9 @@ export function QatarPlate({
   const sizeClasses = {
     sm: {
       frame: "h-9 rounded-lg border-[1.5px]",
-      ribbon: "px-2 py-0.5 text-[8px]",
-      countryAr: "text-[9px] font-black",
-      countryEn: "text-[6px] tracking-wider",
+      ribbon: "px-2 py-0.5 text-[8px]", // mobile-audit-ignore: licence-plate artwork microprint, scales with the plate
+      countryAr: "text-[9px] font-black", // mobile-audit-ignore: licence-plate artwork microprint, scales with the plate
+      countryEn: "text-[6px] tracking-wider", // mobile-audit-ignore: licence-plate artwork microprint, scales with the plate
       digitsArea: "px-2.5 text-base tracking-wider",
       placeholder: "tracking-wider text-xs",
       hasRivets: false,
@@ -37,7 +37,7 @@ export function QatarPlate({
       frame: "h-13 sm:h-14 rounded-xl border-2",
       ribbon: "pl-4 pr-3 py-1 text-micro",
       countryAr: "text-xs font-black",
-      countryEn: "text-[7px] tracking-wider",
+      countryEn: "text-[7px] tracking-wider", // mobile-audit-ignore: licence-plate artwork microprint, scales with the plate
       digitsArea: "pl-3.5 pr-5 sm:pl-4 sm:pr-6 text-xl sm:text-2xl tracking-widest",
       placeholder: "tracking-wider text-sm",
       hasRivets: true,
@@ -47,7 +47,7 @@ export function QatarPlate({
       frame: "h-16 sm:h-20 rounded-2xl border-[2.5px]",
       ribbon: "pl-5 pr-4 sm:pl-6 sm:pr-5 py-1.5 sm:py-2",
       countryAr: "text-xs sm:text-sm font-black",
-      countryEn: "text-[8px] sm:text-[9px] tracking-widest",
+      countryEn: "text-[8px] sm:text-[9px] tracking-widest", // mobile-audit-ignore: licence-plate artwork microprint, scales with the plate
       digitsArea: "pl-4 pr-6 sm:pl-8 sm:pr-10 text-2xl sm:text-4xl tracking-widest",
       placeholder: "tracking-widest text-lg sm:text-xl",
       hasRivets: true,

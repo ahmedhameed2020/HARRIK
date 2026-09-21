@@ -1500,7 +1500,7 @@ export default function SettingsPage() {
                 </button>
               </div>
 
-              <div className="grid grid-cols-3 gap-4 pt-3">
+              <div className="grid grid-cols-2 gap-3 pt-3 sm:grid-cols-3 sm:gap-4">
                 <div className="rounded-xl border border-slate-100 bg-slate-50 p-4 dark:border-zinc-800 dark:bg-zinc-900/50 text-center">
                   <span className="text-2xl font-black text-slate-900 dark:text-white font-mono">
                     {stats.totalStaff}
@@ -1519,7 +1519,7 @@ export default function SettingsPage() {
                   </span>
                 </div>
 
-                <div className="rounded-xl border border-slate-100 bg-slate-50 p-4 dark:border-zinc-800 dark:bg-zinc-900/50 text-center">
+                <div className="col-span-2 sm:col-span-1 rounded-xl border border-slate-100 bg-slate-50 p-4 dark:border-zinc-800 dark:bg-zinc-900/50 text-center">
                   <span className="text-2xl font-black text-blue-600 font-mono">
                     {stats.totalDepartments}
                   </span>

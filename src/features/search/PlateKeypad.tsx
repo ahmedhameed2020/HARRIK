@@ -73,7 +73,7 @@ export function PlateKeypad({
       </div>
 
       {/* 3x4 Tactile Keypad Grid */}
-      <div className="grid grid-cols-3 gap-2 sm:gap-2.5">
+      <div className="grid grid-cols-3 gap-2 sm:gap-2.5"> {/* mobile-audit-ignore: a 3x4 numeric keypad is 3 columns by design */}
         {/* Digits 1 to 9 */}
         {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((idx) => {
           const digit = currentDigits[idx];

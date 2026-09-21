@@ -84,7 +84,10 @@ export function PWAInstallPrompt() {
   return (
     <>
       {/* Floating Bottom Glass Banner */}
-      <div className="fixed bottom-20 left-4 right-4 z-40 mx-auto max-w-lg animate-in slide-in-from-bottom-5 duration-300 md:bottom-6 md:right-6 md:left-auto md:w-96">
+      {/* A flat 80px sat *on top of* the floating nav island on any phone with
+          a home indicator: the island is 68px tall and already offset by
+          env(safe-area-inset-bottom), so the banner has to clear both. */}
+      <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+5.5rem)] left-4 right-4 z-40 mx-auto max-w-lg animate-in slide-in-from-bottom-5 duration-300 md:bottom-6 md:right-6 md:left-auto md:w-96">
         <div className="relative flex items-center justify-between gap-3 overflow-hidden rounded-2xl border border-white/20 bg-slate-900/90 p-4 shadow-2xl backdrop-blur-xl dark:border-white/10 dark:bg-slate-900/95 text-white">
           {/* Subtle Qatar Glow Accent */}
           <div className="absolute -left-8 -top-8 h-24 w-24 rounded-full bg-qatar/30 blur-2xl pointer-events-none" />

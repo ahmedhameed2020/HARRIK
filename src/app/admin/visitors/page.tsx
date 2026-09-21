@@ -230,29 +230,29 @@ export default function AdminVisitorsPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-3 gap-4">
-        <div className="surface-card p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-600 dark:text-slate-400">{L("التصاريح السارية", "Active passes")}</span>
-            <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
+        <div className="surface-card p-3 sm:p-4">
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-caption font-bold text-slate-600 dark:text-slate-400">{L("التصاريح السارية", "Active passes")}</span>
+            <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
           </div>
           <div className="text-2xl font-black text-emerald-600 mt-2 font-arabic">{stats.active}</div>
-          <p className="text-micro text-slate-500 mt-0.5">{L("مصرّح لها بالوقوف حالياً", "Currently authorized to park")}</p>
+          <p className="hidden text-micro text-slate-500 mt-0.5 sm:block">{L("مصرّح لها بالوقوف حالياً", "Currently authorized to park")}</p>
         </div>
 
-        <div className="surface-card p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-600 dark:text-slate-400">{L("التصاريح المنتهية", "Expired passes")}</span>
-            <Clock className="h-4 w-4 text-amber-500" />
+        <div className="surface-card p-3 sm:p-4">
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-caption font-bold text-slate-600 dark:text-slate-400">{L("التصاريح المنتهية", "Expired passes")}</span>
+            <Clock className="h-4 w-4 shrink-0 text-amber-500" />
           </div>
           <div className="text-2xl font-black text-slate-700 dark:text-zinc-300 mt-2 font-arabic">{stats.expired}</div>
-          <p className="text-micro text-slate-500 mt-0.5">{L("انتهت صلاحية الوقوف", "Parking validity ended")}</p>
+          <p className="hidden text-micro text-slate-500 mt-0.5 sm:block">{L("انتهت صلاحية الوقوف", "Parking validity ended")}</p>
         </div>
 
-        <div className="surface-card p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-600 dark:text-slate-400">{L("إجمالي السجلات", "Total records")}</span>
-            <UserCheck className="h-4 w-4 text-qatar" />
+        <div className="surface-card col-span-2 p-3 sm:col-span-1 sm:p-4">
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-caption font-bold text-slate-600 dark:text-slate-400">{L("إجمالي السجلات", "Total records")}</span>
+            <UserCheck className="h-4 w-4 shrink-0 text-qatar" />
           </div>
           <div className="text-2xl font-black text-slate-900 dark:text-white mt-2 font-arabic">{stats.total}</div>
           <p className="text-micro text-slate-500 mt-0.5">{L("كل التصاريح الصادرة", "All issued passes")}</p>
@@ -320,7 +320,117 @@ export default function AdminVisitorsPage() {
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+          {/* Mobile: one card per pass. The desktop table is eight columns —
+              on a 360px screen that is 45px per column, so the plate, the
+              WhatsApp number and the actions all become untappable. */}
+          <div className="divide-y divide-slate-200/80 md:hidden dark:divide-zinc-800">
+            {passes.map((pass) => {
+              const isExpired = new Date(pass.valid_until) <= new Date() || pass.status !== "active";
+              const until = new Date(pass.valid_until);
+              return (
+                <article key={pass.id} className="p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <QatarPlateBadge plateNumber={pass.plate_number} size="sm" />
+                      <h3 className="mt-2 truncate text-body font-bold text-slate-900 dark:text-white font-arabic">
+                        {pass.visitor_name}
+                      </h3>
+                      <p className="mt-0.5 truncate text-caption text-slate-500 dark:text-zinc-400">
+                        {[pass.vehicle_make, pass.vehicle_model, pass.vehicle_color].filter(Boolean).join(" ") || "—"}
+                      </p>
+                    </div>
+                    <span
+                      className={`shrink-0 rounded-full px-2.5 py-1 text-micro font-bold ${
+                        !isExpired
+                          ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300"
+                          : "bg-slate-100 text-slate-700 dark:bg-zinc-800 dark:text-zinc-400"
+                      }`}
+                    >
+                      {!isExpired ? L("ساري المفعول", "Valid") : L("منتهي الصلاحية", "Expired")}
+                    </span>
+                  </div>
+
+                  <dl className="mt-3 grid grid-cols-2 gap-x-3 gap-y-2 text-caption">
+                    <div className="min-w-0">
+                      <dt className="text-micro font-bold text-slate-500 dark:text-zinc-500">
+                        {L("المستضيف / الغرض", "Host / purpose")}
+                      </dt>
+                      <dd className="truncate font-bold text-slate-800 dark:text-zinc-200">
+                        {pass.host_name || L("عام", "General")}
+                      </dd>
+                      <dd className="truncate text-micro text-slate-500">{pass.purpose}</dd>
+                    </div>
+                    <div className="min-w-0">
+                      <dt className="text-micro font-bold text-slate-500 dark:text-zinc-500">
+                        {L("صلاحية التصريح", "Pass validity")}
+                      </dt>
+                      <dd className="font-mono font-bold text-slate-800 dark:text-zinc-200">
+                        {until.toLocaleTimeString(lang === "ar" ? "ar-QA" : "en-US", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </dd>
+                      <dd className="font-mono text-micro text-slate-500">
+                        {until.toLocaleDateString(lang === "ar" ? "ar-QA" : "en-US")}
+                      </dd>
+                    </div>
+                  </dl>
+
+                  <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-slate-200/80 pt-3 dark:border-zinc-800">
+                    <a
+                      href={`https://wa.me/${pass.visitor_mobile.replace(/\D/g, "")}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      dir="ltr"
+                      className="flex min-h-[44px] flex-1 items-center justify-center gap-1.5 rounded-control bg-emerald-50 px-3 font-mono text-caption font-bold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300"
+                    >
+                      {pass.visitor_mobile}
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedPass(pass)}
+                      aria-label={L("معاينة وطباعة بطاقة التصريح", "Preview and print the pass")}
+                      className="flex h-11 w-11 items-center justify-center rounded-control border border-line text-slate-600 active:scale-95 dark:text-zinc-300"
+                    >
+                      <Printer className="h-4 w-4" aria-hidden="true" />
+                    </button>
+                    {!isExpired && (
+                      <button
+                        type="button"
+                        onClick={() => handleExtendPass(pass.id)}
+                        aria-label={L("تمديد 4 ساعات", "Extend 4 hours")}
+                        className="flex h-11 min-w-[44px] items-center justify-center rounded-control border border-line px-2 text-caption font-bold text-blue-600 active:scale-95"
+                      >
+                        {L("+4س", "+4h")}
+                      </button>
+                    )}
+                    {!isExpired && (
+                      <button
+                        type="button"
+                        onClick={() => handleRevokePass(pass.id)}
+                        aria-label={L("إلغاء التصريح فوراً", "Revoke pass immediately")}
+                        className="flex h-11 w-11 items-center justify-center rounded-control border border-line text-amber-600 active:scale-95"
+                      >
+                        <X className="h-4 w-4" aria-hidden="true" />
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => handleDeletePass(pass.id)}
+                      aria-label={L("حذف", "Delete")}
+                      className="flex h-11 w-11 items-center justify-center rounded-control border border-line text-rose-500 active:scale-95"
+                    >
+                      <Trash2 className="h-4 w-4" aria-hidden="true" />
+                    </button>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+
+          {/* Desktop: the full table. */}
+          <div className="hidden overflow-x-auto md:block">
             <table className="w-full text-start text-xs">
               <thead className="bg-slate-50/80 border-b border-slate-200 dark:border-zinc-800 dark:bg-zinc-900/50 text-slate-600 dark:text-zinc-400 font-bold">
                 <tr>
@@ -427,13 +537,14 @@ export default function AdminVisitorsPage() {
               </tbody>
             </table>
           </div>
+          </>
         )}
       </div>
 
       {/* MODAL: Issue Visitor Pass */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="relative w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl dark:bg-surface-card dark:border dark:border-zinc-800">
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200 sm:items-center sm:p-4">
+          <div className="relative max-h-[92vh] w-full overflow-y-auto rounded-t-3xl bg-white p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] shadow-2xl sm:max-w-lg sm:rounded-3xl sm:pb-6 dark:bg-surface-card dark:border dark:border-zinc-800">
             <h3 className="text-base font-extrabold text-slate-900 dark:text-white font-arabic mb-1 flex items-center gap-2">
               <ShieldCheck className="h-5 w-5 text-qatar" />
               <span>{L("إصدار تصريح موقف زائر مؤقت", "Issue a temporary visitor parking pass")}</span>
@@ -452,7 +563,7 @@ export default function AdminVisitorsPage() {
             )}
 
             <form onSubmit={handleCreatePass} className="space-y-3.5">
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                     {L("رقم اللوحة القطري *", "Qatari plate number *")}
@@ -484,7 +595,7 @@ export default function AdminVisitorsPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                     {L("اسم الزائر / السائق *", "Visitor / driver name *")}
@@ -515,7 +626,7 @@ export default function AdminVisitorsPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                 <div>
                   <label className="block text-caption font-bold text-slate-700 dark:text-slate-300 mb-1">
                     {L("الشركة المصنعة", "Make")}
@@ -556,7 +667,7 @@ export default function AdminVisitorsPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                     {L("المستضيف (الموظف / الإدارة)", "Host (staff / admin)")}
@@ -608,8 +719,8 @@ export default function AdminVisitorsPage() {
 
       {/* PRINTABLE / VIEW VISITOR PASS MODAL */}
       {selectedPass && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="relative w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl dark:bg-surface-card dark:border dark:border-zinc-800 text-center">
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200 sm:items-center sm:p-4">
+          <div className="relative max-h-[92vh] w-full overflow-y-auto rounded-t-3xl bg-white p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] text-center shadow-2xl sm:max-w-sm sm:rounded-3xl sm:pb-6 dark:bg-surface-card dark:border dark:border-zinc-800">
             <button
               onClick={() => setSelectedPass(null)}
               className="absolute left-4 top-4 rounded-full p-1.5 text-slate-400 hover:bg-slate-100 dark:hover:bg-zinc-800"

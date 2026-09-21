@@ -204,7 +204,106 @@ export default function PlatformControlCenter() {
             </span>
           </div>
 
-          <div className="overflow-x-auto">
+          {/* Mobile: one card per tenant. The table is eight columns wide and
+              its only action — activate / suspend — sits in the last one,
+              which is exactly what falls off a phone screen. */}
+          <div className="divide-y divide-slate-800/60 md:hidden">
+            {loading ? (
+              <div className="py-12 text-center text-slate-500">
+                <RefreshCw className="mx-auto mb-2 h-6 w-6 animate-spin text-slate-400" />
+                Loading platform organizations...
+              </div>
+            ) : orgs.length === 0 ? (
+              <div className="py-12 text-center text-slate-500">No tenant organizations configured.</div>
+            ) : (
+              orgs.map((org) => {
+                const isSuspended = org.status === "suspended";
+                const isArchived = org.status === "archived";
+                const isOnboarding = org.status === "onboarding";
+                return (
+                  <article key={org.organization_id} className="p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <h3 className="truncate font-medium text-white">{org.name_en}</h3>
+                        <p className="truncate text-xs text-slate-400">{org.name_ar}</p>
+                      </div>
+                      <span
+                        className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${
+                          org.status === "active"
+                            ? "border border-emerald-500/20 bg-emerald-500/10 text-emerald-400"
+                            : isSuspended
+                            ? "border border-rose-500/20 bg-rose-500/10 text-rose-400"
+                            : isOnboarding
+                            ? "border border-amber-500/20 bg-amber-500/10 text-amber-400"
+                            : "border border-slate-500/20 bg-slate-500/10 text-slate-400"
+                        }`}
+                      >
+                        {org.status === "active" && <CheckCircle2 className="h-3 w-3" />}
+                        {isSuspended && <Ban className="h-3 w-3" />}
+                        {isOnboarding && <Clock className="h-3 w-3" />}
+                        {isArchived && <Archive className="h-3 w-3" />}
+                        <span className="capitalize">{org.status}</span>
+                      </span>
+                    </div>
+
+                    <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
+                      <span className="rounded-md bg-slate-800 px-2 py-0.5 font-mono text-slate-300">
+                        {org.entity_type}
+                      </span>
+                      <span className="text-slate-400">{org.onboarding_status}</span>
+                    </div>
+
+                    <dl className="mt-3 grid grid-cols-3 gap-2 border-t border-slate-800/60 pt-3 text-center"> {/* mobile-audit-ignore: three short counters, ~110px each at 360px */}
+                      <div>
+                        <dt className="text-micro text-slate-500">Members</dt>
+                        <dd className="font-medium text-slate-200">
+                          {Number(org.member_count || 0).toLocaleString()}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="text-micro text-slate-500">Vehicles</dt>
+                        <dd className="font-medium text-slate-200">
+                          {Number(org.vehicle_count || 0).toLocaleString()}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="text-micro text-slate-500">Incidents</dt>
+                        <dd
+                          className={
+                            Number(org.active_alert_count || 0) > 0
+                              ? "font-bold text-amber-400"
+                              : "font-medium text-slate-500"
+                          }
+                        >
+                          {org.active_alert_count || 0}
+                        </dd>
+                      </div>
+                    </dl>
+
+                    <button
+                      onClick={() => handleStatusChange(org.organization_id, org.status)}
+                      disabled={updatingId === org.organization_id || isArchived}
+                      className={`mt-3 flex min-h-[44px] w-full items-center justify-center rounded-lg border px-3 text-xs font-medium transition-colors ${
+                        isOnboarding || isSuspended
+                          ? "border-emerald-500/30 bg-emerald-600/20 text-emerald-300 hover:bg-emerald-600/30"
+                          : "border-rose-500/30 bg-rose-600/20 text-rose-300 hover:bg-rose-600/30"
+                      } disabled:cursor-not-allowed disabled:opacity-50`}
+                    >
+                      {updatingId === org.organization_id
+                        ? "Updating..."
+                        : isOnboarding
+                        ? "Activate Tenant"
+                        : isSuspended
+                        ? "Reactivate"
+                        : "Suspend"}
+                    </button>
+                  </article>
+                );
+              })
+            )}
+          </div>
+
+          <div className="hidden overflow-x-auto md:block">
             <table className="w-full text-left text-sm text-slate-300">
               <thead className="bg-slate-900/80 text-xs uppercase text-slate-400 border-b border-slate-800">
                 <tr>

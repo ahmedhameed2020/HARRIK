@@ -129,6 +129,52 @@ two Next dev processes sharing `.next` corrupt each other's webpack cache.
 
 ---
 
+#### Mobile readiness (the app is phone-first)
+
+HARRIK is operated on a phone — one-handed, outdoors, often in a hurry — so the
+phone layout is the primary layout and desktop is the widened version of it.
+Two checks keep it that way:
+
+```bash
+pnpm audit:mobile          # static: reads the JSX, exits 1 on a blocking issue
+pnpm audit:mobile --all    # also lists advisory findings
+pnpm audit:mobile:live     # live: drives Chromium at 360px and 390px
+```
+
+`audit:mobile` (`scripts/mobile-audit.mjs`) flags the patterns that reliably
+break on a phone: a `<table>` with no `md:hidden` card list beside it, a
+3+ column grid with no breakpoint prefix, a fixed width wider than the
+viewport, content text under 11px, a form control small enough to trigger the
+iOS focus-zoom, and anything pinned to the bottom edge without
+`env(safe-area-inset-bottom)`. When a rule is genuinely wrong for a line — the
+licence-plate artwork microprint, a numeric keypad that *is* three columns —
+annotate that line, or the line directly above it, with `mobile-audit-ignore`
+and the reason.
+
+`audit:mobile:live` (`scripts/lib/measure-mobile.mjs`) measures the rendered
+page instead of the classes: horizontal overflow, tap targets under 44px and
+text under 11px, at 360px and 390px. Without credentials it can only reach the
+unauthenticated routes, because everything else redirects to `/login`; give it
+an account to cover the whole app:
+
+```bash
+E2E_EMAIL=… E2E_PASSWORD=… pnpm audit:mobile:live https://harrik.example.com
+```
+
+The conventions these checks enforce:
+
+- **Lists**: a card list under `md:hidden`, the table `hidden md:block`. On the
+  printable report the cards are additionally `print:hidden` and the table
+  `print:block`, so paper keeps the full grid.
+- **Dialogs**: `BottomSheet` (`src/components/ui/BottomSheet.tsx`) is the
+  default — a sheet on phones, a centred dialog from `sm` up, capped at `92vh`
+  with its own scroll and safe-area padding. A hand-rolled modal must do the
+  same or its submit button ends up below the fold on a 360×640 screen.
+- **Form controls**: 16px and 44px minimum on coarse pointers, applied centrally
+  in `globals.css` rather than per screen. Below 16px iOS Safari zooms the page
+  in on focus and never zooms back out.
+- **Text**: `text-micro` (11px) is the floor for anything a user reads.
+
 #### Deploying to Cloudflare
 
 ```bash

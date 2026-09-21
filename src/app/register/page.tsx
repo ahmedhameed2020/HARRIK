@@ -151,13 +151,13 @@ export default function RegisterPage() {
     <div dir={dir} className="min-h-screen bg-slate-50 dark:bg-slate-950">
       {/* Header */}
       <div className="flex items-center justify-between px-6 py-4">
-        <Link href="/" className="flex items-center gap-2">
+        <Link href="/" className="flex min-h-[44px] items-center gap-2">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-qatar text-white shadow-md shadow-qatar/20">
             <Car className="h-5 w-5" />
           </div>
           <span className="heading-section font-arabic">{t.brandLockup}</span>
         </Link>
-        <Link href="/login" className="text-xs font-bold text-qatar hover:underline">
+        <Link href="/login" className="inline-flex min-h-[44px] items-center text-xs font-bold text-qatar hover:underline">
           {t.regHaveAccount}
         </Link>
       </div>

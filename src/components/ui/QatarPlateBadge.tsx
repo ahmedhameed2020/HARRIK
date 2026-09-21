@@ -19,10 +19,11 @@ export function QatarPlateBadge({ plateNumber, size = "md", className = "" }: Qa
     >
       <div
         className={`flex flex-col items-center justify-center bg-qatar font-black text-white ${
-          isSm ? "px-1.5 py-0.5 text-[8px]" : isLg ? "px-3.5 py-1.5 text-xs" : "px-2.5 py-1 text-micro"
+          isSm ? "px-1.5 py-0.5 text-[8px]" : isLg ? "px-3.5 py-1.5 text-xs" : "px-2.5 py-1 text-micro" // mobile-audit-ignore: licence-plate artwork microprint, scales with the plate
         }`}
       >
         <span>قطر</span>
+        {/* mobile-audit-ignore: licence-plate artwork microprint, scales with the plate */}
         <span className={`${isSm ? "text-[6px]" : isLg ? "text-[9px]" : "text-[8px]"} tracking-wider opacity-90`}>
           QATAR
         </span>

@@ -79,13 +79,13 @@ export function ParkingPermitModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm sm:items-center sm:p-4">
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 10 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95 }}
         transition={SPRINGS.sheet}
-        className="relative w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl dark:bg-surface-card dark:border dark:border-slate-800"
+        className="relative max-h-[92vh] w-full overflow-y-auto rounded-t-3xl bg-white p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] shadow-2xl sm:max-w-md sm:rounded-3xl sm:pb-6 dark:bg-surface-card dark:border dark:border-slate-800"
       >
         {/* Header */}
         <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
@@ -128,7 +128,7 @@ export function ParkingPermitModal({
                   {venueName}
                 </span>
               </div>
-              <span className="text-[9px] font-bold tracking-widest uppercase bg-white/20 px-2 py-0.5 rounded">
+              <span className="text-micro font-bold tracking-widest uppercase bg-white/20 px-2 py-0.5 rounded">
                 {L("تصريح رسمي", "Official permit")}
               </span>
             </div>
@@ -177,7 +177,7 @@ export function ParkingPermitModal({
             </div>
 
             {/* Micro footer */}
-            <div className="mt-3 text-[9px] text-slate-600 font-medium">
+            <div className="mt-3 text-micro text-slate-600 font-medium">
               {L("نظام حَرِّك (HARRIK V1.0) • يوضع الملصق داخل الزجاج الأمامي للمركبة", "HARRIK V1.0 • Place the sticker inside the vehicle's windshield")}
             </div>
           </div>

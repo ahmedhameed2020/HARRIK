@@ -394,27 +394,32 @@ export default function AdminReportsPage() {
             <span>{t.repPeakTitle}</span>
           </h3>
           {Object.values(metrics.hourlyCounts).some((c) => c > 0) ? (
-            <div className="grid grid-cols-12 gap-1 sm:gap-2 items-end h-24 pt-4 border-b border-slate-200 print:border-slate-300">
-              {Object.entries(metrics.hourlyCounts).map(([hour, count]) => {
-                const maxCount = Math.max(1, ...Object.values(metrics.hourlyCounts));
-                const heightPct = Math.round((count / maxCount) * 100);
-                return (
-                  <div key={hour} className="flex flex-col items-center gap-1 h-full justify-end">
-                    <span className="text-[9px] font-bold text-slate-700 print:text-slate-800">
-                      {count > 0 ? count : ""}
-                    </span>
+            <div className="-mx-1 overflow-x-auto px-1 pb-1 sm:mx-0 sm:overflow-visible sm:px-0 sm:pb-0 print:overflow-visible">
+              <div className="flex min-w-max items-end gap-1 h-24 pt-4 border-b border-slate-200 sm:grid sm:min-w-0 sm:grid-cols-12 sm:gap-2 print:grid print:min-w-0 print:grid-cols-12 print:border-slate-300">
+                {Object.entries(metrics.hourlyCounts).map(([hour, count]) => {
+                  const maxCount = Math.max(1, ...Object.values(metrics.hourlyCounts));
+                  const heightPct = Math.round((count / maxCount) * 100);
+                  return (
                     <div
-                      style={{ height: `${Math.max(6, heightPct)}%` }}
-                      className={`w-full max-w-[28px] rounded-t transition-all ${
-                        count > 0 ? "bg-qatar print:bg-slate-800" : "bg-slate-200 print:bg-slate-200"
-                      }`}
-                    />
-                    <span className="text-[9px] text-slate-500 font-mono mt-1">
-                      {hour}:00
-                    </span>
-                  </div>
-                );
-              })}
+                      key={hour}
+                      className="flex h-full w-11 shrink-0 flex-col items-center justify-end gap-1 sm:w-auto sm:shrink print:w-auto print:shrink"
+                    >
+                      <span className="text-micro font-bold text-slate-700 print:text-slate-800">
+                        {count > 0 ? count : ""}
+                      </span>
+                      <div
+                        style={{ height: `${Math.max(6, heightPct)}%` }}
+                        className={`w-full max-w-[28px] rounded-t transition-all ${
+                          count > 0 ? "bg-qatar print:bg-slate-800" : "bg-slate-200 print:bg-slate-200"
+                        }`}
+                      />
+                      <span className="text-micro text-slate-500 font-mono mt-1">
+                        {hour}:00
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           ) : (
             <div className="flex h-24 flex-col items-center justify-center gap-1 rounded-control border border-dashed border-slate-200 bg-surface-sunken/50 text-center print:border-slate-300">
@@ -439,7 +444,82 @@ export default function AdminReportsPage() {
             </span>
           </div>
 
-          <div className="overflow-x-auto rounded-xl border border-slate-200 print:border-slate-300">
+          {/* Mobile: one card per incident. Seven columns on a 360px screen
+              reduce the plate — the single most important field — to a few
+              pixels. Printing always uses the table below, on paper there is
+              room for it. */}
+          <div className="space-y-2.5 md:hidden print:hidden">
+            {filteredAlerts.length === 0 ? (
+              <div className="rounded-xl border border-slate-200 px-6 py-10 text-center">
+                <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
+                  <FileText className="h-5 w-5" aria-hidden="true" />
+                </div>
+                <p className="mt-3 text-caption font-bold text-slate-700">{t.repEmpty}</p>
+                <p className="mt-1 text-micro text-slate-500">
+                  {L(
+                    "غيّر نطاق التاريخ أو اطبع التقرير بعد تسجيل أول بلاغ.",
+                    "Change the date range or print after the first incident is logged."
+                  )}
+                </p>
+              </div>
+            ) : (
+              filteredAlerts.slice(0, 15).map((a, idx) => (
+                <article key={a.id} className="rounded-xl border border-slate-200 p-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex min-w-0 items-center gap-2">
+                      <span className="font-mono text-caption font-bold text-slate-400">{idx + 1}</span>
+                      <span className="rounded-lg border border-slate-300 bg-white px-2 py-0.5 font-mono text-body font-black text-slate-900">
+                        {a.vehicle?.plate_number || "-"}
+                      </span>
+                    </div>
+                    <span
+                      className={`shrink-0 rounded-full px-2 py-0.5 text-micro font-bold ${
+                        a.status === "resolved"
+                          ? "bg-emerald-100 text-emerald-800"
+                          : a.status === "acknowledged"
+                          ? "bg-blue-100 text-blue-800"
+                          : "bg-amber-100 text-amber-800"
+                      }`}
+                    >
+                      {a.status === "resolved"
+                        ? t.repStatusResolved
+                        : a.status === "acknowledged"
+                        ? t.repStatusAck
+                        : t.repStatusPending}
+                    </span>
+                  </div>
+
+                  <p className="mt-2 truncate text-caption text-slate-600">
+                    {a.vehicle ? `${a.vehicle.make} ${a.vehicle.model} (${a.vehicle.color})` : "-"}
+                  </p>
+
+                  <dl className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1.5 border-t border-slate-200/80 pt-2 text-caption">
+                    <div className="min-w-0">
+                      <dt className="text-micro font-bold text-slate-500">{t.repColOwner}</dt>
+                      <dd className="truncate font-bold text-slate-800">{a.owner?.name_ar || "-"}</dd>
+                    </div>
+                    <div className="min-w-0">
+                      <dt className="text-micro font-bold text-slate-500">{t.repColReporter}</dt>
+                      <dd className="truncate text-slate-600">{a.reporter?.name_ar || "-"}</dd>
+                    </div>
+                    <div className="col-span-2 min-w-0">
+                      <dt className="text-micro font-bold text-slate-500">{t.repColDateTime}</dt>
+                      <dd className="font-mono text-slate-700">
+                        {new Date(a.created_at).toLocaleString("ar-QA", {
+                          month: "numeric",
+                          day: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </dd>
+                    </div>
+                  </dl>
+                </article>
+              ))
+            )}
+          </div>
+
+          <div className="hidden overflow-x-auto rounded-xl border border-slate-200 md:block print:block print:border-slate-300">
             <table className="w-full text-right text-xs">
               <thead className="bg-slate-100/80 print:bg-slate-100 font-bold text-slate-700 print:text-black border-b border-slate-200">
                 <tr>
@@ -525,7 +605,7 @@ export default function AdminReportsPage() {
         </div>
 
         {/* 5. Official Signatures & Stamp Blocks */}
-        <div className="mt-12 pt-8 border-t-2 border-slate-200 print:border-slate-400 grid grid-cols-3 gap-6 text-center text-xs">
+        <div className="mt-12 pt-8 border-t-2 border-slate-200 print:border-slate-400 grid grid-cols-1 gap-6 text-center text-xs sm:grid-cols-3 print:grid-cols-3">
           <div>
             <div className="font-bold text-slate-700 print:text-black mb-1">{t.repSignSecurity}</div>
             <div className="text-caption text-slate-500">{t.repSignSecurityEn}</div>

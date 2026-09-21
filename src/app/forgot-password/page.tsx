@@ -69,7 +69,7 @@ export default function ForgotPasswordPage() {
             <p className="mt-1 text-xs text-emerald-700 dark:text-emerald-400">{t.forgotSentBody}</p>
             <Link
               href="/login"
-              className="mt-5 inline-flex items-center gap-1.5 text-xs font-bold text-qatar hover:underline"
+              className="mt-5 inline-flex min-h-[44px] items-center gap-1.5 text-xs font-bold text-qatar hover:underline"
             >
               <ArrowRight className="h-3.5 w-3.5 rtl:rotate-180" />
               <span>{t.forgotBackLogin}</span>
@@ -108,7 +108,7 @@ export default function ForgotPasswordPage() {
             </button>
 
             <div className="text-center">
-              <Link href="/login" className="text-xs font-bold text-slate-500 hover:text-slate-800 dark:text-slate-400">
+              <Link href="/login" className="inline-flex min-h-[44px] items-center text-xs font-bold text-slate-500 hover:text-slate-800 dark:text-slate-400">
                 {t.forgotBackLogin}
               </Link>
             </div>

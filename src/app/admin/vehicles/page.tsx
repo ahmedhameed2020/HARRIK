@@ -385,8 +385,8 @@ export default function VehiclesDirectoryPage() {
                 {/* Qatar Plate Badge */}
                 <div className="qatar-plate-frame flex items-stretch h-11 rounded-xl overflow-hidden border border-slate-300 bg-white shadow-sm ring-1 ring-slate-200/80 dark:border-slate-700 dark:bg-slate-900">
                   <div className="bg-qatar flex flex-col items-center justify-center px-2 py-0.5 text-white">
-                    <span className="text-[8px] font-black leading-none font-arabic">قطر</span>
-                    <span className="text-[6px] font-bold tracking-widest leading-none mt-0.5">QATAR</span>
+                    <span className="text-[8px] font-black leading-none font-arabic">قطر</span> {/* mobile-audit-ignore: plate artwork microprint */}
+                    <span className="text-[6px] font-bold tracking-widest leading-none mt-0.5">QATAR</span> {/* mobile-audit-ignore: plate artwork microprint */}
                   </div>
                   <div className="flex items-center px-3 font-mono text-base font-black tracking-wider text-slate-900 dark:text-white">
                     {v.plate_number}
@@ -497,7 +497,7 @@ export default function VehiclesDirectoryPage() {
             <div className="qatar-plate-frame flex items-stretch h-14 rounded-2xl overflow-hidden border border-slate-300 bg-white shadow-md ring-2 ring-slate-200/80 dark:border-slate-700 dark:bg-slate-900">
               <div className="bg-qatar flex flex-col items-center justify-center px-3 py-1 text-white">
                 <span className="text-micro font-black leading-none font-arabic">قطر</span>
-                <span className="text-[7px] font-bold tracking-widest leading-none mt-0.5">QATAR</span>
+                <span className="text-[7px] font-bold tracking-widest leading-none mt-0.5">QATAR</span> {/* mobile-audit-ignore: plate artwork microprint */}
               </div>
               <div className="flex items-center px-5 font-mono text-xl font-black tracking-widest text-slate-900 dark:text-white min-w-[120px] justify-center">
                 {normalizePlateNumber(formPlate) || "••••••"}
@@ -519,7 +519,7 @@ export default function VehiclesDirectoryPage() {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                 {L("الشركة المصنعة *", "Make *")}
@@ -549,7 +549,7 @@ export default function VehiclesDirectoryPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                 {L("اللون", "Color")}
@@ -637,7 +637,7 @@ export default function VehiclesDirectoryPage() {
             <div className="qatar-plate-frame flex items-stretch h-14 rounded-2xl overflow-hidden border border-slate-300 bg-white shadow-md ring-2 ring-slate-200/80 dark:border-slate-700 dark:bg-slate-900">
               <div className="bg-qatar flex flex-col items-center justify-center px-3 py-1 text-white">
                 <span className="text-micro font-black leading-none font-arabic">قطر</span>
-                <span className="text-[7px] font-bold tracking-widest leading-none mt-0.5">QATAR</span>
+                <span className="text-[7px] font-bold tracking-widest leading-none mt-0.5">QATAR</span> {/* mobile-audit-ignore: plate artwork microprint */}
               </div>
               <div className="flex items-center px-5 font-mono text-xl font-black tracking-widest text-slate-900 dark:text-white min-w-[120px] justify-center">
                 {normalizePlateNumber(formPlate) || "••••••"}
@@ -658,7 +658,7 @@ export default function VehiclesDirectoryPage() {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                 {L("الشركة المصنعة *", "Make *")}
@@ -686,7 +686,7 @@ export default function VehiclesDirectoryPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                 {L("اللون", "Color")}

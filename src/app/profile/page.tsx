@@ -575,7 +575,7 @@ export default function ProfilePage() {
                     <div className="inline-flex items-stretch overflow-hidden rounded-xl border-2 border-slate-900 bg-white shadow-sm mb-3">
                       <div className="flex flex-col items-center justify-center bg-qatar px-2.5 py-1 text-micro font-black text-white">
                         <span>{L("قطر", "QATAR")}</span>
-                        <span className="text-[8px] tracking-wider opacity-90">QATAR</span>
+                        <span className="text-[8px] tracking-wider opacity-90">QATAR</span> {/* mobile-audit-ignore: plate artwork microprint */}
                       </div>
                       <div className="flex items-center px-3.5 py-1 font-mono text-base font-black tracking-widest text-slate-900">
                         {v.plate_number}
@@ -903,8 +903,8 @@ export default function ProfilePage() {
 
       {/* MODAL: Add / Edit Vehicle */}
       {isVehicleModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="relative w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl dark:bg-surface-card dark:border dark:border-zinc-800">
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200 sm:items-center sm:p-4">
+          <div className="relative max-h-[92vh] w-full overflow-y-auto rounded-t-3xl bg-white p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] shadow-2xl sm:max-w-md sm:rounded-3xl sm:pb-6 dark:bg-surface-card dark:border dark:border-zinc-800">
             <h3 className="text-base font-extrabold text-slate-900 dark:text-white font-arabic mb-1">
               {editingVehicleId ? L("تعديل بيانات السيارة", "Edit vehicle details") : L("إضافة سيارة جديدة إلى ملفك", "Add a new vehicle to your profile")}
             </h3>
@@ -1003,7 +1003,7 @@ export default function ProfilePage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                     {L("سنة الصنع (اختياري)", "Year (optional)")}
