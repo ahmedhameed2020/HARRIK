@@ -34,6 +34,7 @@ import {
   Bell,
 } from "lucide-react";
 import { triggerHaptic } from "@/lib/haptics";
+import { LogoUploader } from "@/components/ui/LogoUploader";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocale } from "@/contexts/LocaleContext";
 import type { DepartmentKind } from "@/types";
@@ -96,6 +97,7 @@ export default function SettingsPage() {
 
   // Branding JSON
   const [entityType, setEntityType] = useState<EntityType>("other");
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [venueLabel, setVenueLabel] = useState("المنشأة");
   const [primaryColor, setPrimaryColor] = useState("#8A1538");
   const [whatsappTemplate, setWhatsappTemplate] = useState("");
@@ -227,6 +229,7 @@ export default function SettingsPage() {
 
         setNameAr(org.name_ar || "");
         setNameEn(org.name_en || "");
+        setLogoUrl(org.logo_url || null);
         setCountryCode(org.country_code || "QA");
         setTimezone(org.timezone || "Asia/Qatar");
         setDefaultLanguage(org.default_language || "ar");
@@ -802,6 +805,14 @@ export default function SettingsPage() {
                         className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-slate-900 focus:border-qatar focus:outline-none focus:ring-2 focus:ring-qatar/20 dark:border-zinc-800 dark:bg-zinc-900 dark:text-white"
                       />
                     </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1.5 font-arabic">
+                        {L("شعار المنشأة (يظهر على ملصق التصريح)", "Organization logo (shown on the permit sticker)")}
+                      </label>
+                      <LogoUploader logoUrl={logoUrl} onUploaded={(url) => setLogoUrl(url)} />
+                    </div>
+
 
                     <div>
                       <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1.5 font-arabic">

@@ -13,11 +13,14 @@ import {
   Rocket,
   Upload,
   Building2,
+  Mail,
+  RefreshCw,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { triggerHaptic } from "@/lib/haptics";
 import { useLocale } from "@/contexts/LocaleContext";
 import { translations } from "@/i18n/translations";
+import { LogoUploader } from "@/components/ui/LogoUploader";
 
 interface OnboardingData {
   organization: {
@@ -27,6 +30,7 @@ interface OnboardingData {
     entity_type: string;
     status: string;
     onboarding_status: string;
+    logo_url?: string | null;
   };
   settings: {
     privacy_mode: "mode_a" | "mode_b" | "mode_c";
@@ -37,6 +41,10 @@ interface OnboardingData {
       custom_whatsapp_template?: string;
     };
   };
+  admin?: {
+    email: string | null;
+    emailVerified: boolean;
+  };
   stats: { departments: number; members: number; vehicles: number };
 }
 
@@ -45,9 +53,11 @@ export default function OnboardingSetupPage() {
   const supabase = createClient();
   const { lang, dir } = useLocale();
   const t = translations[lang];
+  const L = (ar: string, en: string) => (lang === "ar" ? ar : en);
 
   const [data, setData] = useState<OnboardingData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isResending, setIsResending] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isCompleting, setIsCompleting] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
@@ -144,6 +154,35 @@ export default function OnboardingSetupPage() {
     }
   };
 
+  /**
+   * GoTrue re-sends the confirmation link. The address is already on the
+   * session, so nothing is typed again — a mistyped address is corrected by an
+   * administrator, not here.
+   */
+  const resendConfirmation = async () => {
+    const email = data?.admin?.email;
+    if (!email) return;
+    setIsResending(true);
+    setMessage(null);
+    try {
+      const { error } = await supabase.auth.resend({ type: "signup", email });
+      setMessage(
+        error
+          ? { type: "error", text: error.message }
+          : {
+              type: "success",
+              text: L(
+                "أرسلنا رابط التأكيد مجدداً. افتح بريدك ثم عد لتحديث الحالة.",
+                "The confirmation link was sent again. Open your inbox, then refresh."
+              ),
+            }
+      );
+    } finally {
+      setIsResending(false);
+    }
+  };
+
+
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-50 dark:bg-slate-950">
@@ -195,6 +234,18 @@ export default function OnboardingSetupPage() {
         {/* Step 2 */}
         <StepCard icon={<Palette className="h-5 w-5" />} title={t.onbStep2} done={settingsDone} subtitle={t.onbStep2Sub}>
           <div className="space-y-4 pt-2">
+            <div>
+              <label className="mb-1.5 block text-xs font-bold text-slate-700 dark:text-slate-300">
+                {t.onbLogo}
+              </label>
+              <LogoUploader
+                logoUrl={data?.organization.logo_url}
+                onUploaded={() => {
+                  // Keeps the wizard's own copy in step with what was stored.
+                  load();
+                }}
+              />
+            </div>
             <div>
               <label className="mb-1.5 block text-xs font-bold text-slate-700 dark:text-slate-300">{t.onbVenueLabel}</label>
               <input value={venueLabel} onChange={(e) => setVenueLabel(e.target.value)} className={inputClass} />
@@ -273,6 +324,60 @@ export default function OnboardingSetupPage() {
             </Link>
           </div>
         </StepCard>
+
+        {/* Verification (§9.5) — a required step, not advice: an organization
+            whose only administrator cannot receive mail has no way to reset a
+            password or accept an invitation later. */}
+        <StepCard
+          icon={<Mail className="h-5 w-5" />}
+          title={L("تأكيد البريد الإلكتروني", "Confirm your e-mail")}
+          done={Boolean(data?.admin?.emailVerified)}
+          subtitle={data?.admin?.email || undefined}
+        >
+          {data?.admin?.emailVerified ? (
+            <p className="pt-2 text-xs text-emerald-600 dark:text-emerald-400">
+              {L("تم تأكيد البريد الإلكتروني.", "Your e-mail address is confirmed.")}
+            </p>
+          ) : (
+            <div className="pt-2">
+              <p className="text-xs text-slate-600 dark:text-slate-300">
+                {L(
+                  "أرسلنا رابط تأكيد إلى بريدك. لا يمكن تفعيل المنشأة قبل تأكيده، لأنه الطريق الوحيد لاستعادة كلمة المرور واستقبال الدعوات.",
+                  "We sent a confirmation link to your inbox. The organization cannot be activated until it is confirmed — it is the only route for password resets and invitations."
+                )}
+              </p>
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={resendConfirmation}
+                  disabled={isResending || !data?.admin?.email}
+                  className="btn btn-secondary gap-1.5 text-xs disabled:opacity-50"
+                >
+                  {isResending ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <Mail className="h-3.5 w-3.5 text-qatar" />
+                  )}
+                  <span>{L("إعادة إرسال الرابط", "Resend the link")}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    // The session carries the confirmation flag, so it has to be
+                    // refreshed before the wizard can see the new state.
+                    await supabase.auth.refreshSession();
+                    load();
+                  }}
+                  className="btn btn-ghost gap-1.5 text-xs"
+                >
+                  <RefreshCw className="h-3.5 w-3.5" />
+                  <span>{L("حدّثت الحالة", "I have confirmed it")}</span>
+                </button>
+              </div>
+            </div>
+          )}
+        </StepCard>
+
 
         {/* Step 4 */}
         <div className="mt-4 rounded-3xl border border-qatar/30 bg-qatar/5 p-6 dark:bg-qatar/10">

@@ -29,6 +29,10 @@ export async function GET() {
       success: true,
       organization: orgRes.data,
       settings,
+      admin: {
+        email: session.email,
+        emailVerified: session.emailVerified,
+      },
       stats: {
         departments: deptRes.count ?? 0,
         members: staffRes.count ?? 0,
@@ -94,6 +98,21 @@ export async function PATCH(request: NextRequest) {
     }
 
     if (action === "complete") {
+      // §9.5: confirming the address is a required step, not advice. An
+      // organization whose only administrator cannot receive mail has no way
+      // to reset a password or receive an invitation later.
+      if (!session.emailVerified) {
+        return NextResponse.json(
+          {
+            success: false,
+            error:
+              "يرجى تأكيد بريدك الإلكتروني أولاً عبر الرابط المرسل إليك، ثم أعد المحاولة لتفعيل المنشأة.",
+            code: "email_not_verified",
+          },
+          { status: 400 }
+        );
+      }
+
       await admin
         .from("organizations")
         .update({ status: "active", onboarding_status: "ready", updated_at: new Date().toISOString() })

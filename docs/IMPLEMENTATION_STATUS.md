@@ -177,6 +177,42 @@ The SMS itself only leaves the system when an provider is configured —
 `not_configured` and the alert still goes out over push and in-app; nothing
 breaks, the fallback is simply inert.
 
+#### Organization logo (requires migration 11)
+
+`organizations.logo_url` has existed since the first migration and §9.2 asked
+for a logo upload during onboarding, but there was nowhere to put the file —
+the column could only hold a hand-typed URL.
+
+`supabase/migrations/20260924000001_org_logo_storage.sql` creates the
+`org-logos` storage bucket and its policies. **It is not applied automatically**:
+run it in the Supabase SQL Editor, the same way migration 08 was. Until it is,
+the uploader returns a 503 that says exactly that, rather than a raw storage
+error.
+
+- Layout is one folder per tenant, `<organization_id>/logo-<timestamp>.<ext>`.
+  The policies authorise writes on that first path segment, so a tenant cannot
+  write into another tenant's folder, and only that organization's `admin` /
+  `super_admin` may write at all.
+- Public read is deliberate: the logo appears on the printed permit sticker and
+  on screens unauthenticated scanners reach, where a signed URL would expire.
+- 2 MiB, PNG / JPG / WEBP / SVG, enforced both on the bucket and in
+  `lib/branding/logo.ts` — the server check is the control, the client check is
+  the readable error.
+- The timestamp in the filename busts the CDN cache; a replaced logo would
+  otherwise keep serving the old image on stickers.
+
+The uploader (`components/ui/LogoUploader.tsx`) is shared by the onboarding
+wizard and **الإعدادات → الهوية**, so a logo can be set during setup or changed
+later.
+
+#### Onboarding: confirming the administrator's e-mail
+
+§9.5 makes confirming the address a required step. The wizard now shows it as
+its own step with a resend action, and `PATCH /api/onboarding {action:"complete"}`
+refuses to activate the organization until `email_confirmed_at` is set. An
+organization whose only administrator cannot receive mail has no route to a
+password reset or an invitation later.
+
 #### Operating hours drive the peak analytics
 
 The settings panel has always offered **ساعات العمل وأوقات الذروة** and stated
