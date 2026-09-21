@@ -162,6 +162,15 @@ colour — status colours (emerald/amber/red/sky) are reserved for state, never 
 `slate-500` is now `#6E675F` (≈5.1:1). `pnpm test:a11y:local` must stay green (16/16) after any
 palette change — it caught this on the first pass.
 
+#### Test budgets on a loaded machine
+
+`playwright.config.ts` uses generous budgets (per-test 180 s, expect 30 s) and
+`scripts/e2e-local.mjs` pre-requests every route before Playwright starts. Both exist for the same
+reason: the suite runs against `next dev`, which compiles routes on demand, and on a shared machine
+that first compile can exceed a test's budget — making a healthy app look broken. With the warm-up
+in place the a11y suite went from 14.7 min *with failures* to **8/8 green in 4.8 min**. Use
+`E2E_NO_WARMUP=1` to skip the warm-up.
+
 ## Remaining / follow-ups
 
 - **Both migrations are applied and verified on both stacks** — local 10/10, remote 10/10 (`pnpm db:verify` / `pnpm db:verify:local`). The durable rate limiter, timed escalation and the unknown-report → vehicle link are therefore live; no code path depends on the "degrades safely" fallbacks any more.

@@ -66,6 +66,46 @@ if (!ready) {
   shutdown(1);
 }
 
+/**
+ * Warm the routes the suite touches before Playwright starts.
+ *
+ * `next dev` compiles on demand, and that first compile can take tens of
+ * seconds on a loaded machine — long enough for the first assertion in a spec
+ * to time out and make a healthy app look broken. Requesting each route here
+ * pays that cost once, before any test budget is running.
+ */
+const WARM_ROUTES = [
+  "/login",
+  "/register",
+  "/forgot-password",
+  "/reset-password",
+  "/scan?token=not-a-uuid",
+  "/",
+  "/inbox",
+  "/profile",
+  "/admin",
+  "/admin/staff",
+  "/admin/vehicles",
+  "/admin/alerts",
+  "/admin/unknown",
+  "/admin/settings",
+  "/admin/reports",
+  "/admin/audit",
+  "/admin/import",
+  "/admin/visitors",
+];
+
+if (process.env.E2E_NO_WARMUP !== "1") {
+  console.log(`[harrik] warming ${WARM_ROUTES.length} routes…`);
+  const startedAt = Date.now();
+  await Promise.all(
+    WARM_ROUTES.map((route) =>
+      fetch(`${BASE_URL}${route}`, { redirect: "manual" }).catch(() => null)
+    )
+  );
+  console.log(`[harrik] warm-up done in ${Math.round((Date.now() - startedAt) / 1000)}s`);
+}
+
 const testEnv = {
   ...process.env,
   ...localEnv,

@@ -239,7 +239,7 @@ export function ReportUnknownDialog({
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex min-h-[48px] w-full items-center justify-center gap-2 rounded-2xl bg-qatar py-3 text-center text-xs sm:text-sm font-bold text-white shadow-xl shadow-qatar/25 transition active:scale-[0.98] hover:bg-qatar-800 disabled:opacity-50"
+              className="btn btn-primary min-h-[48px] w-full gap-2 py-3 text-center text-xs sm:text-sm"
             >
               <Megaphone className="h-4 w-4" />
               <span>{isSubmitting ? (isAr ? "جارٍ إرسال البلاغ..." : "Submitting...") : t.submitReportBtn}</span>

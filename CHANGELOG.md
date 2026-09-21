@@ -126,8 +126,45 @@ All notable changes to the **حَرِّك | HARRIK** project will be documented 
 - **Admin lists** (staff, vehicles, audit) now render the existing `TableSkeleton` instead of a
   spinner plus "loading…" text.
 
-### Changed (premium design system — warm neutral palette, one accent)
-- **The neutral ramp is remapped at the theme level.** `slate` and `zinc` no longer resolve to
+### Added (premium redesign — per-screen pass)
+
+Rounds 3–7 applied the design system screen by screen and fixed what the audits surfaced:
+
+- **Homepage / search hero:** quiet tracked eyebrow, `text-h1 → sm:text-display` title, lead
+  subtitle at a readable measure, hero vertically centred between the app bar and the nav island,
+  premium field (hairline + `shadow-card` + brand focus ring), 44px tool buttons, brand CTA.
+- **Navigation:** glass header (`.surface-glass`), unified `rounded-pill` nav with a soft active
+  state, 44px language/theme controls, softer mobile island, and an **icon-only nav tier below
+  `lg`** (with `aria-label`) so labels no longer wrapped inside their pills on tablets.
+- **Dashboard:** the four KPI cards share one neutral surface instead of four coloured borders —
+  colour is now reserved for the icon chips and values; chart/section cards use the same primitive
+  and the tooltip is a glass surface.
+- **Tables/forms:** staff table and vehicle grid on `.surface-card` with a quiet header band;
+  proper empty states (icon chip + headline + hint); **`glass-panel`/`glass-card` were used across
+  the admin screens but never defined in CSS** — those panels rendered with no surface at all and
+  are now defined. One interaction language for every input/textarea/select app-wide (hover border,
+  brand focus ring, placeholder, disabled, checkbox accent) plus `.field` / `.btn-*` primitives.
+- **Consistency pass:** 22 card containers → `.surface-card`, 14 controls → `.field`, 31 headings →
+  `.heading-page/section/card`; every ad-hoc card style is now gone from the app.
+- **Responsive:** measured 18 viewport × screen combinations (360 / 834 / 1280 × six screens) —
+  zero horizontal overflow anywhere.
+
+### Changed (performance & test harness)
+
+- **Self-hosted fonts:** replaced the render-blocking Google Fonts stylesheet with `next/font`
+  (IBM Plex Sans Arabic + Inter, preloaded, `display: swap`). No external font request remains;
+  measured FCP improved 2.0 s → 1.4 s on the deployed Worker.
+- **E2E harness warm-up:** `pnpm test:e2e:local` now pre-requests every route the suite touches
+  before Playwright starts. The dev server compiles on demand, and that first compile could exceed
+  a test's budget on a loaded machine — the a11y suite went from 14.7 min **with failures** to
+  **8/8 green in 4.8 min**. Set `E2E_NO_WARMUP=1` to skip it.
+
+> **Measurement caveat:** Lighthouse performance on a machine that is already busy (this host runs
+> Docker, browsers and language servers at ~80 % CPU) is dominated by the 4× CPU throttling and
+> swings between 43 and 76. FCP/CLS are stable and useful; treat TBT/perf scores as indicative and
+> re-measure on an idle machine.
+
+### Changed (premium design system — warm neutral palette, one accent)- **The neutral ramp is remapped at the theme level.** `slate` and `zinc` no longer resolve to
   Tailwind's cool blue-greys; they are a warm, premium ramp (soft white `#F8F6F3` → warm grey →
   charcoal `#0E0C0A`, dark surfaces `#191715`). Because the whole codebase uses those utilities,
   ~900 places inherit the new palette at once and stay consistent by default.

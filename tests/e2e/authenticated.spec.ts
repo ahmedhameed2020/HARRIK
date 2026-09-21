@@ -24,7 +24,7 @@ test.describe("Authenticated journey", () => {
     await page.getByTestId("login-email").fill(EMAIL!);
     await page.getByTestId("login-password").fill(PASSWORD!);
     await page.getByTestId("login-submit").click();
-    await expect(page).not.toHaveURL(/\/login/, { timeout: 30_000 });
+    await expect(page).not.toHaveURL(/\/login/, { timeout: 90_000 });
   }
 
   test("sign in once, land in the app and keep the session on reload", async ({ page }) => {
@@ -60,7 +60,7 @@ test.describe("Authenticated journey", () => {
       page
         .getByText(/لاندكروزر|Land Cruiser|غير مسجلة|not registered|Unregistered/i)
         .first()
-    ).toBeVisible({ timeout: 25_000 });
+    ).toBeVisible({ timeout: 60_000 });
   });
 
   test("inbox loads and offers the notification opt-in", async ({ page }) => {
@@ -68,7 +68,7 @@ test.describe("Authenticated journey", () => {
     await page.goto("/inbox");
 
     await expect(page.getByTestId("main-content")).toBeVisible();
-    await expect(page.getByRole("heading", { level: 1 })).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible({ timeout: 60_000 });
   });
 
   test("admin dashboard renders KPIs for an admin account", async ({ page }) => {
@@ -84,7 +84,7 @@ test.describe("Authenticated journey", () => {
     await signIn(page);
     await page.goto("/profile");
 
-    await expect(page.getByText(/Web Push/i).first()).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByText(/Web Push/i).first()).toBeVisible({ timeout: 60_000 });
     await expect(page.getByText(/البصمة|Biometric/i).first()).toBeVisible();
     await expect(page.getByText(/الأجهزة والجلسات|Devices & active sessions/i).first()).toBeVisible();
   });

@@ -33,8 +33,11 @@ const startCommand =
 
 export default defineConfig({
   testDir: "./tests/e2e",
-  timeout: 60_000,
-  expect: { timeout: 10_000 },
+  // Generous budgets: the suite runs against `next dev` (on-demand compile) and
+  // is often executed on a shared/loaded machine. A slow host must not make a
+  // healthy app look broken — real assertion failures still fail fast.
+  timeout: 180_000,
+  expect: { timeout: 30_000 },
   fullyParallel: false,
   workers: 1,
   retries: process.env.CI ? 1 : 0,

@@ -49,7 +49,7 @@ async function audit(page: Page, label: string) {
 
 test.describe("Accessibility (axe)", () => {
   // Dev-mode compiles pages on demand; allow a generous budget per page.
-  test.describe.configure({ timeout: 120_000 });
+  test.describe.configure({ timeout: 240_000 });
 
   test("login page has no serious violations", async ({ page }) => {
     await page.goto("/login");
@@ -69,7 +69,7 @@ test.describe("Accessibility (axe)", () => {
   test("scan error state has no serious violations", async ({ page }) => {
     await page.goto("/scan?token=not-a-uuid");
     await expect(page.getByText(/تعذر التحقق|Could not verify/i)).toBeVisible({
-      timeout: 20_000,
+      timeout: 60_000,
     });
     await audit(page, "/scan (invalid token)");
   });
@@ -82,7 +82,7 @@ test.describe("Accessibility (axe)", () => {
       await page.getByTestId("login-email").fill(EMAIL!);
       await page.getByTestId("login-password").fill(PASSWORD!);
       await page.getByTestId("login-submit").click();
-      await expect(page).not.toHaveURL(/\/login/, { timeout: 30_000 });
+      await expect(page).not.toHaveURL(/\/login/, { timeout: 90_000 });
     }
 
     for (const path of ["/", "/inbox", "/profile", "/admin"]) {

@@ -189,7 +189,7 @@ export function ParkingPermitModal({
             type="button"
             whileTap={{ scale: 0.95 }}
             onClick={handlePrint}
-            className="flex items-center justify-center gap-2 rounded-2xl bg-qatar px-4 py-3 text-xs sm:text-sm font-bold text-white shadow-md shadow-qatar/20 transition hover:bg-qatar-800"
+            className="btn btn-primary gap-2 px-4 py-3 text-xs sm:text-sm"
           >
             <Printer className="h-4 w-4" />
             <span>{L("طباعة الملصق", "Print sticker")}</span>
@@ -199,7 +199,7 @@ export function ParkingPermitModal({
             type="button"
             whileTap={{ scale: 0.95 }}
             onClick={handleDownload}
-            className="flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-xs sm:text-sm font-bold text-slate-700 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
+            className="btn btn-secondary gap-2 px-4 py-3 text-xs text-slate-700 sm:text-sm dark:text-slate-200"
           >
             <Download className="h-4 w-4" />
             <span>{L("حفظ رمز QR", "Save QR code")}</span>
