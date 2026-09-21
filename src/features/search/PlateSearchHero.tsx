@@ -12,6 +12,7 @@ import { QatarPlate } from "@/components/ui/QatarPlate";
 import { triggerHaptic } from "@/lib/haptics";
 import { TACTILE_TAP, DURATION, EASING } from "@/lib/motion";
 import { useEntityConfig } from "@/contexts/EntityConfigContext";
+import { DepartmentSuggestion } from "@/features/departments/DepartmentSuggestion";
 
 const CameraPlateScanner = dynamic(
   () => import("./CameraPlateScanner").then((m) => m.CameraPlateScanner),
@@ -413,6 +414,11 @@ export function PlateSearchHero({ lang }: PlateSearchHeroProps) {
 
       {/* Results Area with Motion Continuity */}
       <div className="mt-6 space-y-4">
+        {/* No match — point at the department route instead of a dead end */}
+        {!isLoading && hasSearched && results.length === 0 && (
+          <DepartmentSuggestion />
+        )}
+
         {/* Ambiguous Multi-Matches Selector */}
         {!isLoading && hasSearched && results.length > 1 && !selectedVehicle && (
           <div className="rounded-[20px] border border-amber-200 bg-amber-50/70 p-4 dark:border-amber-900/50 dark:bg-amber-950/20">

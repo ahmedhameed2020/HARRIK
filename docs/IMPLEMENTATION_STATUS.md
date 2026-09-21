@@ -171,6 +171,20 @@ that first compile can exceed a test's budget — making a healthy app look brok
 in place the a11y suite went from 14.7 min *with failures* to **8/8 green in 4.8 min**. Use
 `E2E_NO_WARMUP=1` to skip the warm-up.
 
+## Pending migrations
+
+| Migration | Purpose | Local | Remote |
+| --- | --- | --- | --- |
+| `20260918000001_rate_limit_and_timed_escalation.sql` | durable rate limiting, escalation marker, vehicle link | ✅ | ✅ |
+| `20260922000001_department_kind.sql` | `departments.kind` (academic / administrative / support) for quick-access browse | ⏳ `pnpm db:local:up` (needs Docker) | ⏳ paste in the SQL Editor (same route as migration 08, see `docs/MIGRATION_08_REMOTE.md`) |
+
+`pnpm db:verify` / `pnpm db:verify:local` now include a check for `departments.kind`, so the
+migration state of a project can be confirmed with one command.
+
+> Until migration 09 is applied, the department quick-access surfaces hide themselves: the list API
+> returns an error for the missing column and the UI renders nothing rather than breaking the home
+> screen.
+
 ## Remaining / follow-ups
 
 - **Both migrations are applied and verified on both stacks** — local 10/10, remote 10/10 (`pnpm db:verify` / `pnpm db:verify:local`). The durable rate limiter, timed escalation and the unknown-report → vehicle link are therefore live; no code path depends on the "degrades safely" fallbacks any more.

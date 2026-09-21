@@ -21,14 +21,24 @@ export interface Organization {
   updated_at: string;
 }
 
+/** How a unit is grouped in quick-access browse (migration 09). */
+export type DepartmentKind = "academic" | "administrative" | "support";
+
 export interface Department {
   id: string;
   organization_id: string;
   name_en: string;
   name_ar: string;
   code: string;
+  kind: DepartmentKind;
   is_active: boolean;
   created_at: string;
+}
+
+/** Department plus the counts the quick-access strip shows. */
+export interface DepartmentSummary extends Department {
+  staffCount: number;
+  vehicleCount: number;
 }
 
 export interface Profile {

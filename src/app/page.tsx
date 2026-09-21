@@ -2,6 +2,7 @@
 
 import React from "react";
 import { PlateSearchHero } from "@/features/search/PlateSearchHero";
+import { DepartmentStrip } from "@/features/departments/DepartmentStrip";
 import { useLocale } from "@/contexts/LocaleContext";
 
 export default function HomePage() {
@@ -13,6 +14,7 @@ export default function HomePage() {
     // top-heavy on tall phones.
     <div className="mx-auto flex min-h-[calc(100dvh-11rem)] w-full max-w-5xl flex-col justify-center px-4 py-8 sm:py-12">
       <PlateSearchHero lang={lang} />
+      <DepartmentStrip />
     </div>
   );
 }

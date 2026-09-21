@@ -133,6 +133,12 @@ const CHECKS = [
     label: "unknown_vehicle_reports.matched_vehicle_id",
     run: column("unknown_vehicle_reports", "id,matched_vehicle_id"),
   },
+  // ---- migration 09: department classification ----
+  {
+    migration: "09",
+    label: "departments.kind",
+    run: column("departments", "id,kind"),
+  },
 ];
 
 console.log(`\n[harrik] schema verification — ${url}  (env: ${envFile})\n`);
