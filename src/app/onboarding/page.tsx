@@ -15,12 +15,16 @@ import {
   Building2,
   Mail,
   RefreshCw,
+  QrCode,
+  ShieldCheck,
 } from "lucide-react";
+import QRCodeLib from "qrcode";
 import { createClient } from "@/lib/supabase/client";
 import { triggerHaptic } from "@/lib/haptics";
 import { useLocale } from "@/contexts/LocaleContext";
 import { translations } from "@/i18n/translations";
 import { LogoUploader } from "@/components/ui/LogoUploader";
+import { QatarPlate } from "@/components/ui/QatarPlate";
 
 interface OnboardingData {
   organization: {
@@ -46,6 +50,15 @@ interface OnboardingData {
     emailVerified: boolean;
   };
   stats: { departments: number; members: number; vehicles: number };
+  sampleVehicle?: {
+    id: string;
+    plate_number: string;
+    make: string | null;
+    model: string | null;
+    color: string | null;
+    permit_token: string | null;
+    permit_status: string | null;
+  } | null;
 }
 
 export default function OnboardingSetupPage() {
@@ -67,6 +80,7 @@ export default function OnboardingSetupPage() {
   const [privacyMode, setPrivacyMode] = useState<"mode_a" | "mode_b" | "mode_c">("mode_a");
   const [primaryColor, setPrimaryColor] = useState("#8A1538");
   const [whatsappTemplate, setWhatsappTemplate] = useState("");
+  const [qrDataUrl, setQrDataUrl] = useState("");
 
   const load = async () => {
     setIsLoading(true);
@@ -94,6 +108,23 @@ export default function OnboardingSetupPage() {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Sticker preview on the completion screen: the real permit token for the
+  // first registered vehicle when one exists, otherwise an obviously-fake
+  // placeholder token that simply will not verify when scanned.
+  useEffect(() => {
+    if (!data) return;
+    const token = data.sampleVehicle?.permit_token || data.sampleVehicle?.id || "PREVIEW-EXAMPLE-NOT-A-REAL-PERMIT";
+    const origin = typeof window !== "undefined" ? window.location.origin : "http://localhost:3000";
+    const scanUrl = `${origin}/scan?token=${encodeURIComponent(token)}`;
+    QRCodeLib.toDataURL(scanUrl, {
+      width: 320,
+      margin: 1.5,
+      color: { dark: "#1e1e24", light: "#ffffff" },
+    })
+      .then((url) => setQrDataUrl(url))
+      .catch(() => setQrDataUrl(""));
+  }, [data?.sampleVehicle?.permit_token, data?.sampleVehicle?.id]);
 
   const saveSettings = async () => {
     setIsSaving(true);
@@ -378,6 +409,60 @@ export default function OnboardingSetupPage() {
           )}
         </StepCard>
 
+
+        {/* Sticker preview — shows what the vehicle permit QR will actually
+            look like before printing, using the first real vehicle if one
+            was already added, or a clearly-marked example otherwise. */}
+        <div className="mt-4 surface-card p-5">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-100 text-slate-500 dark:bg-slate-800">
+              <QrCode className="h-5 w-5" />
+            </div>
+            <div>
+              <h3 className="text-sm font-black text-slate-900 dark:text-white font-arabic">{t.onbQrTitle}</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400">{t.onbQrSub}</p>
+            </div>
+          </div>
+
+          <div className="mt-4 flex justify-center">
+            <div className="w-full max-w-xs rounded-2xl border-2 border-slate-800 bg-white p-5 text-center shadow-lg text-slate-900 dark:border-slate-700">
+              <div className="mb-4 flex items-center justify-between rounded-xl bg-qatar px-3 py-2 text-white">
+                <div className="flex items-center gap-1.5">
+                  <ShieldCheck className="h-4 w-4" />
+                  <span className="text-xs font-black tracking-wide font-arabic">{venueLabel || "حَرِّك | HARRIK"}</span>
+                </div>
+                <span className="text-micro font-bold uppercase tracking-widest">{L("تصريح رسمي", "Official permit")}</span>
+              </div>
+
+              <div className="mb-4 flex justify-center">
+                <QatarPlate plateNumber={data?.sampleVehicle?.plate_number || t.onbQrSamplePlate} size="md" />
+              </div>
+
+              <div className="flex flex-col items-center justify-center">
+                {qrDataUrl ? (
+                  <div className="rounded-2xl border-2 border-dashed border-slate-300 bg-white p-2 shadow-sm">
+                    <img src={qrDataUrl} alt="QR" className="h-40 w-40 object-contain" />
+                  </div>
+                ) : (
+                  <div className="h-40 w-40 animate-pulse rounded-2xl bg-slate-100" />
+                )}
+                <p className="mt-2 text-caption font-bold text-slate-600 font-arabic">
+                  {data?.sampleVehicle
+                    ? `${data.sampleVehicle.make ?? ""} ${data.sampleVehicle.model ?? ""}${data.sampleVehicle.color ? ` (${data.sampleVehicle.color})` : ""}`.trim()
+                    : t.onbQrSampleVehicle}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <p
+            className={`mt-3 text-center text-micro font-bold ${
+              data?.sampleVehicle ? "text-emerald-600 dark:text-emerald-400" : "text-amber-700 dark:text-amber-400"
+            }`}
+          >
+            {data?.sampleVehicle ? t.onbQrRealNote : t.onbQrSampleNote}
+          </p>
+        </div>
 
         {/* Step 4 */}
         <div className="mt-4 rounded-3xl border border-qatar/30 bg-qatar/5 p-6 dark:bg-qatar/10">

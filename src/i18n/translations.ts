@@ -263,6 +263,12 @@ export const translations = {
     onbMembers: "أعضاء",
     onbVehicles: "مركبات",
     onbLoadError: "تعذّر تحميل حالة الإعداد",
+    onbQrTitle: "معاينة ملصق التصريح",
+    onbQrSub: "هكذا سيبدو الملصق قبل طباعته",
+    onbQrSampleNote: "هذا مثال توضيحي فقط — لا يعمل عند المسح. الملصقات الحقيقية تُطبع من صفحة كل مركبة بعد إضافتها.",
+    onbQrRealNote: "هذا ملصق حقيقي لأول مركبة مسجلة في منشأتك.",
+    onbQrSamplePlate: "١٢٣٤٥",
+    onbQrSampleVehicle: "تويوتا كامري (أبيض) — مثال",
 
     // Executive Reports
     repTitle: "التقارير التنفيذية ومؤشرات الأداء",
@@ -572,6 +578,12 @@ export const translations = {
     onbMembers: "Members",
     onbVehicles: "Vehicles",
     onbLoadError: "Could not load the setup status",
+    onbQrTitle: "Permit sticker preview",
+    onbQrSub: "This is what the sticker will look like before printing",
+    onbQrSampleNote: "This is just an example — it will not verify when scanned. Real stickers print from each vehicle's own page after it is added.",
+    onbQrRealNote: "This is the real sticker for the first vehicle registered at your organization.",
+    onbQrSamplePlate: "12345",
+    onbQrSampleVehicle: "Toyota Camry (White) — example",
 
     // Executive Reports
     repTitle: "Executive Reports & KPIs",
