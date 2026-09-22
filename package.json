@@ -19,6 +19,7 @@
     "test:a11y": "playwright test tests/e2e/a11y.spec.ts",
     "audit:mobile": "node scripts/mobile-audit.mjs",
     "audit:mobile:live": "node scripts/lib/measure-mobile.mjs",
+    "audit:rtl-arrows": "node scripts/rtl-arrow-audit.mjs",
     "test:lighthouse": "node scripts/lighthouse.mjs",
     "test:lighthouse:local": "node scripts/lighthouse-local.mjs",
     "dev:local": "node scripts/dev-local.mjs",

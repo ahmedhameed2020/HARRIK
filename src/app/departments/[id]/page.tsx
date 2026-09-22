@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import {
-  ArrowRight,
+  ArrowLeft,
   Building2,
   Car,
   Lock,
@@ -121,7 +121,7 @@ export default function DepartmentPage() {
         href="/"
         className="inline-flex min-h-[44px] items-center gap-1.5 text-caption font-bold text-slate-500 transition hover:text-qatar dark:text-slate-400"
       >
-        <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+        <ArrowLeft className="h-3.5 w-3.5 rtl:rotate-180" aria-hidden="true" />
         {L("رجوع للبحث", "Back to search")}
       </Link>
 

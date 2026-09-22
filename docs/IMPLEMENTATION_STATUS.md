@@ -307,6 +307,30 @@ which is removed through the screens that own it.
 The window is clamped to 7–3650 days on both write and read, so a missing or
 zero value can never be read as "delete everything".
 
+#### RTL arrow direction
+
+A "forward" arrow (Next / Continue / Select / Go to X) and a "back" arrow
+(Previous / Back to X) have to point opposite ways in Arabic from how they
+point in English — a real, phone-width screenshot on 2026-09-22 caught the
+registration wizard's "التالي" pointing back at the step you came from, and
+"السابق" pointing forward. The same inversion, or no RTL mirroring at all, was
+present on six links, including the "Select" arrow on the search screen's
+recent-results list — the single most used screen in the app.
+
+The working convention, now applied consistently:
+
+```
+forward action → <ArrowRight ... className="... rtl:rotate-180" />
+back action     → <ArrowLeft  ... className="... rtl:rotate-180" />
+```
+
+`pnpm audit:rtl-arrows` (`scripts/rtl-arrow-audit.mjs`) catches the mechanical
+half of this — an icon with no `rtl:` mirroring at all, or an unconditional
+`rotate-180` that is only correct in whichever language was being tested when
+it was written. It cannot know which icon is semantically forward or back —
+that needs the label — so `tests/unit/rtl-arrows.test.ts` pins the specific
+high-traffic cases by hand; mutation-checked against the original bug.
+
 #### Mobile readiness (the app is phone-first)
 
 HARRIK is operated on a phone — one-handed, outdoors, often in a hurry — so the

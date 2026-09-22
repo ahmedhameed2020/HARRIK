@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { Car, Mail, Loader2, AlertCircle, CheckCircle2, ArrowRight } from "lucide-react";
+import { Car, Mail, Loader2, AlertCircle, CheckCircle2, ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { triggerHaptic } from "@/lib/haptics";
 import { useLocale } from "@/contexts/LocaleContext";
@@ -71,7 +71,7 @@ export default function ForgotPasswordPage() {
               href="/login"
               className="mt-5 inline-flex min-h-[44px] items-center gap-1.5 text-xs font-bold text-qatar hover:underline"
             >
-              <ArrowRight className="h-3.5 w-3.5 rtl:rotate-180" />
+              <ArrowLeft className="h-3.5 w-3.5 rtl:rotate-180" />
               <span>{t.forgotBackLogin}</span>
             </Link>
           </div>

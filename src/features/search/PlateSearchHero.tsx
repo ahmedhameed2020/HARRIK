@@ -444,7 +444,7 @@ export function PlateSearchHero({ lang }: PlateSearchHeroProps) {
                   </div>
                   <button className="flex items-center gap-1 text-xs font-bold text-[#8a1538] dark:text-rose-400">
                     <span>{lang === "ar" ? "اختيار" : "Select"}</span>
-                    <ArrowRight className="h-3.5 w-3.5" />
+                    <ArrowRight className="h-3.5 w-3.5 rtl:rotate-180" />
                   </button>
                 </div>
               ))}

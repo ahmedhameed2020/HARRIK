@@ -9,7 +9,7 @@ import {
   CheckCircle2,
   Loader2,
   AlertCircle,
-  ArrowLeft,
+  ArrowRight,
   Rocket,
   Upload,
   Building2,
@@ -405,7 +405,7 @@ export default function OnboardingSetupPage() {
 
         <div className="mt-6 text-center">
           <Link href="/" className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-800 dark:text-slate-400">
-            <ArrowLeft className="h-3.5 w-3.5 rtl:rotate-180" />
+            <ArrowRight className="h-3.5 w-3.5 rtl:rotate-180" />
             <span>{t.onbSkip}</span>
           </Link>
         </div>

@@ -175,7 +175,7 @@ export default function RegisterPage() {
               className="mt-6 inline-flex items-center gap-2 rounded-2xl bg-qatar px-6 py-3 text-sm font-bold text-white shadow-lg shadow-qatar/25 transition hover:bg-qatar-800"
             >
               <span>{t.regSuccessGo}</span>
-              <ArrowLeft className="h-4 w-4 rtl:rotate-180" />
+              <ArrowRight className="h-4 w-4 rtl:rotate-180" />
             </Link>
           </div>
         ) : (
@@ -324,7 +324,7 @@ export default function RegisterPage() {
               <div className="mt-6 flex items-center justify-between gap-3">
                 {step > 1 ? (
                   <button type="button" onClick={back} className="inline-flex items-center gap-1.5 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-bold text-slate-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200">
-                    <ArrowRight className="h-3.5 w-3.5 rtl:rotate-180" />
+                    <ArrowLeft className="h-3.5 w-3.5 rtl:rotate-180" />
                     <span>{t.regPrev}</span>
                   </button>
                 ) : <span />}
@@ -337,7 +337,7 @@ export default function RegisterPage() {
                     className="inline-flex items-center gap-1.5 rounded-2xl bg-qatar px-6 py-2.5 text-xs font-bold text-white shadow-md shadow-qatar/25 transition hover:bg-qatar-800 disabled:opacity-50"
                   >
                     <span>{t.regNext}</span>
-                    <ArrowLeft className="h-3.5 w-3.5 rtl:rotate-180" />
+                    <ArrowRight className="h-3.5 w-3.5 rtl:rotate-180" />
                   </button>
                 ) : (
                   <button
