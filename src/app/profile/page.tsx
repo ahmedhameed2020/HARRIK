@@ -39,6 +39,9 @@ import {
 } from "@/lib/biometric";
 import { Fingerprint } from "lucide-react";
 
+/** Mirrors the CHECK constraint on profiles.notification_channel (migration 07). */
+type NotificationChannel = "push" | "push_sms" | "all";
+
 interface ProfileData {
   id: string;
   name_ar: string;
@@ -47,6 +50,7 @@ interface ProfileData {
   mobile: string;
   role: string;
   preferred_language: "ar" | "en";
+  notification_channel?: NotificationChannel;
   department?: {
     id: string;
     name_ar: string;
@@ -70,6 +74,9 @@ interface UserVehicle {
   year?: number | null;
   is_primary: boolean;
   is_active: boolean;
+  /** Issued automatically per vehicle; drives the QR sticker. */
+  permit_token?: string;
+  permit_status?: string | null;
 }
 
 const COMMON_MAKES = ["تويوتا", "نيسان", "لكزس", "لاندكروزر", "كيا", "هيونداي", "فورد"];
@@ -89,6 +96,7 @@ export default function ProfilePage() {
   // Editable Profile fields
   const [mobile, setMobile] = useState("");
   const [preferredLang, setPreferredLang] = useState<"ar" | "en">("ar");
+  const [notificationChannel, setNotificationChannel] = useState<NotificationChannel>("push");
 
   // Add/Edit Vehicle Modal
   const [isVehicleModalOpen, setIsVehicleModalOpen] = useState(false);
@@ -296,6 +304,7 @@ export default function ProfilePage() {
         setProfile(data.profile);
         setMobile(data.profile.mobile || "");
         setPreferredLang(data.profile.preferred_language || "ar");
+        setNotificationChannel(data.profile.notification_channel || "push");
         setVehicles(data.vehicles || []);
       }
     } catch {
@@ -323,6 +332,7 @@ export default function ProfilePage() {
         body: JSON.stringify({
           mobile,
           preferred_language: preferredLang,
+          notification_channel: notificationChannel,
         }),
       });
 
@@ -575,7 +585,7 @@ export default function ProfilePage() {
                     <div className="inline-flex items-stretch overflow-hidden rounded-xl border-2 border-slate-900 bg-white shadow-sm mb-3">
                       <div className="flex flex-col items-center justify-center bg-qatar px-2.5 py-1 text-micro font-black text-white">
                         <span>{L("قطر", "QATAR")}</span>
-                        <span className="text-[8px] tracking-wider opacity-90">QATAR</span>
+                        <span className="text-[8px] tracking-wider opacity-90">QATAR</span> {/* mobile-audit-ignore: plate artwork microprint */}
                       </div>
                       <div className="flex items-center px-3.5 py-1 font-mono text-base font-black tracking-widest text-slate-900">
                         {v.plate_number}
@@ -677,6 +687,42 @@ export default function ProfilePage() {
               <option value="ar">{L("العربية (Arabic)", "Arabic")}</option>
               <option value="en">{L("English (الإنجليزية)", "English")}</option>
             </select>
+          </div>
+
+          {/* Notification channel. Web Push only reaches a device that has
+              granted permission and still has a live subscription; when a car
+              blocks a lane and the owner's push does not land, an SMS is the
+              only remaining way to reach them. */}
+          <div>
+            <label
+              htmlFor="notification-channel"
+              className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5"
+            >
+              {L("قناة استقبال التنبيهات", "Alert delivery channel")}
+            </label>
+            <select
+              id="notification-channel"
+              value={notificationChannel}
+              onChange={(e) => setNotificationChannel(e.target.value as NotificationChannel)}
+              className="field text-xs sm:text-sm"
+            >
+              <option value="push">{L("إشعار فقط (Push)", "Push only")}</option>
+              <option value="push_sms">
+                {L("إشعار + رسالة نصية عند تعذّر الوصول", "Push + SMS when push fails")}
+              </option>
+              <option value="all">{L("كل القنوات المتاحة", "Every available channel")}</option>
+            </select>
+            <p className="mt-1.5 text-micro text-slate-500 dark:text-slate-400">
+              {notificationChannel === "push"
+                ? L(
+                    "لن تصلك رسالة نصية إذا تعذّر إيصال الإشعار إلى جهازك.",
+                    "You will not receive an SMS if the push notification cannot reach your device."
+                  )
+                : L(
+                    "تُرسل الرسالة النصية إلى رقم جوالك أعلاه فقط عند تعذّر إيصال الإشعار.",
+                    "An SMS goes to the mobile number above only when the push notification cannot be delivered."
+                  )}
+            </p>
           </div>
 
           <div className="pt-2">
@@ -903,8 +949,8 @@ export default function ProfilePage() {
 
       {/* MODAL: Add / Edit Vehicle */}
       {isVehicleModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="relative w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl dark:bg-surface-card dark:border dark:border-zinc-800">
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200 sm:items-center sm:p-4">
+          <div className="relative max-h-[92vh] w-full overflow-y-auto rounded-t-3xl bg-white p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] shadow-2xl sm:max-w-md sm:rounded-3xl sm:pb-6 dark:bg-surface-card dark:border dark:border-zinc-800">
             <h3 className="text-base font-extrabold text-slate-900 dark:text-white font-arabic mb-1">
               {editingVehicleId ? L("تعديل بيانات السيارة", "Edit vehicle details") : L("إضافة سيارة جديدة إلى ملفك", "Add a new vehicle to your profile")}
             </h3>
@@ -1003,7 +1049,7 @@ export default function ProfilePage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                     {L("سنة الصنع (اختياري)", "Year (optional)")}
@@ -1066,6 +1112,9 @@ export default function ProfilePage() {
             mobile: profile.mobile,
           }}
           venueName={profile.organization?.name_ar || profile.organization?.name_en || "حَرِّك | HARRIK"}
+          onPermitChanged={() => {
+            fetchProfileData();
+          }}
         />
       )}
     </div>

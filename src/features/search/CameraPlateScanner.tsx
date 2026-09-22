@@ -309,7 +309,7 @@ export function CameraPlateScanner({
               <div className="absolute bottom-0 right-0 h-4 w-4 border-b-2 border-r-2 border-emerald-400" />
 
               {/* Qatar Emblem Guide on Left */}
-              <div className="flex flex-col items-center justify-center bg-qatar/80 px-3 text-[9px] font-bold text-white border-r border-white/20">
+              <div className="flex flex-col items-center justify-center bg-qatar/80 px-3 text-[9px] font-bold text-white border-r border-white/20"> {/* mobile-audit-ignore: plate artwork microprint */}
                 <span>قطر</span>
                 <span>QATAR</span>
               </div>

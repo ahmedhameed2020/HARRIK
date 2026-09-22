@@ -14,7 +14,7 @@ export async function GET() {
     const supabase = await createClient();
     const settings = await getOrgSettings(supabase, session.organizationId);
 
-    const [orgRes, deptRes, staffRes, vehicleRes] = await Promise.all([
+    const [orgRes, deptRes, staffRes, vehicleRes, sampleVehicleRes] = await Promise.all([
       supabase
         .from("organizations")
         .select("id, name_ar, name_en, entity_type, status, onboarding_status, logo_url")
@@ -23,17 +23,33 @@ export async function GET() {
       supabase.from("departments").select("id", { count: "exact", head: true }).eq("organization_id", session.organizationId),
       supabase.from("profiles").select("id", { count: "exact", head: true }).eq("organization_id", session.organizationId),
       supabase.from("vehicles").select("id", { count: "exact", head: true }).eq("organization_id", session.organizationId),
+      // Powers the "what will the sticker look like" preview on the
+      // completion screen — the first real vehicle if one exists, so the
+      // admin can see the actual thing before printing rather than only a
+      // placeholder.
+      supabase
+        .from("vehicles")
+        .select("id, plate_number, make, model, color, permit_token, permit_status")
+        .eq("organization_id", session.organizationId)
+        .order("created_at", { ascending: true })
+        .limit(1)
+        .maybeSingle(),
     ]);
 
     return NextResponse.json({
       success: true,
       organization: orgRes.data,
       settings,
+      admin: {
+        email: session.email,
+        emailVerified: session.emailVerified,
+      },
       stats: {
         departments: deptRes.count ?? 0,
         members: staffRes.count ?? 0,
         vehicles: vehicleRes.count ?? 0,
       },
+      sampleVehicle: sampleVehicleRes.data || null,
     });
   } catch (err: any) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
@@ -94,6 +110,21 @@ export async function PATCH(request: NextRequest) {
     }
 
     if (action === "complete") {
+      // §9.5: confirming the address is a required step, not advice. An
+      // organization whose only administrator cannot receive mail has no way
+      // to reset a password or receive an invitation later.
+      if (!session.emailVerified) {
+        return NextResponse.json(
+          {
+            success: false,
+            error:
+              "يرجى تأكيد بريدك الإلكتروني أولاً عبر الرابط المرسل إليك، ثم أعد المحاولة لتفعيل المنشأة.",
+            code: "email_not_verified",
+          },
+          { status: 400 }
+        );
+      }
+
       await admin
         .from("organizations")
         .update({ status: "active", onboarding_status: "ready", updated_at: new Date().toISOString() })

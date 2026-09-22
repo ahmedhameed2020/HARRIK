@@ -412,7 +412,52 @@ export default function BulkImportPage() {
                 </div>
 
                 <div className="overflow-hidden rounded-2xl border border-slate-200/80 dark:border-slate-800">
-                  <div className="overflow-x-auto max-h-[380px]">
+                  {/* Mobile: one card per row being imported. This is a
+                      verification step — an eight-column table at 360px hides
+                      exactly the fields (plate, mobile) that need checking
+                      before the data is committed. */}
+                  <div className="max-h-[380px] divide-y divide-slate-100 overflow-y-auto md:hidden dark:divide-slate-800">
+                    {filteredValidRows.map((r: any, idx: number) => (
+                      <article key={idx} className="p-3">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <h4 className="truncate text-body font-bold text-slate-900 dark:text-white font-arabic">
+                              {r.name_ar}
+                            </h4>
+                            <p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-caption text-slate-500 dark:text-slate-400">
+                              <span className="font-mono font-bold">#{r.employee_id}</span>
+                              <span className="text-slate-300 dark:text-slate-600">•</span>
+                              <span className="font-arabic">{r.department}</span>
+                            </p>
+                          </div>
+                          <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-micro font-bold text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
+                            <ShieldCheck className="h-3 w-3" />
+                            {L("معتمد", "Verified")}
+                          </span>
+                        </div>
+
+                        <dl className="mt-2.5 grid grid-cols-2 gap-x-3 gap-y-2 border-t border-slate-100 pt-2.5 text-caption dark:border-slate-800">
+                          <div className="min-w-0">
+                            <dt className="text-micro font-bold text-slate-500">{L("رقم اللوحة", "Plate")}</dt>
+                            <dd className="font-mono font-black text-qatar">{r.plate_number}</dd>
+                            <dd className="truncate font-mono text-micro text-slate-400">{r.normalized_plate}</dd>
+                          </div>
+                          <div className="min-w-0">
+                            <dt className="text-micro font-bold text-slate-500">{L("الجوال", "Mobile")}</dt>
+                            <dd className="numeric-plate font-mono text-slate-600 dark:text-slate-400">{r.mobile}</dd>
+                          </div>
+                          <div className="col-span-2 min-w-0">
+                            <dt className="text-micro font-bold text-slate-500">{L("السيارة", "Vehicle")}</dt>
+                            <dd className="truncate font-medium text-slate-700 dark:text-slate-300">
+                              {r.vehicle_make} {r.vehicle_model} ({r.vehicle_color})
+                            </dd>
+                          </div>
+                        </dl>
+                      </article>
+                    ))}
+                  </div>
+
+                  <div className="hidden overflow-x-auto max-h-[380px] md:block">
                     <table className="w-full text-start text-xs">
                       <thead className="sticky top-0 bg-slate-100/90 dark:bg-slate-800/90 backdrop-blur font-bold text-slate-600 dark:text-slate-300">
                         <tr>

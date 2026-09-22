@@ -58,7 +58,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { mobile, name_ar, name_en, preferred_language } = body;
+    const { mobile, name_ar, name_en, preferred_language, notification_channel } = body;
 
     const supabase = await createClient();
     const updatePayload: Record<string, any> = {
@@ -83,6 +83,34 @@ export async function PATCH(request: NextRequest) {
 
     if (preferred_language && ["ar", "en"].includes(preferred_language)) {
       updatePayload.preferred_language = preferred_language;
+    }
+
+    // Notification channel (migration 07). The alert dispatcher reads this to
+    // decide whether an owner who has no working push subscription should also
+    // be sent an SMS; until this could be written it was permanently "push" for
+    // everyone, which made the SMS fallback unreachable. The values mirror the
+    // CHECK constraint on the column.
+    if (notification_channel !== undefined) {
+      if (!["push", "push_sms", "all"].includes(notification_channel)) {
+        return NextResponse.json(
+          { success: false, error: "قناة إشعار غير صالحة" },
+          { status: 400 }
+        );
+      }
+      // Push + SMS is pointless without a number to send to.
+      if (notification_channel !== "push") {
+        const nextMobile = updatePayload.mobile ?? session.profile.mobile;
+        if (!nextMobile || String(nextMobile).trim().length < 8) {
+          return NextResponse.json(
+            {
+              success: false,
+              error: "أضف رقم جوال صحيح أولاً حتى يمكن إرسال الرسائل النصية",
+            },
+            { status: 400 }
+          );
+        }
+      }
+      updatePayload.notification_channel = notification_channel;
     }
 
     const { data: updatedProfile, error: updateError } = await supabase

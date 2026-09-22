@@ -285,6 +285,38 @@ body {
   }
 }
 
+/* --- Touch input sizing ----------------------------------------------------
+ * HARRIK is used on a phone first: a guard standing behind a car, typing a
+ * plate one-handed. Two things about touch devices are non-negotiable there,
+ * and both are easier to guarantee once, centrally, than on ~200 call sites.
+ *
+ * 1. FONT SIZE. iOS Safari zooms the whole page in when a control is focused
+ *    whose font-size is below 16px — and it does not zoom back out on blur.
+ *    The user is left on a page wider than the screen, panning sideways to
+ *    find the submit button. Screens legitimately use `text-xs` on fields for
+ *    desktop density, so the floor is applied only where the pointer is
+ *    coarse, leaving the desktop design untouched.
+ *
+ * 2. TARGET HEIGHT. A 44px minimum is the documented touch guidance and this
+ *    app is operated with a thumb, outdoors, often in a hurry.
+ *
+ * The `[class]` in the selector is deliberate: it raises specificity above a
+ * single Tailwind utility (`text-xs`), so the floor wins without `!important`
+ * while a deliberate, more specific override in a component still applies.
+ */
+@media (pointer: coarse) {
+  input[class]:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="range"]):not([type="file"]):not([type="hidden"]),
+  textarea[class],
+  select[class] {
+    font-size: 16px;
+  }
+
+  input[class]:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="range"]):not([type="file"]):not([type="hidden"]),
+  select[class] {
+    min-height: 44px;
+  }
+}
+
 /* --- Data tables -----------------------------------------------------------
  * Gives every still-unstyled table the same quiet rhythm as the redesigned
  * screens: small tracked headers, comfortable rows, hairline separators.

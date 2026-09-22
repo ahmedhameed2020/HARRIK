@@ -9,15 +9,22 @@ import {
   CheckCircle2,
   Loader2,
   AlertCircle,
-  ArrowLeft,
+  ArrowRight,
   Rocket,
   Upload,
   Building2,
+  Mail,
+  RefreshCw,
+  QrCode,
+  ShieldCheck,
 } from "lucide-react";
+import QRCodeLib from "qrcode";
 import { createClient } from "@/lib/supabase/client";
 import { triggerHaptic } from "@/lib/haptics";
 import { useLocale } from "@/contexts/LocaleContext";
 import { translations } from "@/i18n/translations";
+import { LogoUploader } from "@/components/ui/LogoUploader";
+import { QatarPlate } from "@/components/ui/QatarPlate";
 
 interface OnboardingData {
   organization: {
@@ -27,6 +34,7 @@ interface OnboardingData {
     entity_type: string;
     status: string;
     onboarding_status: string;
+    logo_url?: string | null;
   };
   settings: {
     privacy_mode: "mode_a" | "mode_b" | "mode_c";
@@ -37,7 +45,20 @@ interface OnboardingData {
       custom_whatsapp_template?: string;
     };
   };
+  admin?: {
+    email: string | null;
+    emailVerified: boolean;
+  };
   stats: { departments: number; members: number; vehicles: number };
+  sampleVehicle?: {
+    id: string;
+    plate_number: string;
+    make: string | null;
+    model: string | null;
+    color: string | null;
+    permit_token: string | null;
+    permit_status: string | null;
+  } | null;
 }
 
 export default function OnboardingSetupPage() {
@@ -45,9 +66,11 @@ export default function OnboardingSetupPage() {
   const supabase = createClient();
   const { lang, dir } = useLocale();
   const t = translations[lang];
+  const L = (ar: string, en: string) => (lang === "ar" ? ar : en);
 
   const [data, setData] = useState<OnboardingData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isResending, setIsResending] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isCompleting, setIsCompleting] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
@@ -57,6 +80,7 @@ export default function OnboardingSetupPage() {
   const [privacyMode, setPrivacyMode] = useState<"mode_a" | "mode_b" | "mode_c">("mode_a");
   const [primaryColor, setPrimaryColor] = useState("#8A1538");
   const [whatsappTemplate, setWhatsappTemplate] = useState("");
+  const [qrDataUrl, setQrDataUrl] = useState("");
 
   const load = async () => {
     setIsLoading(true);
@@ -84,6 +108,23 @@ export default function OnboardingSetupPage() {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Sticker preview on the completion screen: the real permit token for the
+  // first registered vehicle when one exists, otherwise an obviously-fake
+  // placeholder token that simply will not verify when scanned.
+  useEffect(() => {
+    if (!data) return;
+    const token = data.sampleVehicle?.permit_token || data.sampleVehicle?.id || "PREVIEW-EXAMPLE-NOT-A-REAL-PERMIT";
+    const origin = typeof window !== "undefined" ? window.location.origin : "http://localhost:3000";
+    const scanUrl = `${origin}/scan?token=${encodeURIComponent(token)}`;
+    QRCodeLib.toDataURL(scanUrl, {
+      width: 320,
+      margin: 1.5,
+      color: { dark: "#1e1e24", light: "#ffffff" },
+    })
+      .then((url) => setQrDataUrl(url))
+      .catch(() => setQrDataUrl(""));
+  }, [data?.sampleVehicle?.permit_token, data?.sampleVehicle?.id]);
 
   const saveSettings = async () => {
     setIsSaving(true);
@@ -144,6 +185,35 @@ export default function OnboardingSetupPage() {
     }
   };
 
+  /**
+   * GoTrue re-sends the confirmation link. The address is already on the
+   * session, so nothing is typed again — a mistyped address is corrected by an
+   * administrator, not here.
+   */
+  const resendConfirmation = async () => {
+    const email = data?.admin?.email;
+    if (!email) return;
+    setIsResending(true);
+    setMessage(null);
+    try {
+      const { error } = await supabase.auth.resend({ type: "signup", email });
+      setMessage(
+        error
+          ? { type: "error", text: error.message }
+          : {
+              type: "success",
+              text: L(
+                "أرسلنا رابط التأكيد مجدداً. افتح بريدك ثم عد لتحديث الحالة.",
+                "The confirmation link was sent again. Open your inbox, then refresh."
+              ),
+            }
+      );
+    } finally {
+      setIsResending(false);
+    }
+  };
+
+
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-50 dark:bg-slate-950">
@@ -195,6 +265,18 @@ export default function OnboardingSetupPage() {
         {/* Step 2 */}
         <StepCard icon={<Palette className="h-5 w-5" />} title={t.onbStep2} done={settingsDone} subtitle={t.onbStep2Sub}>
           <div className="space-y-4 pt-2">
+            <div>
+              <label className="mb-1.5 block text-xs font-bold text-slate-700 dark:text-slate-300">
+                {t.onbLogo}
+              </label>
+              <LogoUploader
+                logoUrl={data?.organization.logo_url}
+                onUploaded={() => {
+                  // Keeps the wizard's own copy in step with what was stored.
+                  load();
+                }}
+              />
+            </div>
             <div>
               <label className="mb-1.5 block text-xs font-bold text-slate-700 dark:text-slate-300">{t.onbVenueLabel}</label>
               <input value={venueLabel} onChange={(e) => setVenueLabel(e.target.value)} className={inputClass} />
@@ -274,6 +356,114 @@ export default function OnboardingSetupPage() {
           </div>
         </StepCard>
 
+        {/* Verification (§9.5) — a required step, not advice: an organization
+            whose only administrator cannot receive mail has no way to reset a
+            password or accept an invitation later. */}
+        <StepCard
+          icon={<Mail className="h-5 w-5" />}
+          title={L("تأكيد البريد الإلكتروني", "Confirm your e-mail")}
+          done={Boolean(data?.admin?.emailVerified)}
+          subtitle={data?.admin?.email || undefined}
+        >
+          {data?.admin?.emailVerified ? (
+            <p className="pt-2 text-xs text-emerald-600 dark:text-emerald-400">
+              {L("تم تأكيد البريد الإلكتروني.", "Your e-mail address is confirmed.")}
+            </p>
+          ) : (
+            <div className="pt-2">
+              <p className="text-xs text-slate-600 dark:text-slate-300">
+                {L(
+                  "أرسلنا رابط تأكيد إلى بريدك. لا يمكن تفعيل المنشأة قبل تأكيده، لأنه الطريق الوحيد لاستعادة كلمة المرور واستقبال الدعوات.",
+                  "We sent a confirmation link to your inbox. The organization cannot be activated until it is confirmed — it is the only route for password resets and invitations."
+                )}
+              </p>
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={resendConfirmation}
+                  disabled={isResending || !data?.admin?.email}
+                  className="btn btn-secondary gap-1.5 text-xs disabled:opacity-50"
+                >
+                  {isResending ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <Mail className="h-3.5 w-3.5 text-qatar" />
+                  )}
+                  <span>{L("إعادة إرسال الرابط", "Resend the link")}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    // The session carries the confirmation flag, so it has to be
+                    // refreshed before the wizard can see the new state.
+                    await supabase.auth.refreshSession();
+                    load();
+                  }}
+                  className="btn btn-ghost gap-1.5 text-xs"
+                >
+                  <RefreshCw className="h-3.5 w-3.5" />
+                  <span>{L("حدّثت الحالة", "I have confirmed it")}</span>
+                </button>
+              </div>
+            </div>
+          )}
+        </StepCard>
+
+
+        {/* Sticker preview — shows what the vehicle permit QR will actually
+            look like before printing, using the first real vehicle if one
+            was already added, or a clearly-marked example otherwise. */}
+        <div className="mt-4 surface-card p-5">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-100 text-slate-500 dark:bg-slate-800">
+              <QrCode className="h-5 w-5" />
+            </div>
+            <div>
+              <h3 className="text-sm font-black text-slate-900 dark:text-white font-arabic">{t.onbQrTitle}</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400">{t.onbQrSub}</p>
+            </div>
+          </div>
+
+          <div className="mt-4 flex justify-center">
+            <div className="w-full max-w-xs rounded-2xl border-2 border-slate-800 bg-white p-5 text-center shadow-lg text-slate-900 dark:border-slate-700">
+              <div className="mb-4 flex items-center justify-between rounded-xl bg-qatar px-3 py-2 text-white">
+                <div className="flex items-center gap-1.5">
+                  <ShieldCheck className="h-4 w-4" />
+                  <span className="text-xs font-black tracking-wide font-arabic">{venueLabel || "حَرِّك | HARRIK"}</span>
+                </div>
+                <span className="text-micro font-bold uppercase tracking-widest">{L("تصريح رسمي", "Official permit")}</span>
+              </div>
+
+              <div className="mb-4 flex justify-center">
+                <QatarPlate plateNumber={data?.sampleVehicle?.plate_number || t.onbQrSamplePlate} size="md" />
+              </div>
+
+              <div className="flex flex-col items-center justify-center">
+                {qrDataUrl ? (
+                  <div className="rounded-2xl border-2 border-dashed border-slate-300 bg-white p-2 shadow-sm">
+                    <img src={qrDataUrl} alt="QR" className="h-40 w-40 object-contain" />
+                  </div>
+                ) : (
+                  <div className="h-40 w-40 animate-pulse rounded-2xl bg-slate-100" />
+                )}
+                <p className="mt-2 text-caption font-bold text-slate-600 font-arabic">
+                  {data?.sampleVehicle
+                    ? `${data.sampleVehicle.make ?? ""} ${data.sampleVehicle.model ?? ""}${data.sampleVehicle.color ? ` (${data.sampleVehicle.color})` : ""}`.trim()
+                    : t.onbQrSampleVehicle}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <p
+            className={`mt-3 text-center text-micro font-bold ${
+              data?.sampleVehicle ? "text-emerald-600 dark:text-emerald-400" : "text-amber-700 dark:text-amber-400"
+            }`}
+          >
+            {data?.sampleVehicle ? t.onbQrRealNote : t.onbQrSampleNote}
+          </p>
+        </div>
+
         {/* Step 4 */}
         <div className="mt-4 rounded-3xl border border-qatar/30 bg-qatar/5 p-6 dark:bg-qatar/10">
           <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
@@ -300,7 +490,7 @@ export default function OnboardingSetupPage() {
 
         <div className="mt-6 text-center">
           <Link href="/" className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-800 dark:text-slate-400">
-            <ArrowLeft className="h-3.5 w-3.5 rtl:rotate-180" />
+            <ArrowRight className="h-3.5 w-3.5 rtl:rotate-180" />
             <span>{t.onbSkip}</span>
           </Link>
         </div>

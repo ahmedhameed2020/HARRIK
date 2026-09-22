@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { SupabaseConfigError, configErrorMessageAr } from "@/lib/supabase/env";
 import { clientIp, enforceRateLimit, verifyTurnstile } from "@/lib/security/rate-limit";
 
 const ENTITY_TYPES = [
@@ -220,6 +221,18 @@ export async function POST(request: NextRequest) {
       message: "تم إنشاء المنشأة بنجاح. يمكنك تسجيل الدخول لإكمال الإعداد.",
     });
   } catch (err: any) {
+    // A deployment missing its Supabase secrets used to reach Supabase with a
+    // placeholder and come back as "Invalid API key" — an error that sends the
+    // reader looking for a wrong key rather than an unset one. Name the
+    // variables instead, and answer 503: the request was fine, the deployment
+    // is not.
+    if (err instanceof SupabaseConfigError) {
+      console.error(`[harrik] registration blocked: ${err.message}`);
+      return NextResponse.json(
+        { success: false, error: configErrorMessageAr(err.missing), missing: err.missing },
+        { status: 503 }
+      );
+    }
     return NextResponse.json({ success: false, error: err.message || "Internal server error" }, { status: 500 });
   }
 }

@@ -77,7 +77,8 @@ pnpm test
 
 ### 6. بناء حزمة الإنتاج
 ```bash
-pnpm build
+pnpm build        # next build + opennextjs-cloudflare build -> .open-next/
+pnpm build:next   # next build فقط (بدون حزمة Cloudflare)
 ```
 
 ---

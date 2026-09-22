@@ -127,7 +127,7 @@ export function AppChrome({ children }: { children: React.ReactNode }) {
                   }`}
                 />
                 {activeCount > 0 && (
-                  <span className="absolute -top-1 -right-2 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-600 px-1 text-[9px] font-black text-white shadow-sm">
+                  <span className="absolute -top-1 -right-2 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-600 px-1 text-micro font-black text-white shadow-sm">
                     {activeCount > 9 ? "9+" : activeCount}
                   </span>
                 )}

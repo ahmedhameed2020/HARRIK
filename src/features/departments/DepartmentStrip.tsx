@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { Building2, Users, Car, ChevronLeft } from "lucide-react";
+import { Building2, Users, Car, ChevronRight } from "lucide-react";
 import { triggerHaptic } from "@/lib/haptics";
 import { useLocale } from "@/contexts/LocaleContext";
 import { useDepartments } from "./useDepartments";
@@ -107,8 +107,8 @@ export function DepartmentStrip() {
                   </span>
                 </span>
               </span>
-              <ChevronLeft
-                className="h-4 w-4 shrink-0 text-slate-300 transition group-hover:text-qatar dark:text-slate-600"
+              <ChevronRight
+                className="h-4 w-4 shrink-0 text-slate-300 transition rtl:rotate-180 group-hover:text-qatar dark:text-slate-600"
                 aria-hidden="true"
               />
             </Link>

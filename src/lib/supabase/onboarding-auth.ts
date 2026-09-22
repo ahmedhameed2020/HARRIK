@@ -16,6 +16,9 @@ export async function getOnboardingSession(): Promise<{
     organizationId: string;
     role: string;
     organizationStatus: string;
+    /** The admin's sign-in address, and whether they have confirmed it. */
+    email: string | null;
+    emailVerified: boolean;
   } | null;
   error: string | null;
   status: number;
@@ -62,6 +65,10 @@ export async function getOnboardingSession(): Promise<{
         organizationId: profile.organization_id,
         role: profile.role,
         organizationStatus: orgStatus,
+        email: user.email ?? null,
+        // §9.5 makes confirming the address a required step before the tenant
+        // can be activated; GoTrue sets this when the link is followed.
+        emailVerified: Boolean((user as any).email_confirmed_at),
       },
       error: null,
       status: 200,

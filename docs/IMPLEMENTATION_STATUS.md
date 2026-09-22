@@ -90,7 +90,7 @@ Delivered in migration `20260918000001_rate_limit_and_timed_escalation.sql` plus
 - **Browser E2E harness (§13):** `playwright.config.ts` + `tests/e2e/public.spec.ts` (8 specs) and `tests/e2e/authenticated.spec.ts` (6 specs), run on two projects — `mobile-ar` (Pixel 7, ar-QA) and `desktop-en` (Chrome, en-US). Vitest excludes `tests/e2e`.
 
 ```bash
-pnpm build                      # or let the config fall back to `next dev`
+pnpm build:next                 # or let the config fall back to `next dev`
 pnpm exec playwright install chromium
 pnpm test:e2e                   # public suite always runs
 # authenticated journey (skips automatically without these):
@@ -129,10 +129,258 @@ two Next dev processes sharing `.next` corrupt each other's webpack cache.
 
 ---
 
+#### Configuration: build variables vs runtime secrets (read this first when something says "Invalid API key")
+
+On Cloudflare Workers the build and the runtime have **separate** variables.
+Cloudflare's own documentation is explicit: *"Build variables will not be
+accessible at runtime"*, and *"unlike Pages, Workers does not share the same
+set of runtime and build-time variables."*
+
+That matters because `next build` **inlines every `NEXT_PUBLIC_*` value into the
+browser bundle**. A value that exists only as a Worker secret, or only in
+`wrangler.jsonc` `vars`, is a *runtime* value — the build never sees it, and the
+browser ships whatever fallback was compiled in.
+
+| variable | Workers Builds → Build variables | Worker → Variables & Secrets |
+|---|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | ✅ required (inlined into the bundle) | ✅ required (server code reads it) |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | ✅ required (inlined into the bundle) | ✅ required |
+| `SUPABASE_SERVICE_ROLE_KEY` | ❌ never — server-only | ✅ required, as a **secret** |
+| `CRON_SECRET`, `VAPID_PRIVATE_KEY`, SMS/e-mail keys | ❌ | ✅ as secrets |
+
+Changing a build variable requires a **redeploy**, not just a restart: the value
+is compiled in.
+
+**Check it in one request:** `GET /api/health/config` reports which variables
+are present — names and booleans only, never a value, never a prefix. It
+answers without a session, because the case it exists for is the one where
+sign-in itself is broken. `blocking` lists what stops the app working at all;
+`publicAnonKeyInlinedAtBuild: false` specifically means the *build* lacked the
+key, even if the runtime has it.
+
+**Why this section exists.** Every Supabase client used to fall back to a
+literal placeholder (`"placeholder-anon-key"`) when its variable was unset, and
+Supabase answers a placeholder with `Invalid API key`. So a **missing** secret
+produced the error message for a **wrong** one, and registration failed with a
+message that sent the reader into the Supabase dashboard to check a key that
+was never the problem. The service-role client now throws
+`SupabaseConfigError` naming the missing variables, and `/api/register` returns
+503 with that list rather than passing Supabase's message through.
+
+The service-role client also no longer falls back to the anon key: that
+downgrade meant admin work ran at anon privileges — succeeding at the wrong
+level instead of failing.
+
+#### Scheduled jobs (Cron Triggers)
+
+The worker answers Cloudflare Cron Triggers as well as HTTP requests. The
+entrypoint is `worker/index.mjs`, which wraps the generated
+`.open-next/worker.js` — that file is rebuilt by every build and exports only
+`fetch`, so `scheduled()` has to be added around it. `wrangler.jsonc` points
+`main` at the wrapper and declares the schedules; the routing lives in
+`worker/cron-jobs.mjs` so it can be unit-tested without a Cloudflare build
+(`tests/unit/cron-jobs.test.ts`, which also fails if the two files drift apart).
+
+| schedule | job | why |
+|---|---|---|
+| `* * * * *` | `POST /api/alerts/escalate` | §5 wants an unacknowledged alert escalated to the security team within 60–90s. One minute is Cloudflare's finest granularity. |
+| `0 2 * * *` | `POST /api/retention/purge` | Expires the search and contact logs past each tenant's `retention_days`. Runs an hour before the report, so the report is computed on what survived. |
+| `0 3 * * *` | `POST /api/reports/email` | 06:00 Asia/Qatar — the daily operations report. |
+
+Each job is dispatched **in process**: the handler builds a `Request` and hands
+it to the app's own fetch handler, so there is no public URL to configure and
+the shared secret never leaves the isolate. Both routes are excluded from the
+session middleware and authenticate the caller themselves.
+
+**Required secret.** Neither job runs without `CRON_SECRET`; the handler logs
+`CRON_SECRET is not set` and skips, rather than firing an unauthenticated call
+every minute:
+
+```bash
+npx wrangler secret put CRON_SECRET
+```
+
+Before this existed, escalation ran only *lazily* — `GET /api/alerts` and
+`GET /api/dashboard` escalate stale alerts as a side effect — so it depended on
+somebody having the app open. That lazy path is still in place and is now the
+backstop rather than the mechanism.
+
+#### Notification channels (push → SMS fallback)
+
+`profiles.notification_channel` (migration 07) decides whether an owner whose
+push notification could not be delivered also gets an SMS. It is set per person
+in **/profile → قناة استقبال التنبيهات**: `push` (default), `push_sms` or `all`.
+Choosing anything other than `push` requires a valid mobile number, which the
+API enforces.
+
+The SMS itself only leaves the system when an provider is configured —
+`SMS_PROVIDER` plus that provider's keys (`TWILIO_*` or `UNIFONIC_*`, see
+`.env.example`). Without them `lib/notifications/channels.ts` reports
+`not_configured` and the alert still goes out over push and in-app; nothing
+breaks, the fallback is simply inert.
+
+#### Organization logo (requires migration 11)
+
+`organizations.logo_url` has existed since the first migration and §9.2 asked
+for a logo upload during onboarding, but there was nowhere to put the file —
+the column could only hold a hand-typed URL.
+
+`supabase/migrations/20260924000001_org_logo_storage.sql` creates the
+`org-logos` storage bucket and its policies. **Applied to the HARRIK project on
+2026-09-21** (recorded in `supabase_migrations` under the application timestamp
+`20260921185141`, not the file's own number — see the note below). Any other
+environment still needs it; the migration is idempotent, so re-running it is
+safe. Until it is applied, the uploader returns a 503 that says exactly that,
+rather than a raw storage error.
+
+Verified against the live project after applying: the bucket exists with the
+2 MiB limit and the four allowed MIME types, all four policies are present, and
+the authorization predicate evaluates as intended — an organization's admin may
+write to their own folder, the same admin may **not** write to another
+organization's folder, and a non-admin member may not write at all.
+
+> **Migration tracking drift.** `supabase_migrations` lists only up to `07`,
+> plus this one. Migrations 08, 09 and 10 were applied through the SQL Editor,
+> which does not record them, so the table under-reports what the database
+> actually has — their objects (`rate_limit_buckets`, `parking_alerts.escalated_at`,
+> `departments.kind`) are all present and were confirmed directly. Anything that
+> replays migrations from the folder will re-run those three; check they are
+> idempotent before doing so.
+
+- Layout is one folder per tenant, `<organization_id>/logo-<timestamp>.<ext>`.
+  The policies authorise writes on that first path segment, so a tenant cannot
+  write into another tenant's folder, and only that organization's `admin` /
+  `super_admin` may write at all.
+- Public read is deliberate: the logo appears on the printed permit sticker and
+  on screens unauthenticated scanners reach, where a signed URL would expire.
+- 2 MiB, PNG / JPG / WEBP / SVG, enforced both on the bucket and in
+  `lib/branding/logo.ts` — the server check is the control, the client check is
+  the readable error.
+- The timestamp in the filename busts the CDN cache; a replaced logo would
+  otherwise keep serving the old image on stickers.
+
+The uploader (`components/ui/LogoUploader.tsx`) is shared by the onboarding
+wizard and **الإعدادات → الهوية**, so a logo can be set during setup or changed
+later.
+
+#### Onboarding: confirming the administrator's e-mail
+
+§9.5 makes confirming the address a required step. The wizard now shows it as
+its own step with a resend action, and `PATCH /api/onboarding {action:"complete"}`
+refuses to activate the organization until `email_confirmed_at` is set. An
+organization whose only administrator cannot receive mail has no route to a
+password reset or an invitation later.
+
+#### Operating hours drive the peak analytics
+
+The settings panel has always offered **ساعات العمل وأوقات الذروة** and stated
+that these times tune the peak analytics. They are now actually applied, via the
+pure helpers in `lib/analytics/operating-hours.ts` (overnight windows included):
+
+- The dashboard's "الذروة" badge takes the busiest hour from *inside* the
+  window, so a handful of overnight events are no longer reported as a school's
+  peak parking hour. Hours outside the window are dimmed in the chart, and the
+  window is named underneath it.
+- The printable report's hourly distribution spans the configured window
+  instead of a hardcoded 06:00–17:00, which used to print an empty chart for any
+  site working an evening or overnight shift.
+
+An unset or unparseable window means "no opinion": every hour counts and the
+report keeps its original 06:00–17:00 span, so a tenant that never configured
+one sees no change.
+
+#### Data retention
+
+`system_settings.retention_days` is applied by the nightly purge in
+`lib/retention/purge.ts` and configurable in **الإعدادات → الخصوصية والبحث**
+(30 / 90 / 180 / 365 days; 90 is the default). Admins can also run it
+immediately for their own organization with `POST /api/retention/purge`, which
+writes an audit entry.
+
+It expires exactly two tables — `vehicle_search_events` (who looked up which
+plate) and `contact_action_events` (who contacted whom). Deliberately kept:
+`audit_logs`, because erasing the compliance trail on a timer would also erase
+the record of the purges themselves; `parking_alerts`, which the report and
+dashboard are computed from; and anything describing a person or a vehicle,
+which is removed through the screens that own it.
+
+The window is clamped to 7–3650 days on both write and read, so a missing or
+zero value can never be read as "delete everything".
+
+#### RTL arrow direction
+
+A "forward" arrow (Next / Continue / Select / Go to X) and a "back" arrow
+(Previous / Back to X) have to point opposite ways in Arabic from how they
+point in English — a real, phone-width screenshot on 2026-09-22 caught the
+registration wizard's "التالي" pointing back at the step you came from, and
+"السابق" pointing forward. The same inversion, or no RTL mirroring at all, was
+present on six links, including the "Select" arrow on the search screen's
+recent-results list — the single most used screen in the app.
+
+The working convention, now applied consistently:
+
+```
+forward action → <ArrowRight ... className="... rtl:rotate-180" />
+back action     → <ArrowLeft  ... className="... rtl:rotate-180" />
+```
+
+`pnpm audit:rtl-arrows` (`scripts/rtl-arrow-audit.mjs`) catches the mechanical
+half of this — an icon with no `rtl:` mirroring at all, or an unconditional
+`rotate-180` that is only correct in whichever language was being tested when
+it was written. It cannot know which icon is semantically forward or back —
+that needs the label — so `tests/unit/rtl-arrows.test.ts` pins the specific
+high-traffic cases by hand; mutation-checked against the original bug.
+
+#### Mobile readiness (the app is phone-first)
+
+HARRIK is operated on a phone — one-handed, outdoors, often in a hurry — so the
+phone layout is the primary layout and desktop is the widened version of it.
+Two checks keep it that way:
+
+```bash
+pnpm audit:mobile          # static: reads the JSX, exits 1 on a blocking issue
+pnpm audit:mobile --all    # also lists advisory findings
+pnpm audit:mobile:live     # live: drives Chromium at 360px and 390px
+```
+
+`audit:mobile` (`scripts/mobile-audit.mjs`) flags the patterns that reliably
+break on a phone: a `<table>` with no `md:hidden` card list beside it, a
+3+ column grid with no breakpoint prefix, a fixed width wider than the
+viewport, content text under 11px, a form control small enough to trigger the
+iOS focus-zoom, and anything pinned to the bottom edge without
+`env(safe-area-inset-bottom)`. When a rule is genuinely wrong for a line — the
+licence-plate artwork microprint, a numeric keypad that *is* three columns —
+annotate that line, or the line directly above it, with `mobile-audit-ignore`
+and the reason.
+
+`audit:mobile:live` (`scripts/lib/measure-mobile.mjs`) measures the rendered
+page instead of the classes: horizontal overflow, tap targets under 44px and
+text under 11px, at 360px and 390px. Without credentials it can only reach the
+unauthenticated routes, because everything else redirects to `/login`; give it
+an account to cover the whole app:
+
+```bash
+E2E_EMAIL=… E2E_PASSWORD=… pnpm audit:mobile:live https://harrik.example.com
+```
+
+The conventions these checks enforce:
+
+- **Lists**: a card list under `md:hidden`, the table `hidden md:block`. On the
+  printable report the cards are additionally `print:hidden` and the table
+  `print:block`, so paper keeps the full grid.
+- **Dialogs**: `BottomSheet` (`src/components/ui/BottomSheet.tsx`) is the
+  default — a sheet on phones, a centred dialog from `sm` up, capped at `92vh`
+  with its own scroll and safe-area padding. A hand-rolled modal must do the
+  same or its submit button ends up below the fold on a 360×640 screen.
+- **Form controls**: 16px and 44px minimum on coarse pointers, applied centrally
+  in `globals.css` rather than per screen. Below 16px iOS Safari zooms the page
+  in on focus and never zooms back out.
+- **Text**: `text-micro` (11px) is the floor for anything a user reads.
+
 #### Deploying to Cloudflare
 
 ```bash
-pnpm build:cf     # opennextjs-cloudflare build   (Windows is supported but warned about)
+pnpm build        # opennextjs-cloudflare build (also the CI build command); `build:cf` is an alias
 pnpm deploy:cf    # opennextjs-cloudflare deploy  -> Worker `harrik`
 ```
 

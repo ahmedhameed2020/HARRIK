@@ -111,7 +111,7 @@ export default function ResetPasswordPage() {
           <div className="mt-8 rounded-3xl border border-amber-200 bg-amber-50 p-6 text-center dark:border-amber-900/50 dark:bg-amber-950/30">
             <AlertCircle className="mx-auto mb-3 h-8 w-8 text-amber-600" />
             <p className="text-sm font-bold text-amber-900 dark:text-amber-200">{t.resetInvalidTitle}</p>
-            <Link href="/forgot-password" className="mt-4 inline-block text-xs font-bold text-qatar hover:underline">
+            <Link href="/forgot-password" className="mt-4 inline-flex min-h-[44px] items-center text-xs font-bold text-qatar hover:underline">
               {t.resetRequestNew}
             </Link>
           </div>
@@ -139,7 +139,7 @@ export default function ResetPasswordPage() {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 end-0 flex items-center pe-3.5 text-slate-400"
+                className="absolute inset-y-0 end-0 flex w-11 items-center justify-center text-slate-400"
                 aria-label="toggle password"
               >
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}

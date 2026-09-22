@@ -291,7 +291,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                     <Menu className="h-4 w-4 text-qatar" />
                     <span className="font-arabic">{isRtl ? "القائمة" : "Menu"}</span>
                   </button>
-                  <span className="hidden sm:inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[9px] font-bold text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 border border-emerald-500/20">
+                  <span className="hidden sm:inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-micro font-bold text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 border border-emerald-500/20">
                     <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
                     <span>{isRtl ? "متصل" : "Live"}</span>
                   </span>

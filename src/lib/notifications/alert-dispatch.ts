@@ -12,6 +12,14 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { sendWebPushNotification } from "@/lib/push/vapid";
 import { sendSms, isSmsConfigured } from "@/lib/notifications/channels";
+import {
+  ownerAlertPush,
+  ownerAlertSms,
+  securityEscalationPush,
+  resolveNotificationLang,
+  type NotificationLang,
+  type SecurityEscalation,
+} from "@/lib/notifications/messages";
 
 export interface AlertDispatchInput {
   organizationId: string;
@@ -72,8 +80,11 @@ export interface SecurityNotifyInput {
   ownerId?: string | null;
   plateDisplay?: string;
   alertId?: string | null;
-  title?: string;
-  body?: string;
+  /**
+   * Why security is being pulled in. The wording is resolved per recipient, in
+   * their own language, rather than passed in as a fixed string.
+   */
+  escalation: SecurityEscalation;
 }
 
 /**
@@ -87,36 +98,56 @@ export async function notifySecurityTeam(
   try {
     const { data: securityProfiles } = await supabase
       .from("profiles")
-      .select("id")
+      .select("id, preferred_language")
       .eq("organization_id", input.organizationId)
       .eq("is_active", true)
       .in("role", ["admin", "super_admin", "security"]);
 
-    const securityIds = (securityProfiles || [])
-      .map((p: any) => p.id)
-      .filter((id: string) => id !== input.ownerId);
+    const recipients = (securityProfiles || []).filter(
+      (p: any) => p.id !== input.ownerId
+    );
 
-    if (securityIds.length === 0) return 0;
+    if (recipients.length === 0) return 0;
 
     const { data: secSubs } = await supabase
       .from("push_subscriptions")
-      .select("endpoint, p256dh, auth")
-      .in("profile_id", securityIds)
+      .select("profile_id, endpoint, p256dh, auth")
+      .in(
+        "profile_id",
+        recipients.map((p: any) => p.id)
+      )
       .eq("organization_id", input.organizationId);
 
     if (!secSubs || secSubs.length === 0) return 0;
 
+    // A security team is not necessarily monolingual: each member is pushed in
+    // the language they chose, so the batches are split by language rather
+    // than by person (one push call per language, not per recipient).
+    const langByProfile = new Map<string, NotificationLang>(
+      recipients.map((p: any) => [p.id, resolveNotificationLang(p.preferred_language)])
+    );
+
+    const byLang = new Map<NotificationLang, SubRow[]>();
+    for (const sub of secSubs as Array<SubRow & { profile_id: string }>) {
+      const lang = langByProfile.get(sub.profile_id) ?? "ar";
+      const bucket = byLang.get(lang);
+      if (bucket) bucket.push(sub);
+      else byLang.set(lang, [sub]);
+    }
+
     const plate = input.plateDisplay || "";
-    const { sent } = await sendPushBatch(supabase, secSubs as SubRow[], {
-      title: input.title || "⚠️ تنبيه موقف بحاجة لمتابعة",
-      body:
-        input.body ||
-        (plate
-          ? `التنبيه الخاص بالسيارة (${plate}) لم يُستلم. يرجى المتابعة الميدانية.`
-          : "تنبيه موقف لم يُستلم. يرجى المتابعة الميدانية."),
-      url: "/inbox",
-      tag: `escalation-${input.alertId || plate || "alert"}`,
-    });
+    const tag = `escalation-${input.alertId || plate || "alert"}`;
+
+    let sent = 0;
+    for (const [lang, subs] of byLang) {
+      const message = securityEscalationPush(lang, input.escalation);
+      const batch = await sendPushBatch(supabase, subs, {
+        ...message,
+        url: "/inbox",
+        tag,
+      });
+      sent += batch.sent;
+    }
 
     return sent;
   } catch {
@@ -145,6 +176,26 @@ export async function dispatchAlertNotifications(
   const targetUrl = input.url || "/inbox";
 
   try {
+    // The owner's row carries everything both channels need: the language to
+    // write in, the number to fall back to, and whether they asked for that
+    // fallback at all. Read once, used by the push below and the SMS further
+    // down.
+    let ownerLang: NotificationLang = "ar";
+    let ownerMobile: string | null = null;
+    let ownerChannel = "push";
+
+    if (input.ownerId) {
+      const { data: ownerRow } = await supabase
+        .from("profiles")
+        .select("preferred_language, mobile, notification_channel")
+        .eq("id", input.ownerId)
+        .maybeSingle();
+
+      ownerLang = resolveNotificationLang((ownerRow as any)?.preferred_language);
+      ownerMobile = (ownerRow as any)?.mobile || null;
+      ownerChannel = (ownerRow as any)?.notification_channel || "push";
+    }
+
     // 1. Owner push
     if (input.ownerId) {
       const { data: ownerSubs } = await supabase
@@ -155,10 +206,7 @@ export async function dispatchAlertNotifications(
 
       if (ownerSubs && ownerSubs.length > 0) {
         const { sent, expired } = await sendPushBatch(supabase, ownerSubs as SubRow[], {
-          title: "🚨 تنبيه تحريك سيارة عاجل",
-          body: plate
-            ? `سيارتك (${plate}) مطلوبة للتحريك${reporter ? ` بواسطة: ${reporter}` : ""}`
-            : "لديك تنبيه جديد لتحريك سيارتك في المواقف",
+          ...ownerAlertPush(ownerLang, { plate, reporter }),
           url: `/inbox${input.alertId ? `?alert=${input.alertId}` : ""}`,
           tag: input.alertId ? `alert-${input.alertId}` : "harrik-alert",
         });
@@ -176,31 +224,15 @@ export async function dispatchAlertNotifications(
         ownerId: input.ownerId,
         plateDisplay: plate,
         alertId: input.alertId,
-        title: "⚠️ تنبيه موقف لم يصل لمالكه",
-        body: plate
-          ? `تعذّر إشعار مالك السيارة (${plate}). يرجى المتابعة الميدانية.`
-          : "تعذّر إشعار مالك السيارة. يرجى المتابعة الميدانية.",
+        escalation: { kind: "owner_unreachable", plate },
       });
 
-      // 3. Optional SMS to the owner (tenant/provider must enable it)
-      if (input.ownerId && isSmsConfigured()) {
+      // 3. Optional SMS to the owner — needs a configured provider, a number,
+      //    and the owner having opted into the fallback in /profile.
+      if (input.ownerId && isSmsConfigured() && ownerMobile && ownerChannel !== "push") {
         try {
-          const { data: ownerRow } = await supabase
-            .from("profiles")
-            .select("mobile, notification_channel")
-            .eq("id", input.ownerId)
-            .maybeSingle();
-
-          const channel = (ownerRow as any)?.notification_channel || "push";
-          if (ownerRow?.mobile && channel !== "push") {
-            result.smsAttempted = true;
-            await sendSms(
-              ownerRow.mobile,
-              plate
-                ? `حَرِّك: سيارتك (${plate}) تعيق الحركة في المواقف. يرجى تحريكها.`
-                : "حَرِّك: يرجى تحريك سيارتك في المواقف."
-            );
-          }
+          result.smsAttempted = true;
+          await sendSms(ownerMobile, ownerAlertSms(ownerLang, { plate }));
         } catch {
           // ignore
         }
