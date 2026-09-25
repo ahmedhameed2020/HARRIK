@@ -69,7 +69,7 @@ export function DepartmentStrip() {
               triggerHaptic("light");
               setExpanded(true);
             }}
-            className="shrink-0 rounded-lg px-2 py-1 text-caption font-bold text-qatar transition hover:bg-brand-soft dark:text-rose-300"
+            className="shrink-0 rounded-lg px-2 py-1 text-caption font-bold text-qatar transition hover:bg-brand-soft dark:text-qatar-300"
           >
             {L(`عرض الكل (${sorted.length})`, `Show all (${sorted.length})`)}
           </button>
@@ -89,7 +89,7 @@ export function DepartmentStrip() {
               }}
               className="surface-card surface-card-hover group flex min-h-[52px] items-center gap-3 px-3.5 py-2.5"
             >
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-control bg-brand-soft text-qatar dark:text-rose-300">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-control bg-brand-soft text-qatar dark:text-qatar-300">
                 <Building2 className="h-4 w-4" aria-hidden="true" />
               </span>
               <span className="min-w-0">
@@ -108,7 +108,7 @@ export function DepartmentStrip() {
                 </span>
               </span>
               <ChevronLeft
-                className="h-4 w-4 shrink-0 text-slate-300 transition group-hover:text-qatar dark:text-slate-600"
+                className="h-4 w-4 shrink-0 text-slate-300 transition group-hover:text-qatar dark:text-slate-600 rtl:rotate-180"
                 aria-hidden="true"
               />
             </Link>

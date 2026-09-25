@@ -121,7 +121,7 @@ export default function DepartmentPage() {
         href="/"
         className="inline-flex min-h-[44px] items-center gap-1.5 text-caption font-bold text-slate-500 transition hover:text-qatar dark:text-slate-400"
       >
-        <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+        <ArrowRight className="h-3.5 w-3.5 rtl:rotate-180" aria-hidden="true" />
         {L("رجوع للبحث", "Back to search")}
       </Link>
 
@@ -266,7 +266,7 @@ export default function DepartmentPage() {
             <article key={member.id} className="surface-card surface-card-hover p-4 sm:p-5">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex min-w-0 items-center gap-3.5">
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-control bg-brand-soft text-caption font-bold text-qatar dark:text-rose-300">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-control bg-brand-soft text-caption font-bold text-qatar dark:text-qatar-300">
                     {maskedName ? (
                       <Lock className="h-4 w-4" aria-hidden="true" />
                     ) : (

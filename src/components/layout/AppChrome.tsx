@@ -92,12 +92,12 @@ export function AppChrome({ children }: { children: React.ReactNode }) {
             <div className="relative z-10 flex flex-col items-center">
               <Search
                 className={`h-5 w-5 transition-transform duration-150 ${
-                  isSearch ? "text-qatar dark:text-rose-400" : "text-slate-500 dark:text-slate-400"
+                  isSearch ? "text-qatar dark:text-qatar-300" : "text-slate-500 dark:text-slate-400"
                 }`}
               />
               <span
                 className={`text-micro font-bold mt-0.5 transition-colors ${
-                  isSearch ? "text-qatar dark:text-rose-400" : "text-slate-500 dark:text-slate-400"
+                  isSearch ? "text-qatar dark:text-qatar-300" : "text-slate-500 dark:text-slate-400"
                 }`}
               >
                 {t.navSearch}
@@ -123,7 +123,7 @@ export function AppChrome({ children }: { children: React.ReactNode }) {
               <div className="relative">
                 <Bell
                   className={`h-5 w-5 transition-transform duration-150 ${
-                    isInbox ? "text-qatar dark:text-rose-400 scale-105" : "text-slate-500 dark:text-slate-400"
+                    isInbox ? "text-qatar dark:text-qatar-300 scale-105" : "text-slate-500 dark:text-slate-400"
                   }`}
                 />
                 {activeCount > 0 && (
@@ -134,7 +134,7 @@ export function AppChrome({ children }: { children: React.ReactNode }) {
               </div>
               <span
                 className={`text-micro font-bold mt-0.5 transition-colors ${
-                  isInbox ? "text-qatar dark:text-rose-400" : "text-slate-500 dark:text-slate-400"
+                  isInbox ? "text-qatar dark:text-qatar-300" : "text-slate-500 dark:text-slate-400"
                 }`}
               >
                 {t.navInbox}
@@ -159,12 +159,12 @@ export function AppChrome({ children }: { children: React.ReactNode }) {
             <div className="relative z-10 flex flex-col items-center">
               <User
                 className={`h-5 w-5 transition-transform duration-150 ${
-                  pathname === "/profile" ? "text-qatar dark:text-rose-400 scale-105" : "text-slate-500 dark:text-slate-400"
+                  pathname === "/profile" ? "text-qatar dark:text-qatar-300 scale-105" : "text-slate-500 dark:text-slate-400"
                 }`}
               />
               <span
                 className={`text-micro font-bold mt-0.5 transition-colors ${
-                  pathname === "/profile" ? "text-qatar dark:text-rose-400" : "text-slate-500 dark:text-slate-400"
+                  pathname === "/profile" ? "text-qatar dark:text-qatar-300" : "text-slate-500 dark:text-slate-400"
                 }`}
               >
                 {lang === "ar" ? "ملفي" : "Profile"}
@@ -190,12 +190,12 @@ export function AppChrome({ children }: { children: React.ReactNode }) {
               <div className="relative z-10 flex flex-col items-center">
                 <Shield
                   className={`h-5 w-5 transition-transform duration-150 ${
-                    isAdminPath ? "text-qatar dark:text-rose-400 scale-105" : "text-slate-500 dark:text-slate-400"
+                    isAdminPath ? "text-qatar dark:text-qatar-300 scale-105" : "text-slate-500 dark:text-slate-400"
                   }`}
                 />
                 <span
                   className={`text-micro font-bold mt-0.5 transition-colors ${
-                    isAdminPath ? "text-qatar dark:text-rose-400" : "text-slate-500 dark:text-slate-400"
+                    isAdminPath ? "text-qatar dark:text-qatar-300" : "text-slate-500 dark:text-slate-400"
                   }`}
                 >
                   {t.navAdmin}

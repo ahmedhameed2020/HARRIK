@@ -146,7 +146,7 @@ export function CreateAlertDialog({
           {ownerName || (lang === "ar" ? "صاحب المركبة" : "Vehicle owner")}
         </span>
         {departmentName && (
-          <span className="ms-auto inline-flex items-center gap-1.5 rounded-pill bg-brand-soft px-2.5 py-1 text-micro font-bold text-qatar dark:text-rose-300">
+          <span className="ms-auto inline-flex items-center gap-1.5 rounded-pill bg-brand-soft px-2.5 py-1 text-micro font-bold text-qatar dark:text-qatar-300">
             <Building2 className="h-3.5 w-3.5" aria-hidden="true" />
             {departmentName}
           </span>
@@ -196,7 +196,7 @@ export function CreateAlertDialog({
                     }}
                     className={`flex cursor-pointer items-center justify-between rounded-[16px] p-3 transition-colors border ${
                       isSelected
-                        ? "border-[#8a1538] bg-[#fdf5f7] dark:bg-[#8a1538]/20 dark:border-[#a31a43] shadow-sm"
+                        ? "border-qatar bg-brand-soft dark:bg-qatar/20 dark:border-qatar-600 shadow-sm"
                         : "border-slate-200/90 bg-white hover:bg-slate-50 dark:border-slate-800 dark:bg-surface-raised/70"
                     }`}
                   >
@@ -204,7 +204,7 @@ export function CreateAlertDialog({
                       <div
                         className={`flex h-9 w-9 items-center justify-center rounded-xl ${
                           isSelected
-                            ? "bg-[#8a1538] text-white shadow-sm"
+                            ? "bg-qatar text-white shadow-sm"
                             : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300"
                         }`}
                       >
@@ -213,7 +213,7 @@ export function CreateAlertDialog({
                       <span
                         className={`text-sm font-bold font-arabic ${
                           isSelected
-                            ? "text-[#8a1538] dark:text-rose-300"
+                            ? "text-qatar dark:text-qatar-300"
                             : "text-slate-900 dark:text-slate-100"
                         }`}
                       >
@@ -224,7 +224,7 @@ export function CreateAlertDialog({
                     <div
                       className={`flex h-5 w-5 items-center justify-center rounded-full border ${
                         isSelected
-                          ? "border-[#8a1538] bg-[#8a1538] text-white"
+                          ? "border-qatar bg-qatar text-white"
                           : "border-slate-300 dark:border-slate-600"
                       }`}
                     >
@@ -245,7 +245,7 @@ export function CreateAlertDialog({
                     ? "ملاحظة إضافية لصاحب السيارة (اختياري)..."
                     : "Additional note for owner (optional)..."
                 }
-                className="w-full rounded-[16px] border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-surface-raised/70 p-3 text-sm focus:border-[#8a1538] focus:ring-1 focus:ring-[#8a1538] focus:outline-none dark:text-white transition-colors resize-none"
+                className="w-full rounded-[16px] border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-surface-raised/70 p-3 text-sm focus:border-qatar focus:ring-1 focus:ring-qatar focus:outline-none dark:text-white transition-colors resize-none"
                 rows={2}
               />
             </div>
@@ -255,7 +255,7 @@ export function CreateAlertDialog({
               type="submit"
               disabled={isSubmitting}
               whileTap={shouldReduceMotion ? undefined : TACTILE_TAP}
-              className="flex min-h-[52px] h-13 w-full items-center justify-center gap-2 rounded-[16px] bg-[#8a1538] hover:bg-[#70112e] py-3 text-center text-sm font-bold text-white shadow-md transition-colors disabled:opacity-50"
+              className="flex min-h-[52px] h-14 w-full items-center justify-center gap-2 rounded-[16px] bg-qatar hover:bg-qatar-900 py-3 text-center text-sm font-bold text-white shadow-md transition-colors disabled:opacity-50"
             >
               {isSubmitting ? (
                 <>

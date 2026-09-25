@@ -133,7 +133,7 @@ export default function PlatformControlCenter() {
               className="px-3.5 py-2 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300 text-sm font-medium transition-colors flex items-center gap-1.5 border border-slate-700/60"
             >
               Tenant View
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-4 h-4 rtl:rotate-180" />
             </Link>
           </div>
         </div>

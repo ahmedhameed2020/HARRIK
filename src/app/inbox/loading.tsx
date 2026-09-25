@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import { PageHeaderSkeleton, Skeleton } from "@/components/ui/Skeleton";
 
 export default function Loading() {
@@ -16,8 +16,8 @@ export default function Loading() {
           </div>
           <Skeleton className="h-5 w-3/4" />
           <div className="grid grid-cols-2 gap-2.5">
-            <Skeleton className="h-13 w-full rounded-2xl" />
-            <Skeleton className="h-13 w-full rounded-2xl" />
+            <Skeleton className="h-14 w-full rounded-2xl" />
+            <Skeleton className="h-14 w-full rounded-2xl" />
           </div>
         </div>
       ))}

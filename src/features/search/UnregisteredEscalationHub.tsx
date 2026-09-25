@@ -187,7 +187,7 @@ export function UnregisteredEscalationHub({
                 <Megaphone className="h-5 w-5" />
               </div>
               <div>
-                <span className="text-micro font-black uppercase tracking-wider text-qatar dark:text-rose-400">
+                <span className="text-micro font-black uppercase tracking-wider text-qatar dark:text-qatar-300">
                   {isAr ? "تسجيل بلاغ رسمي" : "Official Dispatch Log"}
                 </span>
                 <h4 className="text-base font-extrabold text-slate-900 dark:text-white font-arabic">
@@ -220,7 +220,7 @@ export function UnregisteredEscalationHub({
       </div>
 
       {/* 3. Official State of Qatar Metrash2 Service Card */}
-      <div className="overflow-hidden rounded-3xl border border-[#8A1538]/25 bg-gradient-to-b from-[#8A1538]/5 via-white to-white p-5 shadow-sm dark:border-[#8A1538]/40 dark:from-[#8A1538]/10 dark:via-[#0c0c0f] dark:to-[#0c0c0f]">
+      <div className="overflow-hidden rounded-3xl border border-qatar/25 bg-gradient-to-b from-qatar/5 via-white to-white p-5 shadow-sm dark:border-qatar/40 dark:from-qatar/10 dark:via-[#0c0c0f] dark:to-[#0c0c0f]">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-qatar text-white shadow-md shadow-qatar/25">
@@ -228,7 +228,7 @@ export function UnregisteredEscalationHub({
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="inline-flex items-center gap-1 rounded-md bg-[#8A1538]/10 px-2 py-0.5 text-micro font-black text-qatar dark:bg-[#8A1538]/30 dark:text-rose-300">
+                <span className="inline-flex items-center gap-1 rounded-md bg-qatar/10 px-2 py-0.5 text-micro font-black text-qatar dark:bg-qatar/30 dark:text-qatar-300">
                   {isAr ? "الإدارة العامة للمرور — دولة قطر" : "Qatar Traffic Directorate"}
                 </span>
               </div>
@@ -313,7 +313,7 @@ export function UnregisteredEscalationHub({
         </button>
 
         <div className="flex items-center gap-2 text-caption font-bold text-slate-500 dark:text-zinc-400">
-          <AlertOctagon className="h-3.5 w-3.5 text-rose-500 shrink-0" />
+          <AlertOctagon className="h-3.5 w-3.5 text-red-500 shrink-0" />
           <span>
             {isAr
               ? "طوارئ المرور العامة (حالات الإغلاق الكامل): 999"

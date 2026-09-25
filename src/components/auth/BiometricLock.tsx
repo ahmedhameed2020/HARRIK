@@ -57,7 +57,7 @@ export function BiometricLock({ children }: { children: React.ReactNode }) {
         animate={{ opacity: 1, scale: 1 }}
         className="flex flex-col items-center"
       >
-        <div className="flex h-20 w-20 items-center justify-center rounded-3xl bg-[#8a1538] shadow-2xl shadow-[#8a1538]/40">
+        <div className="flex h-20 w-20 items-center justify-center rounded-3xl bg-qatar shadow-2xl shadow-qatar/40">
           <Lock className="h-9 w-9 text-white" />
         </div>
         <h1 className="mt-6 text-2xl font-black font-arabic">{t.bioLockTitle}</h1>
@@ -67,7 +67,7 @@ export function BiometricLock({ children }: { children: React.ReactNode }) {
           type="button"
           onClick={handleUnlock}
           disabled={isVerifying}
-          className="mt-8 flex min-h-[56px] items-center justify-center gap-3 rounded-2xl bg-[#8a1538] px-8 py-4 text-sm font-bold text-white shadow-xl shadow-[#8a1538]/30 transition active:scale-[0.98] disabled:opacity-60"
+          className="mt-8 flex min-h-[56px] items-center justify-center gap-3 rounded-2xl bg-qatar px-8 py-4 text-sm font-bold text-white shadow-xl shadow-qatar/30 transition active:scale-[0.98] disabled:opacity-60"
         >
           {isVerifying ? (
             <Loader2 className="h-5 w-5 animate-spin" />

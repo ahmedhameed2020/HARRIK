@@ -148,7 +148,13 @@ const config: Config = {
       },
     },
   },
-  plugins: [],
+/**
+ * tailwindcss-animate provides the `animate-in` / `fade-in` / `zoom-in-*` /
+ * `slide-in-from-*` utilities that several screens already reference (scan,
+ * dialogs, import success states). Without it those classes silently did
+ * nothing — elements just appeared with no transition.
+ */
+  plugins: [require("tailwindcss-animate")],
 };
 
 export default config;

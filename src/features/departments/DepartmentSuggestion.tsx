@@ -26,7 +26,7 @@ export function DepartmentSuggestion({ limit = 5 }: { limit?: number }) {
   return (
     <div className="surface-card p-4 sm:p-5">
       <div className="flex items-center gap-2">
-        <span className="flex h-8 w-8 items-center justify-center rounded-control bg-brand-soft text-qatar dark:text-rose-300">
+        <span className="flex h-8 w-8 items-center justify-center rounded-control bg-brand-soft text-qatar dark:text-qatar-300">
           <Building2 className="h-4 w-4" aria-hidden="true" />
         </span>
         <div>

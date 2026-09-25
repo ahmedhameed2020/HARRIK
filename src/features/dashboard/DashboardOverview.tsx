@@ -729,7 +729,7 @@ export function DashboardOverview({ lang }: DashboardOverviewProps) {
                   </div>
                   <span>{L(`إضافة / تعديل ${config.memberLabel}`, `Add / edit ${config.memberLabelEn}`)}</span>
                 </div>
-                <ChevronRight className="h-4 w-4 text-slate-400 rotate-180" aria-hidden="true" />
+                <ChevronRight className="h-4 w-4 text-slate-400 rtl:rotate-180" aria-hidden="true" />
               </Link>
 
               <Link
@@ -742,7 +742,7 @@ export function DashboardOverview({ lang }: DashboardOverviewProps) {
                   </div>
                   <span>{L("تسجيل مركبة جديدة وتعيين مالك", "Register a new vehicle and assign an owner")}</span>
                 </div>
-                <ChevronRight className="h-4 w-4 text-slate-400 rotate-180" aria-hidden="true" />
+                <ChevronRight className="h-4 w-4 text-slate-400 rtl:rotate-180" aria-hidden="true" />
               </Link>
 
               <Link
@@ -755,7 +755,7 @@ export function DashboardOverview({ lang }: DashboardOverviewProps) {
                   </div>
                   <span>{L("استيراد وتصدير إكسل (.xlsx)", "Import & export Excel (.xlsx)")}</span>
                 </div>
-                <ChevronRight className="h-4 w-4 text-slate-400 rotate-180" aria-hidden="true" />
+                <ChevronRight className="h-4 w-4 text-slate-400 rtl:rotate-180" aria-hidden="true" />
               </Link>
 
               <Link
@@ -768,7 +768,7 @@ export function DashboardOverview({ lang }: DashboardOverviewProps) {
                   </div>
                   <span>{L("فحص السيارات غير المسجلة", "Review unregistered vehicles")}</span>
                 </div>
-                <ChevronRight className="h-4 w-4 text-slate-400 rotate-180" aria-hidden="true" />
+                <ChevronRight className="h-4 w-4 text-slate-400 rtl:rotate-180" aria-hidden="true" />
               </Link>
             </div>
           </div>

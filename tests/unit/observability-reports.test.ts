@@ -79,7 +79,10 @@ describe("HARRIK — Observability, skeletons, alert types & scheduled reports",
     const reporter = read("src/components/system/ErrorReporter.tsx");
     expect(reporter).toContain('"unhandledrejection"');
     expect(reporter).toContain('"error"');
-    expect(read("src/components/layout/AppShell.tsx")).toContain("<ErrorReporter />");
+    // AppShell code-splits the authenticated chrome via next/dynamic, so
+    // <ErrorReporter /> is mounted inside AppChrome — public pages (/login,
+    // /register, /scan) must never download the reporter chunk.
+    expect(read("src/components/layout/AppChrome.tsx")).toContain("<ErrorReporter />");
 
     // Reporting endpoint must be reachable before sign-in.
     expect(read("src/middleware.ts")).toContain("/api/observability/");
