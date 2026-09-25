@@ -263,6 +263,7 @@ function LoginForm() {
         {errorMessage && (
           <div
             data-testid="login-error"
+            role="alert"
             className="mt-6 flex items-center gap-3 rounded-2xl border border-red-200 bg-red-50 p-4 text-xs font-bold text-red-800 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-300"
           >
             <AlertCircle className="h-5 w-5 flex-shrink-0 text-red-600" />
@@ -287,6 +288,7 @@ function LoginForm() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="name@organization.com"
+                autoComplete="email"
                 className="field ps-10 pe-4"
               />
             </div>
@@ -307,6 +309,7 @@ function LoginForm() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
+                autoComplete="current-password"
                 className="field ps-10 pe-12"
               />
               <button

@@ -135,7 +135,7 @@ export function VehicleResultCard({
 
               <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-600 dark:text-slate-300">
                 {deptName && (
-                  <span className="font-semibold text-rose-800 dark:text-rose-300">
+                  <span className="font-semibold text-qatar-800 dark:text-qatar-300">
                     {deptName}
                   </span>
                 )}
@@ -207,7 +207,7 @@ export function VehicleResultCard({
               triggerHaptic("medium");
               onOpenAlertModal(vehicle);
             }}
-            className="flex min-h-[56px] h-14 items-center justify-center gap-2.5 rounded-control px-4 py-3 text-sm font-bold text-white bg-qatar hover:bg-qatar-800 shadow-md shadow-rose-950/20 transition-colors"
+            className="flex min-h-[56px] h-14 items-center justify-center gap-2.5 rounded-control px-4 py-3 text-sm font-bold text-white bg-qatar hover:bg-qatar-800 shadow-md shadow-qatar-950/20 transition-colors"
           >
             <AlertTriangle className="h-5 w-5 text-amber-300" />
             <span>{t.sendAlertAction}</span>

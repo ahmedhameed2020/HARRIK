@@ -19,7 +19,9 @@ export function QatarPlate({
 }: QatarPlateProps) {
   const shouldReduceMotion = useReducedMotion();
   const digits = plateNumber.trim().split("");
-  const isEmpty = digits.length === 0;
+  // `"".split("")` yields [""] (length 1), so an empty plate must be detected
+  // from the source string — otherwise the •••••• placeholder never showed.
+  const isEmpty = plateNumber.trim().length === 0;
 
   // Size styling tokens
   const sizeClasses = {
@@ -34,7 +36,7 @@ export function QatarPlate({
       rivetSize: "",
     },
     md: {
-      frame: "h-13 sm:h-14 rounded-xl border-2",
+      frame: "h-14 rounded-xl border-2",
       ribbon: "pl-4 pr-3 py-1 text-micro",
       countryAr: "text-xs font-black",
       countryEn: "text-[7px] tracking-wider",
@@ -59,7 +61,7 @@ export function QatarPlate({
     <div
       className={`qatar-plate-frame relative inline-flex items-stretch overflow-hidden select-none font-mono ${
         sizeClasses.frame
-      } ${isInteractive ? "hover:shadow-lg transition-shadow duration-180 cursor-pointer" : ""} ${className}`}
+      } ${isInteractive ? "hover:shadow-lg transition-shadow duration-150 cursor-pointer" : ""} ${className}`}
       dir="ltr"
       aria-label={`Qatar license plate ${plateNumber || "empty"}`}
     >
@@ -82,7 +84,7 @@ export function QatarPlate({
           className={`absolute right-1.5 top-1/2 -translate-y-1/2 rounded-full bg-gradient-to-br from-slate-200 via-slate-300 to-slate-500 shadow-[inset_0_0.5px_1px_rgba(255,255,255,0.9),0_1px_2px_rgba(0,0,0,0.5)] border border-slate-400/80 flex items-center justify-center opacity-75 z-20 pointer-events-none ${sizeClasses.rivetSize}`}
           aria-hidden="true"
         >
-          <div className="w-[55%] h-[1px] bg-slate-700/80 rounded-[0.5px] -rotate-25" />
+          <div className="w-[55%] h-[1px] bg-slate-700/80 rounded-[0.5px] -rotate-45" />
         </div>
       )}
 

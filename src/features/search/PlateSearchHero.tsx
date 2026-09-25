@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useCallback, useState, useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
 import { Search, X, Camera, Loader2, Car, AlertCircle, ArrowRight, History } from "lucide-react";
 import { motion, AnimatePresence, useReducedMotion } from "motion/react";
@@ -94,12 +94,12 @@ export function PlateSearchHero({ lang }: PlateSearchHeroProps) {
   }, []);
 
   /** Keeps the device-local lookup history (newest first, de-duplicated). */
-  const rememberSearch = (q: string, plate?: string) => {
+  const rememberSearch = useCallback((q: string, plate?: string) => {
     const entry: RecentSearch = { q, plate };
     const next = [entry, ...readRecentSearches().filter((item) => item.q !== q)].slice(0, RECENT_MAX);
     writeRecentSearches(next);
     setRecentSearches(next);
-  };
+  }, []);
 
   const clearRecentSearches = () => {
     triggerHaptic("light");
@@ -108,7 +108,7 @@ export function PlateSearchHero({ lang }: PlateSearchHeroProps) {
   };
 
   // Perform plate lookup (network lookup begins immediately)
-  const handleSearch = async (overrideQuery?: string) => {
+  const handleSearch = useCallback(async (overrideQuery?: string) => {
     const q = overrideQuery !== undefined ? overrideQuery : query;
     const clean = q.trim();
 
@@ -159,7 +159,7 @@ export function PlateSearchHero({ lang }: PlateSearchHeroProps) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [rememberSearch, query]);
 
   // Debounced auto-search when query reaches >= 3 digits
   useEffect(() => {
@@ -179,7 +179,7 @@ export function PlateSearchHero({ lang }: PlateSearchHeroProps) {
         clearTimeout(debounceTimerRef.current);
       }
     };
-  }, [query, minDigits]);
+  }, [query, minDigits, handleSearch]);
 
   const handleClear = () => {
     triggerHaptic("light");
@@ -201,7 +201,7 @@ export function PlateSearchHero({ lang }: PlateSearchHeroProps) {
     <div className="relative mx-auto max-w-xl px-4 pt-6 sm:pt-10">
       {/* Brand context — quiet eyebrow, not a loud badge */}
       <div className="text-center">
-        <div className="inline-flex items-center gap-2 rounded-full border border-brand-border bg-brand-soft px-3.5 py-1.5 text-micro font-bold tracking-wide text-qatar dark:text-rose-300">
+        <div className="inline-flex items-center gap-2 rounded-full border border-brand-border bg-brand-soft px-3.5 py-1.5 text-micro font-bold tracking-wide text-qatar dark:text-qatar-300">
           <Car className="h-3.5 w-3.5" aria-hidden="true" />
           <span>{t.descriptor}</span>
         </div>
@@ -236,7 +236,7 @@ export function PlateSearchHero({ lang }: PlateSearchHeroProps) {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -4 }}
                     transition={{ duration: DURATION.fast, ease: EASING.entrance }}
-                    className="inline-flex items-center gap-2 text-xs font-bold text-[#8a1538] dark:text-rose-400"
+                    className="inline-flex items-center gap-2 text-xs font-bold text-qatar dark:text-qatar-300"
                   >
                     <Loader2 className="h-3.5 w-3.5 animate-spin" />
                     <span>{lang === "ar" ? "جاري البحث عن المركبة…" : "Searching…"}</span>
@@ -260,7 +260,7 @@ export function PlateSearchHero({ lang }: PlateSearchHeroProps) {
           <div className="relative flex items-center overflow-hidden rounded-[20px] border border-slate-200 bg-white shadow-card transition-all duration-200 focus-within:border-qatar focus-within:ring-4 focus-within:ring-qatar/10 dark:border-slate-800 dark:bg-surface-card">
             <div className="flex h-14 w-12 items-center justify-center text-slate-400 flex-shrink-0">
               {isLoading ? (
-                <Loader2 className="h-5 w-5 animate-spin text-qatar dark:text-rose-400" />
+                <Loader2 className="h-5 w-5 animate-spin text-qatar dark:text-qatar-300" />
               ) : (
                 <Search className="h-5 w-5" aria-hidden="true" />
               )}
@@ -291,7 +291,7 @@ export function PlateSearchHero({ lang }: PlateSearchHeroProps) {
               <button
                 type="button"
                 onClick={handleClear}
-                className="me-1 flex h-11 w-11 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-200 flex-shrink-0"
+                className="me-1 flex h-11 w-11 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-qatar dark:hover:bg-slate-800 dark:hover:text-qatar-300 flex-shrink-0"
                 aria-label={t.clearInput}
               >
                 <X className="h-4 w-4" aria-hidden="true" />
@@ -348,7 +348,7 @@ export function PlateSearchHero({ lang }: PlateSearchHeroProps) {
             className="flex h-11 items-center gap-2 rounded-control border border-slate-200 bg-white px-4 text-xs font-bold text-slate-700 shadow-soft transition-all duration-200 hover:border-slate-300 hover:text-qatar hover:shadow-card dark:border-slate-800 dark:bg-surface-card dark:text-slate-200 dark:hover:border-slate-700"
             title={lang === "ar" ? "مسح اللوحة بالكاميرا" : "Scan plate with camera"}
           >
-            <Camera className="h-4 w-4 text-[#8a1538] dark:text-rose-400" />
+            <Camera className="h-4 w-4 text-qatar dark:text-qatar-300" />
             <span>{lang === "ar" ? "مسح بالكاميرا" : "Scan Plate"}</span>
           </button>
         </div>
@@ -364,7 +364,7 @@ export function PlateSearchHero({ lang }: PlateSearchHeroProps) {
               <button
                 type="button"
                 onClick={clearRecentSearches}
-                className="rounded-lg px-2 py-1 text-caption font-bold text-slate-500 transition hover:text-qatar dark:text-zinc-500 dark:hover:text-rose-400"
+                className="rounded-lg px-2 py-1 text-caption font-bold text-slate-500 transition hover:text-qatar dark:text-zinc-500 dark:hover:text-qatar-300"
               >
                 {lang === "ar" ? "مسح" : "Clear"}
               </button>
@@ -379,7 +379,7 @@ export function PlateSearchHero({ lang }: PlateSearchHeroProps) {
                     setQuery(item.q);
                     handleSearch(item.q);
                   }}
-                  className="group flex min-h-[44px] items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3.5 text-xs font-bold text-slate-700 shadow-sm transition hover:border-qatar/40 hover:text-qatar dark:border-zinc-800 dark:bg-surface-card dark:text-zinc-200 dark:hover:border-rose-500/40"
+                  className="group flex min-h-[44px] items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3.5 text-xs font-bold text-slate-700 shadow-sm transition hover:border-qatar/40 hover:text-qatar dark:border-zinc-800 dark:bg-surface-card dark:text-zinc-200 dark:hover:border-qatar-400/40 dark:hover:text-qatar-300"
                 >
                   <Search className="h-3.5 w-3.5 text-slate-400 transition group-hover:text-qatar dark:text-zinc-500" aria-hidden="true" />
                   <span className="font-mono">{item.plate ?? item.q}</span>
@@ -412,6 +412,25 @@ export function PlateSearchHero({ lang }: PlateSearchHeroProps) {
         </AnimatePresence>
       </div>
 
+      {/* Screen-reader announcement of the search outcome (results are also rendered below). */}
+      <span className="sr-only" role="status" aria-live="polite">
+        {isLoading
+          ? t.searching
+          : hasSearched
+          ? results.length === 1
+            ? lang === "ar"
+              ? "تم العثور على سيارة واحدة مطابقة"
+              : "One matching vehicle found"
+            : results.length > 1
+            ? lang === "ar"
+              ? `تم العثور على ${results.length} سيارات مطابقة`
+              : `${results.length} matching vehicles found`
+            : lang === "ar"
+            ? "لا توجد نتائج مطابقة"
+            : "No matching vehicles found"
+          : ""}
+      </span>
+
       {/* Results Area with Motion Continuity */}
       <div className="mt-6 space-y-4">
         {/* No match — point at the department route instead of a dead end */}
@@ -429,24 +448,25 @@ export function PlateSearchHero({ lang }: PlateSearchHeroProps) {
 
             <div className="mt-2.5 divide-y divide-amber-200/60 dark:divide-amber-900/40">
               {results.map((v) => (
-                <div
+                <button
                   key={v.vehicle_id}
+                  type="button"
                   onClick={() => setSelectedVehicle(v)}
-                  className="flex cursor-pointer items-center justify-between py-2.5 px-2 rounded-xl transition hover:bg-amber-100/50"
+                  className="flex w-full cursor-pointer items-center justify-between gap-2 rounded-xl px-2 py-2.5 text-start transition hover:bg-amber-100/50 focus-visible:outline-2 focus-visible:outline-qatar"
                 >
-                  <div className="flex items-center gap-3">
+                  <span className="flex min-w-0 items-center gap-3">
                     <span className="font-mono text-base font-black text-slate-950 dark:text-white">
                       {v.plate_number}
                     </span>
-                    <span className="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300">
+                    <span className="truncate text-xs font-semibold text-slate-700 dark:text-slate-300 sm:text-sm">
                       {v.make} {v.model} ({v.color})
                     </span>
-                  </div>
-                  <button className="flex items-center gap-1 text-xs font-bold text-[#8a1538] dark:text-rose-400">
+                  </span>
+                  <span className="flex shrink-0 items-center gap-1 text-xs font-bold text-qatar dark:text-qatar-300">
                     <span>{lang === "ar" ? "اختيار" : "Select"}</span>
-                    <ArrowRight className="h-3.5 w-3.5" />
-                  </button>
-                </div>
+                    <ArrowRight className="h-3.5 w-3.5 rtl:rotate-180" />
+                  </span>
+                </button>
               ))}
             </div>
           </div>

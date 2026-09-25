@@ -311,6 +311,22 @@ body {
   padding-top: max(0.5rem, env(safe-area-inset-top));
 }
 
+/* Horizontal scroll strips with the scrollbar hidden (tab rows, chip rails).
+   Scrolling stays available via touch/wheel; only the visual bar is removed. */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Pill radius used by status chips and filters (matches --radius-pill). */
+.rounded-pill {
+  border-radius: 9999px;
+}
+
 /* Tabular Numerals for KPIs, Plate, and Timers */
 .tabular-nums {
   font-variant-numeric: tabular-nums;

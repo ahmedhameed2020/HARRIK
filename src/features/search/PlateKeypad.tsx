@@ -53,7 +53,7 @@ export function PlateKeypad({
           onClick={toggleNumeralMode}
           className="harrik-btn-secondary inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-bold text-slate-700 dark:text-slate-200 shadow-sm"
         >
-          <Globe className="h-3.5 w-3.5 text-harrik-maroon-700 dark:text-rose-400" />
+          <Globe className="h-3.5 w-3.5 text-qatar dark:text-qatar-300" />
           <span>{numeralMode === "western" ? L("أرقام عربية (١٢٣)", "Arabic digits (١٢٣)") : L("English (123)", "English (123)")}</span>
         </button>
 
@@ -137,7 +137,7 @@ export function PlateKeypad({
             triggerHaptic("medium");
             onSearch();
           }}
-          className="mt-2.5 w-full flex min-h-[48px] h-12 items-center justify-center gap-2 rounded-[16px] bg-[#8a1538] hover:bg-[#70112e] text-white font-bold text-sm shadow-md transition-colors"
+          className="mt-2.5 w-full flex min-h-[48px] h-12 items-center justify-center gap-2 rounded-[16px] bg-qatar hover:bg-qatar-900 text-white font-bold text-sm shadow-md transition-colors"
         >
           <Search className="h-4 w-4" />
           <span>{L("بحث عن المركبة", "Find vehicle")}</span>

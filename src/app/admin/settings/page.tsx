@@ -268,8 +268,13 @@ export default function SettingsPage() {
     }
   };
 
+  // Intentionally runs once on mount: this is the initial load. `fetchSettings`
+  // reads `lang` (through L) for error copy, but re-fetching — and thereby
+  // clobbering unsaved edits — when the operator switches language would be a
+  // regression, not a fix.
   useEffect(() => {
     fetchSettings();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleSelectPreset = (preset: EntityPreset) => {

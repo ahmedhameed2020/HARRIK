@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Camera, X, Zap, RefreshCw, Upload, Check, AlertCircle } from "lucide-react";
 import { normalizePlateNumber } from "@/lib/plate-normalizer";
 import { triggerHaptic } from "@/lib/haptics";
@@ -31,7 +31,7 @@ export function CameraPlateScanner({
   const [hasTorch, setHasTorch] = useState(false);
 
   // Start Camera
-  const startCamera = async () => {
+  const startCamera = useCallback(async () => {
     setErrorMessage(null);
     setHasPermission(null);
 
@@ -78,10 +78,10 @@ export function CameraPlateScanner({
           : "Could not access camera. Please allow camera access or upload an image."
       );
     }
-  };
+  }, [lang]);
 
   // Stop Camera
-  const stopCamera = () => {
+  const stopCamera = useCallback(() => {
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
@@ -90,7 +90,7 @@ export function CameraPlateScanner({
       videoRef.current.srcObject = null;
     }
     setTorchOn(false);
-  };
+  }, []);
 
   useEffect(() => {
     if (isOpen) {
@@ -101,7 +101,7 @@ export function CameraPlateScanner({
     return () => {
       stopCamera();
     };
-  }, [isOpen]);
+  }, [isOpen, startCamera, stopCamera]);
 
   // Toggle Torch
   const toggleTorch = async () => {
