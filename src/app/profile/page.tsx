@@ -305,8 +305,13 @@ export default function ProfilePage() {
     }
   };
 
+  // Intentionally runs once on mount: this is the initial load. `fetchProfileData`
+  // reads `lang` (through L) for error copy, but re-fetching — and thereby
+  // discarding unsaved edits — when the user switches language would be a
+  // regression, not a fix.
   useEffect(() => {
     fetchProfileData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Save profile updates (phone, language)

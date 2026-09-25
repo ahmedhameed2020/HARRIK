@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
   UserCheck,
   Plus,
@@ -71,7 +71,7 @@ export default function AdminVisitorsPage() {
   // Selected Pass for Print/Share
   const [selectedPass, setSelectedPass] = useState<VisitorPass | null>(null);
 
-  const fetchPasses = async () => {
+  const fetchPasses = useCallback(async () => {
     setIsLoading(true);
     try {
       const res = await fetch(`/api/visitors?status=${activeTab}&q=${encodeURIComponent(searchQuery)}`);
@@ -84,11 +84,11 @@ export default function AdminVisitorsPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [activeTab, searchQuery]);
 
   useEffect(() => {
     fetchPasses();
-  }, [activeTab, searchQuery]);
+  }, [fetchPasses]);
 
   // Statistics
   const stats = useMemo(() => {

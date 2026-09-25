@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useCallback, useState, useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
 import { Search, X, Camera, Loader2, Car, AlertCircle, ArrowRight, History } from "lucide-react";
 import { motion, AnimatePresence, useReducedMotion } from "motion/react";
@@ -94,12 +94,12 @@ export function PlateSearchHero({ lang }: PlateSearchHeroProps) {
   }, []);
 
   /** Keeps the device-local lookup history (newest first, de-duplicated). */
-  const rememberSearch = (q: string, plate?: string) => {
+  const rememberSearch = useCallback((q: string, plate?: string) => {
     const entry: RecentSearch = { q, plate };
     const next = [entry, ...readRecentSearches().filter((item) => item.q !== q)].slice(0, RECENT_MAX);
     writeRecentSearches(next);
     setRecentSearches(next);
-  };
+  }, []);
 
   const clearRecentSearches = () => {
     triggerHaptic("light");
@@ -108,7 +108,7 @@ export function PlateSearchHero({ lang }: PlateSearchHeroProps) {
   };
 
   // Perform plate lookup (network lookup begins immediately)
-  const handleSearch = async (overrideQuery?: string) => {
+  const handleSearch = useCallback(async (overrideQuery?: string) => {
     const q = overrideQuery !== undefined ? overrideQuery : query;
     const clean = q.trim();
 
@@ -159,7 +159,7 @@ export function PlateSearchHero({ lang }: PlateSearchHeroProps) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [rememberSearch, query]);
 
   // Debounced auto-search when query reaches >= 3 digits
   useEffect(() => {
@@ -179,7 +179,7 @@ export function PlateSearchHero({ lang }: PlateSearchHeroProps) {
         clearTimeout(debounceTimerRef.current);
       }
     };
-  }, [query, minDigits]);
+  }, [query, minDigits, handleSearch]);
 
   const handleClear = () => {
     triggerHaptic("light");

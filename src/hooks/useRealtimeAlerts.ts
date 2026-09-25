@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { ParkingAlert } from "@/types";
 import {
@@ -38,7 +38,7 @@ export function useRealtimeAlerts(options: UseRealtimeAlertsOptions = {}) {
   );
 
   // Function to query active count
-  const fetchActiveCount = async () => {
+  const fetchActiveCount = useCallback(async () => {
     try {
       const supabase = supabaseRef.current;
       let query = supabase
@@ -57,7 +57,7 @@ export function useRealtimeAlerts(options: UseRealtimeAlertsOptions = {}) {
     } catch {
       // Ignored
     }
-  };
+  }, [organizationId]);
 
   useEffect(() => {
     if (!enabled) return;
@@ -127,7 +127,7 @@ export function useRealtimeAlerts(options: UseRealtimeAlertsOptions = {}) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [organizationId, enableNotifications, enabled]);
+  }, [organizationId, enableNotifications, enabled, fetchActiveCount]);
 
   return {
     activeCount,
